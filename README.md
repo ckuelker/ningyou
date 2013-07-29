@@ -5,13 +5,13 @@ clear reproducible system administration
 
 ## WARNING
 
- //=========================================================================\\
- || This software is in ALPHA state, not tested and contains many bugs. You ||
- || are encouraged to help and report them. However be aware, that this     ||
- || software is intended to run as root and as such it can DAMAGE your      ||
- || system. You may experience the LOSS OF DATA. You are using the software ||
- || at your own risk! Please read also statements below.                    ||
- \\=========================================================================//
+    //=======================================================================\\
+    || This software is in ALPHA state, not tested and contains many bugs.   ||
+    || You are encouraged to help and report them. However be aware, that    ||
+    || this software is intended to run as root and as such it can DAMAGE    ||
+    || your system. You may experience the LOSS OF DATA. You are using the   ||
+    || software at your own risk! Please read also statements below.         ||
+    \\=======================================================================//
 
 ## INSTALLATION
 
