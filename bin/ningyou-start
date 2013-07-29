@@ -1,0 +1,84 @@
+#!/usr/bin/env perl -CSDA
+use strict;
+use Ningyou;
+use Ningyou::Options;
+use warnings;
+
+my $no = Ningyou::Options->new();
+my $n = Ningyou->new( options => $no->get_options );
+$n->run();
+
+=pod
+
+=head1 NAME
+
+ningyou
+
+=head1 USAGE
+
+ ningyou [OPTIONS]
+
+=head1 OPTIONS
+
+ ningyou --help
+ ningyou --man
+ ningyou --version
+ ningyou --[c <FILE>|debug [FILE]|mode <MODUS>|scope [SCOPE]|script]
+
+Example:
+
+ ningyou                      : runs default configuration in dryrun mode
+ ningyou --script --scope     : prints out the current action
+ ningyou --script --scope all : prints out possible all acctions
+                                (good for cloning the deployment)
+ ningyou -c /etc/ningyou2     : specifies alternative configuration
+ ningyou --modus interactive  : executes action and ask IF needed
+ ningyou --modus production   : executes action automatically
+
+ ningyou --srcipt=/tmp/base-install.sh --scope all
+
+Also --modus and --scope can be combined!
+
+=head2 --configuration <FILE> |-c <FILE>
+
+Example:
+
+ -c /home/c/g/ningyou/debian-wheezy
+
+=head2 --debug [FILE]
+
+Example:
+
+  --debug /var/log/ningyou.log
+
+=head2 --help
+
+This page
+
+=head2 --mode <MODUS>
+
+ --mode test          - apply actions interactive
+ --mode production    - apply all actions automatically
+ --mode dryrun        - do nothing (default)
+
+=head2 --quite
+
+=head2 --scope [SCOPE]
+
+ --scope
+ --scope current
+ --scope all
+
+=head2 --script
+
+print outs a script of actions
+
+=head2 --version
+
+=head1 BUGS
+
+- Verbose on by default is a bug. However you can use --quite
+
+- Mode is dryrun by default. Mode should be production.
+
+=cut
