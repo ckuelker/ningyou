@@ -77,7 +77,7 @@ print outs a script of actions
 
 =head1 BUGS
 
-- Verbose on by default is a bug. However you can use --quite
+- Some output on by default is a 'feature'. However you can use --quite
 
 - Mode is dryrun by default. Mode should be production.
 
