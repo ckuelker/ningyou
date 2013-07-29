@@ -1,0 +1,12 @@
+#!/bin/bash
+
+NINGYOU_START=`which ningyou-start`
+
+if [ -z "$NINGYOU_START" ]; then
+   echo "Can not find ningyou-start, please add to PATH."
+   exit 1
+else
+    perl -CDSA $NINGYOU_START $@
+fi
+
+exit 0;
