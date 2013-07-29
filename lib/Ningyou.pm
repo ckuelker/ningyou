@@ -725,7 +725,6 @@ sub read_ini {
 1;
 __END__
 
-
 =pod
 
 =head1 NAME
@@ -733,8 +732,6 @@ __END__
 Ningyou
 
 =head1 DEPENDENCIES
-
-
 
 =head2 DEIBIAN WHEEZY
 
@@ -744,7 +741,4 @@ libmoose-perl
 libcapture-tiny-perl
 libconfig-ini-perl
 
-
 =cut
-
-
