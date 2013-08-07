@@ -29,3 +29,12 @@ sub d {
     }
 }
 1;
+__END__
+
+=pod
+
+=head1 NAME
+
+Ningyou::Debug - prints debug to STDOUT or file
+
+=cut
