@@ -531,11 +531,21 @@ sub queue_add {
 sub store {
 
     #        pr=object_type, iv=id_value
+    #        pr=chown      , iv=/home/c/.zshrc
     #        file           /tmp/c    vim      src
     my ( $s, $pr, $iv ) = @_;
-    my $mo = $r->{$pr}->{$iv}->{class};
+    my $mo
+        = exists $r->{$pr}->{$iv}->{class}
+        ? $r->{$pr}->{$iv}->{class}
+        : die "no pr [$pr], iv [$iv]";
 
     $s->v("      store [$iv] via [$pr] for [$mo]\n");
+    die "Forget to add [$pr] to [provider] in ningyou.ini?\n"
+        if not exists $provider->{$pr};
+
+    # This should not be needed:
+    #    eval "use $provider->{$pr}";
+    #    die $@ if defined $@ and $@;
     my $np  = $provider->{$pr}->new();
     my $cmd = $np->install(
         {
