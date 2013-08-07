@@ -45,7 +45,7 @@ sub install {
     my $o  = $s->get_options;
 
     my @cmd = ();
-    my $u = Ningyou::Util->new( { options => } );
+    my $u = Ningyou::Util->new( {} );
 
     my $so = $u->source_to_fqfn(
         { module => $mo, worktree => $wt, source => $c->{'source'} } );
