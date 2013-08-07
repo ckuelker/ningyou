@@ -24,3 +24,11 @@ sub cmd {
 1;
 __END__
 
+=pod
+
+=head1 NAME
+
+Ningou::Cmd - Execute external commands
+
+
+=cut
