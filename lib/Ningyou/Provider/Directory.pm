@@ -97,3 +97,13 @@ sub installed {    # alias for "action needed"
 
 1;
 __END__
+
+=pod
+
+=head1 NAME
+
+Ningyou::Provider::Cpan - handle directories
+
+=cut
+
+
