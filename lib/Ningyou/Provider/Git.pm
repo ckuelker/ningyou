@@ -55,3 +55,13 @@ sub installed {
 
 1;
 __END__
+
+=pod
+
+=head1 NAME
+
+Ningyou::Provider::Git  - handle git repositories
+
+=cut
+
+
