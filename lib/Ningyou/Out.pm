@@ -27,3 +27,13 @@ sub o {
     print $i if not exists $o->{quite};
 }
 1;
+__END__
+
+=pod
+
+=head1 NAME
+
+Ningyou::Out - prints to STDOUT and/or debug files
+
+=cut
+
