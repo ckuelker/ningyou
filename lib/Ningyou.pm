@@ -397,12 +397,7 @@ sub validate {
                     if ( exists $r->{$pr}->{$iv}->{ensure}
                         and $r->{$pr}->{$iv}->{ensure} ne 'removed' )
                     {
-                        $s->v(
-                            "    in addition we will: chwon, chgrp and chmod\n"
-                        );
-                        $s->store( 'chown', $iv );    # user
-                        $s->store( 'chgrp', $iv );    # group
-                        $s->store( 'chmod', $iv );    # mode
+                        $s->v("    allready done by provider\n");
                     }
                     else {
                         $s->v(
