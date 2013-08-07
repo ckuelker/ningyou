@@ -74,3 +74,13 @@ sub installed {
 
 1;
 __END__
+
+=pod
+
+=head1 NAME
+
+Ningyou::Provider::Package - handle software packages
+
+=cut
+
+
