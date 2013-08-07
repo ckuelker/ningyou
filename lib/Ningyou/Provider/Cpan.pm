@@ -103,6 +103,16 @@ sub installed {
 
     # INSTALL check
     my $p = $c->{provide};
+    if ( exists $c->{version} ) {
+        $s->v("    check version $c->{version}");
+        my $cmd = 'use ' . $p . '; print $' . $p . '::VERSION ."\n"';
+        my $v   = qx( perl -e '$cmd');
+        chomp $v;
+        $s->v("    got version $v");
+        return 1 if $v eq $c->{version};
+        return 0;
+    }
+
     eval { system(qq{perl -e 'require $p;' > /dev/null 2>&1}); };
     my $e = defined $? ? $? : 0;
 
