@@ -63,6 +63,6 @@ __END__
 
 =head1 NAME
 
-Ningyou::CUI -  Ningyou Command-Line User Interface
+Ningyou::Options -  Ningyou Command-Line User Interface
 
 =cut
