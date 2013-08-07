@@ -83,3 +83,12 @@ sub get_facts {
 1;
 
 __END__
+
+=pod
+
+=head1 NAME
+
+Ningyou::Util - aux. utils for Ningyou
+
+=cut
+
