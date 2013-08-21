@@ -1,12 +1,12 @@
 package Ningyou;
 
-# ABSTRACT: clear reproducable system administration
+# ABSTRACT: clear reproducible system administration
 
 use utf8;                        # so literals and identifiers can be in UTF-8
 use v5.12;                       # or later to get "unicode_strings" feature
 use strict;                      # quote strings, declare variables
 use warnings;                    # on by default
-use warnings qw(FATAL utf8);     # fatalize encoding glitches
+use warnings qw(FATAL utf8);     # make encoding glitches fatal
 use open qw(:std :utf8);         # undeclared streams in UTF-8
 use charnames qw(:full :short);  # unneeded in v5.16
 
@@ -47,7 +47,7 @@ my $info       = {};            # current object information
 my $cache      = {};
 my $flags      = q{};           # TODO make command line to set it to -y
 my $cfg_fn     = q{};
-my $wt         = '/dev/null';   # worktree
+my $wt         = '/dev/null';   # work tree
 my $cfg        = {};            # global cfg space
 my $pkg        = {};            # pkg from cfg that should be installed or not
 my $repository = 'none';
@@ -439,7 +439,7 @@ sub should_be_installed {
     return 1 if ( exists $pkg->{$mo} );
     $pkg->{$mo} = 0;
 
-    # if should be istalled globally: [packages]
+    # if should be installed globally: [packages]
     $pkg->{$mo}++
         if ( exists $cfg->{packages}->{$mo}
         and $cfg->{packages}->{$mo} );
@@ -625,7 +625,7 @@ sub all_require_ok {
 }
 
 # Decides the question if a dependency via the 'require' field
-# is already fullfilled
+# is already fulfilled
 sub require_ok {
     my ( $s, $pr, $iv ) = @_;
     die "ERROR: require_ok needs pr argument" if not defined $pr;
