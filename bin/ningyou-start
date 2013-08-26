@@ -34,8 +34,8 @@ Example:
  ningyou --script --scope all : prints out possible all acctions
                                 (good for cloning the deployment)
  ningyou -c /etc/ningyou2     : specifies alternative configuration
- ningyou --mode  interactive  : executes action and ask IF needed
- ningyou --mode production   : executes action automatically
+ ningyou --mode interactive   : executes action and ask IF needed
+ ningyou --mode production    : executes action automatically
 
  ningyou --srcipt=/tmp/base-install.sh --scope all
 
