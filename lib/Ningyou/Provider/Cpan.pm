@@ -106,9 +106,9 @@ sub installed {
     my $p = $c->{provide};
     if ( exists $c->{version} ) {
         $s->v("    check version $c->{version}");
-        my $cmd = 'use ' . $p . '; print $' . $p . '::VERSION ."\n"';
+        my $cmd = 'eval "require ' . $p . '" and print ' . $p . '->VERSION';
         $s->v("    cmd [perl -e '$cmd']");
-        my $v   = qx( perl -e '$cmd');
+        my $v   = qx( perl -le '$cmd');
         chomp $v;
         $s->v("    got version [$v]");
         return 1 if $v eq $c->{version};
