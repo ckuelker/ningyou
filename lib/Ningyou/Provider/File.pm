@@ -8,11 +8,12 @@ use namespace::autoclean;
 
 with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
 
-# FORMAT
+# FORMAT MANDATORY
 # [file:/path/to/file]
-#     owner = root
+#     source   = ningyou:///modules/kvm-smtp-cipworx-org/qemu
+# FORMAT OPTIONALLY
+#     owner   = root
 #     group = root
-#
 
 has 'options' => (
     is      => 'rw',
@@ -56,16 +57,11 @@ sub install {
         ? $u->source_to_fqfn(
         { module => $mo, worktree => $wt, source => $c->{source} } )
         : 0;
-    $s->d("so [$so]");
+    $s->d("source [$so]");
 
     if ( -e $iv and $en eq 'removed' ) {
         $s->v("$id file [$iv] exist and it should be removed");
         $cmd = "rm $iv";
-    }
-    elsif ( not -e $iv and $en eq 'latest' ) {
-        $s->v("$id file [$iv] do NOT exist and it should be copied");
-        $cmd
-            = "cp $so $iv && chmod $md $iv && chown $ow $iv && chgrp $gr $iv";
     }
     elsif ( -e $iv
         and $cs
@@ -77,8 +73,14 @@ sub install {
             = "cp $so $iv && chmod $md $iv && chown $ow $iv && chgrp $gr $iv";
     }
     elsif ( not -e $iv and not $so ) {
-        $s->v("$id file [$iv] do exist and it should be created\n");
+        $s->v("$id file [$iv] do exist and it should be created without source\n");
         $cmd = "touch $iv";
+    }
+    #elsif ( not -e $iv and $en eq 'latest' ) {
+    elsif ( not -e $iv ) {
+        $s->v("$id file [$iv] do NOT exist and it should be copied");
+        $cmd
+            = "cp $so $iv && chmod $md $iv && chown $ow $iv && chgrp $gr $iv";
     }
     elsif ( $cs and not $so ) {
         my $m
