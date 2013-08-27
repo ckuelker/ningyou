@@ -271,7 +271,7 @@ sub query {
         "A query starts, to see what is already provided and what not ...\n");
 
     foreach my $pr ( sort keys %{$r} ) {    #pr = provider
-        $s->v("  examine providor [$pr] ...\n");
+        $s->v("  examine provider [$pr] ...\n");
         my $m
             = "ERROR: provider [$pr] not supported!\n"
             . "Please install the provider Ningyou::Provider::"
