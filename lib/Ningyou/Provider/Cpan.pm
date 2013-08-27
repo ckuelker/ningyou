@@ -107,9 +107,10 @@ sub installed {
     if ( exists $c->{version} ) {
         $s->v("    check version $c->{version}");
         my $cmd = 'use ' . $p . '; print $' . $p . '::VERSION ."\n"';
+        $s->v("    cmd [perl -e '$cmd']");
         my $v   = qx( perl -e '$cmd');
         chomp $v;
-        $s->v("    got version $v");
+        $s->v("    got version [$v]");
         return 1 if $v eq $c->{version};
         return 0;
     }
