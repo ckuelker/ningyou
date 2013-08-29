@@ -88,9 +88,10 @@ sub get_facts {
             use Ningyou::Cmd;
             my $nc = Ningyou::Cmd->new;
 
-            my ( $out, $err, $res ) = $nc->cmd('/usr/bin/facter');
-            my @out = split /\n/, $out;
+            my @out = qx(/usr/bin/facter);
             foreach my $o (@out) {
+                chomp $o;
+                $s->d("facter [$o]\n");
                 my ( $key, $value ) = split /\s+=>\s+/, $o;
                 $x->{$key} = $value;
             }
