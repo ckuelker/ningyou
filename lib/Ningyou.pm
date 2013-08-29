@@ -60,6 +60,9 @@ sub run {
     my $u = Ningyou::Util->new;
     $f     = $u->get_facts;
     $o     = $s->get_options;
+    $ident = $o->{identation}
+        if exists $o->{identation} and defined $o->{identation};
+    $of = q{ } x $ident;
     $flags = ' -y ' if $o->{mode} eq 'production';
     $s->o( $of . "=" x ( 78 - $ident ) . "\n" );
     $s->o( $of . "Ningyou v$VERSION for [$f->{fqdn}]\n" );
@@ -70,7 +73,6 @@ sub run {
     $s->o( $of . "  use master configuration: $cfg_fn\n" );
     $s->o( $of . "  use mode: $o->{mode}\n" );
     $s->o( $of . "  use module: $o->{module}\n" ) if exists $o->{module};
-    $s->v( $of . "  use scope: $o->{scope}\n" );
     $cfg = $s->get_or_setup_cfg($cfg_fn);
 
     if ( exists $cfg->{status}->{packages}
@@ -86,7 +88,7 @@ sub run {
     my $dot = q{ } . '.' x 70;
 
     my @modules = ();
-    if ( exists $o->{module} ) {
+    if ( exists $o->{module} and $o->{module} ne 'all' ) {
         push @modules, $o->{module};
     }
     else {
@@ -119,7 +121,7 @@ sub run {
     my $cmd_cnt = scalar @str;
 
     if ( not $o->{quite} ) {
-        $s->o( $of . "=" x ( 78 - $ident ) . "[$z]\n" ) if $z > 1;
+        $s->o( $of . "=" x ( 78 - $ident ) . "\n" ) if defined $z and $z > 1;
         $s->o( $of . "Results:\n" );
         $s->v("$of  complexity: $complexity\n");
         $s->v("$of  commands:   $cmd_cnt\n");
@@ -269,7 +271,8 @@ sub ask_to_create_worktree {
 sub query {
     my ( $s, $i ) = @_;
     my $z = 0;
-    return if $o->{scope} eq 'all';
+    return if $o->{mode} eq 'full-show';
+    return if $o->{mode} eq 'full-script';
     $s->v(
         "A query starts, to see what is already provided and what not ...\n");
 
@@ -426,8 +429,10 @@ sub validate {
                     $info->{$pr}->{$iv}->{planned} = 1;
                 }
                 else {
+
+# Why $so is not defined? $s->v( "    no, dependency not met or is allready provided for [$iv] to [$so] as [$pr]\n"
                     $s->v(
-                        "    no, dependency not met or is allready provided for [$iv] to [$so] as [$pr]\n"
+                        "    no, dependency not met or is allready provided for [$iv] to [?] as [$pr]\n"
                     );
 
                 }
@@ -464,14 +469,15 @@ sub action {
     my ( $s, $complexity ) = @_;
 
     $s->d( Dumper($str) );
-    if ( $o->{script} ) {
-        $s->o("#\!/bin/sh\n");
-        $s->o("# Ningyou v$VERSION action script\n");
-        $s->o("# for [$f->{fqdn}] as [$repository]\n");
+    if ( $o->{mode} eq 'script' ) {
+        $s->o("$of#\!/bin/sh\n");
+        $s->o("$of# Ningyou v$VERSION action script\n");
+        $s->o("$of# for [$f->{fqdn}] as [$repository]\n");
         my $cmd_cnt = scalar @str;
-        $s->o("# commands: $cmd_cnt\n");
+        $s->o("$of# commands: $cmd_cnt\n");
+        $s->o($of."export WT=$wt\n");
         if ( $complexity == 0 ) {
-            $s->o("# nothing to do (already done)\n");
+            $s->o("$of# nothing to do (already done)\n");
         }
     }
     else {
@@ -479,7 +485,7 @@ sub action {
             $s->o("$of Ningyou is already up-to-date.\n");
         }
         else {
-            if ( $o->{mode} ne 'dryrun' ) {
+            if ( exists $o->{install} and $o->{install} ) {
                 $s->o("$of  the following commands will be executed:\n");
             }
             else {
@@ -491,15 +497,21 @@ sub action {
 
     foreach my $cmd (@str) {
         if (   $o->{mode} eq 'production'
-            or $o->{mode} eq 'interactive' )
+            or $o->{mode} eq 'install' )
         {
             $s->o("execute: [$cmd]\n");
             my $nilicm = Ningyou::Cmd->new();
             $nilicm->cmd($cmd);
         }
         else {
-            if ( $o->{script} ) {
-                $s->o("$cmd\n");
+            if ( $o->{mode} eq 'script' or $o->{mode} eq 'full-script' ) {
+	       if(not exists $o->{raw}){
+	       $cmd =~ s/^\s+//gmx;
+	       $cmd =~ s/^/$of/gmx;
+	       $cmd =~ s/$wt/\${WT}/gmx;
+	       $cmd =~ s/&&/&&\n$of/gmx;
+	       }
+               $s->o("$cmd\n");
             }
             else {
 
@@ -509,8 +521,8 @@ sub action {
         }
         $z++;
     }
-    if ( $o->{script} ) {
-        $s->o("# EOS - end of script\n");
+    if ( $o->{mode} eq 'script' or $o->{mode} eq 'full-script' ) {
+        $s->o("$of# EOS - end of script\n");
     }
 
 }
