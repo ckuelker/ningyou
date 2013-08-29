@@ -70,7 +70,7 @@ sub run {
     $s->o( $of . "  use master configuration: $cfg_fn\n" );
     $s->o( $of . "  use mode: $o->{mode}\n" );
     $s->o( $of . "  use module: $o->{module}\n" ) if exists $o->{module};
-    $s->o( $of . "  use scope: $o->{scope}\n" );
+    $s->v( $of . "  use scope: $o->{scope}\n" );
     $cfg = $s->get_or_setup_cfg($cfg_fn);
 
     if ( exists $cfg->{status}->{packages}
@@ -173,7 +173,7 @@ sub get_worktree {
     my $m  = "ERROR: '$r' is not mentioned in section [$se]!\n";
     $m .= "Please add repository to ningyou.ini\n";
     my $wt = exists $c->{$se}->{$r} ? $c->{$se}->{$r} : die $m;
-    $s->o("$of  use worktree: $wt\n") if not $o->{quite};
+    $s->v("$of  use worktree: $wt\n") if not $o->{quite};
 
     return $wt;
 }
