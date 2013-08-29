@@ -84,7 +84,7 @@ sub run {
 
     $s->o( $of . "=" x ( 78 - $ident ) . "\n" );
     my $consider = "Modules considering for processing:"
-        . " (switch on/off via nodes/ningyou.ini)\n";
+        . " (switch on/off via ningyou.ini)\n";
     $s->o( $of . $consider );
 
     my $dot = q{ } . '.' x 70;
