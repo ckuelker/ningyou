@@ -482,7 +482,7 @@ sub action {
     }
     else {
         if ( $complexity == 0 ) {
-            $s->o("$of Ningyou is already up-to-date.\n");
+            $s->o("$of  Ningyou is already up-to-date.\n");
         }
         else {
             if ( exists $o->{install} and $o->{install} ) {
