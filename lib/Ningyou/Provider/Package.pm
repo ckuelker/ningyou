@@ -57,7 +57,7 @@ sub install {
     my $mo  = $c->{class};
     my $cmd = "aptitude $fl install $iv";
 
-    return $cmd;
+    return "# $mo\n".$cmd;
 }
 
 sub installed {
