@@ -51,8 +51,9 @@ sub install {
     my $so = $u->source_to_fqfn(
         { module => $mo, worktree => $wt, source => $c->{'source'} } );
     $s->d("$id so [$so]");
-    if ( exists $c->{'perl5lib-env'} and -e $c->{'perl5lib-env'} ) {
-        push @cmd, "source " . $c->{'perl5lib-env'} . "&&";
+    my $env = q{};
+    if ( exists $c->{'perl5lib'} ) {
+        $env = "PERL5LIB=$c->{'perl5lib'}:\$PERL5LIB";
     }
 
     if ( defined $so and -d $so ) {
@@ -73,14 +74,15 @@ sub install {
         die $m;
     }
     if ( $c->{'method'} eq 'build-pl' ) {
-        my $c = "perl Build.PL&&./Build build&&./Build test&&./Build install";
+        my $c
+            = "perl Build.PL&&./Build build&&./Build test&&$env ./Build install";
         push @cmd, $c;
     }
     elsif ( $c->{'method'} eq 'dzil' ) {
-        push @cmd, "dzil install $so";
+        push @cmd, "$env dzil install $so";
     }
     else {
-        push @cmd, "perl Makefile.PL&&make&&make test&&make install";
+        push @cmd, "perl Makefile.PL&&make&&make test&&$env make install";
     }
 
     my $cmd = join q{&&}, @cmd;
@@ -104,23 +106,26 @@ sub installed {
     }
 
     # INSTALL check
-    my $env = exists $c->{environment} ? "source $c->{environment}" : q{};
+    my $inc = exists $c->{include} ? " -I " . $c->{include} : q{};
     my $p = $c->{provide};
     if ( exists $c->{version} ) {
         $s->v("    check version $c->{version}");
-        my $cmd = 'eval "require ' . $p . '" and print ' . $p . '->VERSION';
-        $s->v("    cmd [$env perl -e '$cmd']");
-        my $v   = qx($env perl -le '$cmd');
+        my $cmd = "eval \"require $p\" and print $p" . '->VERSION;';
+        $s->v("    cmd [perl $inc -le '$cmd'");
+        my $v = qx(perl $inc -le '$cmd');
         chomp $v;
         $s->v("    got version [$v]");
+
         return 1 if $v eq $c->{version};
         return 0;
     }
+    else {
+        eval { system(qq{perl $inc -e 'require $p;' > /dev/null 2>&1}); };
+        my $e = defined $? ? $? : 0;
 
-    eval { system(qq{$env perl -e 'require $p;' > /dev/null 2>&1}); };
-    my $e = defined $? ? $? : 0;
-
-    return 1 if not $e;
+        return 1 if not $e;
+        return 0;
+    }
     return 0;
 }
 
