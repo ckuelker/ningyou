@@ -83,7 +83,9 @@ sub run {
     }
 
     $s->o( $of . "=" x ( 78 - $ident ) . "\n" );
-    $s->o( $of . "Modules considering for processing:\n" );
+    my $consider = "Modules considering for processing:"
+        . " (switch on/off via nodes/ningyou.ini)\n";
+    $s->o( $of . $consider );
 
     my $dot = q{ } . '.' x 70;
 
@@ -475,7 +477,7 @@ sub action {
         $s->o("$of# for [$f->{fqdn}] as [$repository]\n");
         my $cmd_cnt = scalar @str;
         $s->o("$of# commands: $cmd_cnt\n");
-        $s->o($of."export WT=$wt\n");
+        $s->o( $of . "export WT=$wt\n" );
         if ( $complexity == 0 ) {
             $s->o("$of# nothing to do (already done)\n");
         }
@@ -505,13 +507,13 @@ sub action {
         }
         else {
             if ( $o->{mode} eq 'script' or $o->{mode} eq 'full-script' ) {
-	       if(not exists $o->{raw}){
-	       $cmd =~ s/^\s+//gmx;
-	       $cmd =~ s/^/$of/gmx;
-	       $cmd =~ s/$wt/\${WT}/gmx;
-	       $cmd =~ s/&&/&&\n$of/gmx;
-	       }
-               $s->o("$cmd\n");
+                if ( not exists $o->{raw} ) {
+                    $cmd =~ s/^\s+//gmx;
+                    $cmd =~ s/^/$of/gmx;
+                    $cmd =~ s/$wt/\${WT}/gmx;
+                    $cmd =~ s/&&/&&\n$of/gmx;
+                }
+                $s->o("$cmd\n");
             }
             else {
 
