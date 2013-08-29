@@ -24,13 +24,31 @@ has 'options' => (
 
 sub process_options {
     my ( $s, $i ) = @_;
-
     my %opt = ();
+
+    $opt{mode}
+        = $ARGV[0] eq 'show'        ? 'show'
+        : $ARGV[0] eq 'full-show'   ? 'full-show'
+        : $ARGV[0] eq 'script'      ? 'script'
+        : $ARGV[0] eq 'full-script' ? 'full-script'
+        : $ARGV[0] eq 'install'     ? 'install'
+        : $ARGV[0] eq 'production'  ? 'production'
+        :                             'show';
+
+    $opt{module}
+        = ( not defined $ARGV[1] ) ? 'all'
+        : ( defined $ARGV[1] and $ARGV[1] eq 'all' ) ? 'all'
+        : defined $ARGV[1] ? $ARGV[1]
+        :                    'all';
+
     GetOptions(
-        \%opt,     'configuration|c=s', 'debug:s',  'help',
-        'man',     'mode=s',            'module=s', 'quite',
-        'scope:s', 'script',            'update',   'verbose',
-        'version',
+        \%opt,        'configuration|c=s',
+        'debug:s',    'help',
+        'identation', 'man',
+        'module=s',   'quite',
+        ,             'raw',
+        'script',     'update',
+        'verbose',    'version',
     );
 
     # --help
@@ -46,10 +64,7 @@ sub process_options {
     }
 
     # --scope --mode --configuration|-c
-    $opt{scope}  = 'current' if not defined $opt{scope};
-    $opt{scope}  = 'single'  if defined $opt{module};
-    $opt{mode}   = 'dryrun'  if not defined $opt{mode};
-    $opt{script} = 0         if not defined $opt{script};
+    $opt{identation} = 4 if not defined $opt{identation};
     $s->set_options( \%opt );
     return $s->get_options;
 }
