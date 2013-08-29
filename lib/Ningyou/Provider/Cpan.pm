@@ -52,19 +52,19 @@ sub install {
         { module => $mo, worktree => $wt, source => $c->{'source'} } );
     $s->d("$id so [$so]");
     if ( exists $c->{'perl5lib-env'} and -e $c->{'perl5lib-env'} ) {
-        push @cmd, "source " . $c->{'perl5lib-env'} . " && ";
+        push @cmd, "source " . $c->{'perl5lib-env'} . "&&";
     }
 
     if ( defined $so and -d $so ) {
-        push @cmd, "cd $so &&";
+        push @cmd, "cd $so&&";
     }
     elsif ( defined $so and -e $so ) {
         my $bn = basename( $so, ( '.tar.gz', '.tgz' ) );
         if ( exists $c->{tmpdir} ) {
-            push @cmd, "cd $c->{tmpdir} &&tar xvzf $so&&cd $bn &&";
+            push @cmd, "cd $c->{tmpdir}&&tar xvzf $so&&cd $bn";
         }
         else {
-            push @cmd, "cd /tmp&&tar xvzf $so&&cd $bn&&";
+            push @cmd, "cd /tmp&&tar xvzf $so&&cd $bn";
         }
     }
     elsif ( defined $so ) {
@@ -83,8 +83,9 @@ sub install {
         push @cmd, "perl Makefile.PL&&make&&make test&&make install";
     }
 
-    my $cmd = join q{ }, @cmd;
-    return $cmd;
+    my $cmd = join q{&&}, @cmd;
+
+    return "# $mo\n" . $cmd;
 }
 
 sub installed {
@@ -103,19 +104,20 @@ sub installed {
     }
 
     # INSTALL check
+    my $env = exists $c->{environment} ? "source $c->{environment}" : q{};
     my $p = $c->{provide};
     if ( exists $c->{version} ) {
         $s->v("    check version $c->{version}");
         my $cmd = 'eval "require ' . $p . '" and print ' . $p . '->VERSION';
-        $s->v("    cmd [perl -e '$cmd']");
-        my $v   = qx( perl -le '$cmd');
+        $s->v("    cmd [$env perl -e '$cmd']");
+        my $v   = qx($env perl -le '$cmd');
         chomp $v;
         $s->v("    got version [$v]");
         return 1 if $v eq $c->{version};
         return 0;
     }
 
-    eval { system(qq{perl -e 'require $p;' > /dev/null 2>&1}); };
+    eval { system(qq{$env perl -e 'require $p;' > /dev/null 2>&1}); };
     my $e = defined $? ? $? : 0;
 
     return 1 if not $e;
