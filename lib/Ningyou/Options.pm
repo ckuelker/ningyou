@@ -27,7 +27,8 @@ sub process_options {
     my %opt = ();
 
     $opt{mode}
-        = $ARGV[0] eq 'show'        ? 'show'
+        = ( not defined $ARGV[0] ) ? 'show'
+        : $ARGV[0] eq 'show'        ? 'show'
         : $ARGV[0] eq 'full-show'   ? 'full-show'
         : $ARGV[0] eq 'script'      ? 'script'
         : $ARGV[0] eq 'full-script' ? 'full-script'
