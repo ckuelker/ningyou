@@ -52,6 +52,8 @@ my $cfg        = {};            # global cfg space
 my $pkg        = {};            # pkg from cfg that should be installed or not
 my $repository = 'none';
 my $provider   = {};            # file, git, ...
+my $ident      = 4;
+my $of         = q{ } x $ident;
 
 sub run {
     my ( $s, $i ) = @_;
@@ -59,16 +61,16 @@ sub run {
     $f     = $u->get_facts;
     $o     = $s->get_options;
     $flags = ' -y ' if $o->{mode} eq 'production';
-    $s->o( "-" x 78 . "\n" );
-    $s->o("Ningyou v$VERSION for [$f->{fqdn}]\n");
+    $s->o( $of . "=" x ( 78 - $ident ) . "\n" );
+    $s->o( $of . "Ningyou v$VERSION for [$f->{fqdn}]\n" );
     $cfg_fn
         = ( exists $o->{configuration} and defined $o->{configuration} )
         ? $o->{configuration}
         : '~/.ningyou/ningyou.ini';
-    $s->o("  use master configuration: $cfg_fn\n");
-    $s->o("  use mode: $o->{mode}\n");
-    $s->o("  use module: $o->{module}\n") if exists $o->{module};
-    $s->o("  use scope: $o->{scope}\n");
+    $s->o( $of . "  use master configuration: $cfg_fn\n" );
+    $s->o( $of . "  use mode: $o->{mode}\n" );
+    $s->o( $of . "  use module: $o->{module}\n" ) if exists $o->{module};
+    $s->o( $of . "  use scope: $o->{scope}\n" );
     $cfg = $s->get_or_setup_cfg($cfg_fn);
 
     if ( exists $cfg->{status}->{packages}
@@ -78,8 +80,8 @@ sub run {
         system('aptitude update');
     }
 
-    $s->o( "-" x 78 . "\n" );
-    $s->o("Modules considering for processing:\n");
+    $s->o( $of . "=" x ( 78 - $ident ) . "\n" );
+    $s->o( $of . "Modules considering for processing:\n" );
 
     my $dot = q{ } . '.' x 70;
 
@@ -94,21 +96,22 @@ sub run {
     foreach my $mo (@modules) {
         chomp $mo;
         $mo =~ s{^$wt/}{}gmx;    #/home/c/g/wt/modules/zsh -> zsh
+        my $dl = 68 - $ident;
+        my $md = $mo . $dot;
         if ( $s->should_be_installed($mo) ) {
-
-            #$s->o("run: add [$mo] to read_ini operation\n");
-            $s->o( sprintf( "  %-67.67s [%s]\n", $mo . $dot, ' YES ' ) );
+            $s->o( sprintf( "$of  %-$dl.${dl}s [ %s ]\n", $md, 'YES' ) );
             $s->read_ini($mo);
         }
         else {
-
-            #$s->o("$mo skip installation of [$mo] not in ningyou.ini\n");
-            $s->o( sprintf( "  %-67.67s [%s]\n", $mo . $dot, ' NO  ' ) );
+            $s->o( sprintf( "$of  %-$dl.${dl}s [ %s ]\n", $md, 'NO ' ) );
         }
     }
-    $s->o( "-" x 78 . "\n" );
-    $s->query();
-    $s->v( "-" x 78 . "\n" );
+    $s->o( $of . "=" x ( 78 - $ident ) . "\n" );
+    my $z = $s->query();
+
+    #if ( $z ) {
+    #    $s->v( $of . "=" x ( 78 - $ident ) . "xxx[$z]\n" );
+    #}
     my $complexity = $s->validate();
     $s->d( Dumper( \@str ) );
     $s->d( Dumper($str) );
@@ -116,10 +119,10 @@ sub run {
     my $cmd_cnt = scalar @str;
 
     if ( not $o->{quite} ) {
-        $s->o( "-" x 78 . "\n" );
-        $s->o("Results:\n");
-        $s->v("  complexity: $complexity\n");
-        $s->v("  commands:   $cmd_cnt\n");
+        $s->o( $of . "=" x ( 78 - $ident ) . "[$z]\n" ) if $z > 1;
+        $s->o( $of . "Results:\n" );
+        $s->v("$of  complexity: $complexity\n");
+        $s->v("$of  commands:   $cmd_cnt\n");
         if ( $cmd_cnt == 0 ) {
             $s->v("  status: allready up-to-date\n");
             $s->v(
@@ -158,7 +161,7 @@ sub get_repository {
     my $m = "ERROR: Node [$d] not mentioned in section [nodes]\n";
     $m .= "Please add node to ningyou.ini\n";
     my $r = exists $c->{nodes}->{$d} ? $c->{nodes}->{$d} : die $m;
-    $s->o("  use repository: $r\n") if not $o->{quite};
+    $s->o("$of  use repository: $r\n") if not $o->{quite};
 
     return $r;
 }
@@ -170,8 +173,7 @@ sub get_worktree {
     my $m  = "ERROR: '$r' is not mentioned in section [$se]!\n";
     $m .= "Please add repository to ningyou.ini\n";
     my $wt = exists $c->{$se}->{$r} ? $c->{$se}->{$r} : die $m;
-
-    $s->o("  use worktree: $wt\n") if not $o->{quite};
+    $s->o("$of  use worktree: $wt\n") if not $o->{quite};
 
     return $wt;
 }
@@ -266,6 +268,7 @@ sub ask_to_create_worktree {
 
 sub query {
     my ( $s, $i ) = @_;
+    my $z = 0;
     return if $o->{scope} eq 'all';
     $s->v(
         "A query starts, to see what is already provided and what not ...\n");
@@ -304,10 +307,11 @@ sub query {
             else {
                 $info->{$pr}->{$iv}->{installed} = 0;
                 $s->v("    no, [$iv] not provied\n");
+                $z++;
             }
         }
     }
-
+    return $z;
 }
 
 sub validate {
@@ -472,14 +476,14 @@ sub action {
     }
     else {
         if ( $complexity == 0 ) {
-            $s->o("Ningyou is already up-to-date.\n");
+            $s->o("$of Ningyou is already up-to-date.\n");
         }
         else {
             if ( $o->{mode} ne 'dryrun' ) {
-                $s->o("  the following commands will be executed:\n");
+                $s->o("$of  the following commands will be executed:\n");
             }
             else {
-                $s->o("  the following commands would be executed:\n");
+                $s->o("$of  the following commands would be executed:\n");
             }
         }
     }
