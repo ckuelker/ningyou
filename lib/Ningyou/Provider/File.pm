@@ -80,7 +80,7 @@ sub install {
         $s->v("$id file [$iv] do exist and it should be created without source\n");
         $cmd = "touch $iv";
     }
-    #elsif ( not -e $iv and $en eq 'latest' ) {
+    # if file do not exists
     elsif ( not -e $iv ) {
         $s->v("$id file [$iv] do NOT exist and it should be copied");
         $cmd
