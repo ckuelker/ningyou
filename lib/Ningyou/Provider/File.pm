@@ -60,10 +60,13 @@ sub install {
         : 0;
     $s->d("source [$so]");
 
+    # if file exists and it should be removed:
     if ( -e $iv and $en eq 'removed' ) {
         $s->v("$id file [$iv] exist and it should be removed");
         $cmd = "rm $iv";
     }
+    # if file exists and exists checksum and exists source and 
+    # checksum to matching
     elsif ( -e $iv
         and $cs
         and $so
