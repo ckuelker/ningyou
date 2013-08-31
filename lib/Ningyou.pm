@@ -97,7 +97,7 @@ sub run {
         @modules = @{ $s->read_modules() };
     }
 
-    foreach my $mo (@modules) {
+    foreach my $mo (sort @modules) {
         chomp $mo;
         $mo =~ s{^$wt/}{}gmx;    #/home/c/g/wt/modules/zsh -> zsh
         my $dl = 68 - $ident;
