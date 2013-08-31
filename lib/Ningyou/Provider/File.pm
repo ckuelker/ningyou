@@ -86,6 +86,7 @@ sub install {
         $cmd
             = "cp $so $iv && chmod $md $iv && chown $ow $iv && chgrp $gr $iv";
     }
+    # do we have a checksum but no source?
     elsif ( $cs and not $so ) {
         my $m
             = "ERROR: Unhandled sitation in $mo at section $pr:$iv\n"
