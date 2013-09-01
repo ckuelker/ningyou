@@ -76,6 +76,7 @@ sub install {
         $cmd
             = "cp $so $iv && chmod $md $iv && chown $ow $iv && chgrp $gr $iv";
     }
+    # if do not exists and also not source, then just touch it
     elsif ( not -e $iv and not $so ) {
         $s->v("$id file [$iv] do exist and it should be created without source\n");
         $cmd = "touch $iv";
