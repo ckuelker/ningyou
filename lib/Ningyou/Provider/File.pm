@@ -10,11 +10,13 @@ with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
 
 # FORMAT MANDATORY
 # [file:/path/to/file]
-#     source  = ningyou:///modules/kvm-smtp-cipworx-org/qemu
 # FORMAT OPTIONALLY
-#     owner   = root
-#     group   = root
-#     sensure = latest
+#     source   = ningyou:///modules/kvm-smtp-cipworx-org/qemu
+#     owner    = root
+#     group    = root
+#     sensure  = latest
+#     checksum = md5   (for checksum source is mandatory)
+
 
 has 'options' => (
     is      => 'rw',
