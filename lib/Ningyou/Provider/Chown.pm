@@ -8,8 +8,10 @@ use namespace::autoclean;
 with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
 
 # FORMAT
-# [chown:/path/to/file]
-#     owner = root
+#   MANDATORY
+#     [chown:/path/to/file]
+#   AUX
+#     owner = root (defaults to root, if not given)
 #
 
 has 'options' => (
