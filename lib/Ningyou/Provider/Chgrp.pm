@@ -7,10 +7,11 @@ use namespace::autoclean;
 
 with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
 
-# FORMAT
-# [chgrp:/path/to/file]
-#     group = root
-#
+# FORMAT 
+#   MANDATORY
+#     [chgrp:/path/to/file]
+#   AUX
+#     group = root  (defaults to root)
 
 has 'options' => (
     is       => 'rw',
