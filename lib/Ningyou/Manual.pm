@@ -23,5 +23,13 @@ As root
 
     make install
 
+=head1 USAGE
+
+If you have a basic configuraton (for example from the previous
+section) then you just need to execute:
+
+ ningyou show
+
+
 =cut
 
