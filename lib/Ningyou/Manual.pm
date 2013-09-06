@@ -30,6 +30,11 @@ section) then you just need to execute:
 
  ningyou show
 
+=head1 MOTIVATION
+
+Why you should use Ningyou? That is hard to tell. However I will try to
+summarize why I use Ningyou inside this section. And maybe it is also good for
+you.
 
 =cut
 
