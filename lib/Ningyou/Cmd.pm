@@ -16,7 +16,7 @@ sub cmd {
         warn "          cmd:   [$cmd]\n";
         warn "          value: [$res]\n" if $res;
         warn "          error: $err\n";
-	die "(stopping here)\n";
+        die "(stopping here)\n";
     }
     return ( $out, $err, $res );
 }
