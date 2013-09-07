@@ -41,5 +41,14 @@ different flavours. 1) deterministic tools - which do exactly the same all the
 time, like shell scripts. And 2) object orientated tools which defines
 dependencies and which do not behave deterministically.
 
+While the first is easy to understand how and what it do and what result to
+expect, it will get a nightmare for complex installations. On the otherhand the
+second is by far more easy to handle in big scenarious. However it is sometimes
+impossible to predict what is the outcome and if then the order of installation
+is randomly you end up in situations which are hard to debug if you have not
+huge statistical data.
+
+
+
 =cut
 
