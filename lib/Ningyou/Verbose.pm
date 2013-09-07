@@ -32,7 +32,9 @@ sub v {
 
 =pod
 
-=head1 NAME Ningyou::Verbose
+=head1 NAME 
+
+Ningyou::Verbose
 
 =head1 DESCRIPTION
 
