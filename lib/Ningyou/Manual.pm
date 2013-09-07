@@ -36,5 +36,10 @@ Why you should use Ningyou? That is hard to tell. However I will try to
 summarize why I use Ningyou inside this section. And maybe it is also good for
 you.
 
+I tried out some deployment frameworks so far. And basically I encounterd two
+different flavours. 1) deterministic tools - which do exactly the same all the
+time, like shell scripts. And 2) object orientated tools which defines
+dependencies and which do not behave deterministically.
+
 =cut
 
