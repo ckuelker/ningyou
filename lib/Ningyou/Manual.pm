@@ -48,6 +48,14 @@ impossible to predict what is the outcome and if then the order of installation
 is randomly you end up in situations which are hard to debug if you have not
 huge statistical data.
 
+Ningyou tries to merge the best out of this two worlds: a) it is somewhat
+object oriented and dependency based with an easy configuration similar to
+existing tools. While it produces exactly the same actions from the same
+configuration on the same machine. Say, it is predictable. On top of it Ningyou
+can provide from this a shell script that you can use on a same second machine
+without Ningyou, or just look at it to understand what will be done in a
+predictible way.
+
 
 
 =cut
