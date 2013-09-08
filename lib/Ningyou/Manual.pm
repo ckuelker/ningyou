@@ -56,6 +56,15 @@ can provide from this a shell script that you can use on a same second machine
 without Ningyou, or just look at it to understand what will be done in a
 predictible way.
 
+Some tools hide the underlying package manager. While this is good for some
+people, it is not good for me. The work flow with those tools for me is: a)
+test with a graphical client like synaptic (or aptitude) what would be done on
+client A and what effect it has. For example, how many packages will be
+installed, are there conflicts, broken packages? And b) then configure the tool
+and do it on client B again to see if it works. An very time cosuming verify
+it. Make sure that machine A is the same as B. If it works c) deploy it so that
+client C,... will be updated. Until now after some month machine A was always
+different then B, at least for me.
 
 
 =cut
