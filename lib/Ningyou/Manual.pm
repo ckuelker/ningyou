@@ -66,6 +66,19 @@ it. Make sure that machine A is the same as B. If it works c) deploy it so that
 client C,... will be updated. Until now after some month machine A was always
 different then B, at least for me.
 
+The Ningyou workflow can be different if you want. You first create the
+configuration of lets say a new package in the configuration space of Ningyou.
+Ningyou come with the 'test mode' as default run mode. That means, it is used
+withyout hiding the command line of the package manger form you, so that you
+can see if all goes well. If not you can say 'no' and stop the action. If you
+answer all questions with 'yes' (all went fine), then it will be the same as if
+you run Ningyou in 'quite mode' where the package manager tries to answer all
+questions with 'yes' as in other tools too. Test it with Ningyou in 'test mode'
+on client A and then you can already deploy it on client B in 'quite mode',...
+and save one step. And you are sure that there is no difference if A and B
+was equal before.
+
+
 
 =cut
 
