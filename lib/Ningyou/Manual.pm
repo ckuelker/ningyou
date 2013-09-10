@@ -78,6 +78,20 @@ on client A and then you can already deploy it on client B in 'quite mode',...
 and save one step. And you are sure that there is no difference if A and B
 was equal before.
 
+So what is the basic rule for Ningyou to be deterministic? Lets show this on
+a simple expample configuration and its interpretation:
+
+ [package:zsh]
+ [package:vim]
+ [package:tree]
+
+This will produce the following actions in a defined order if we asume that
+non of thoses packages are installed:
+
+ aptitude install tree
+ aptitude install vim
+ aptitude install zsh
+
 
 
 =cut
