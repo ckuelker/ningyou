@@ -132,6 +132,20 @@ could be very common:
     require=package:apache2
  [package:apache2]
 
+If you have an old server A, where apache2 is already installed, the actions
+would just be: (of course '?' will be replaced by the correct path)
+
+ cp ?/modules/apache2/files/dom.tld /etc/apache2/sites-available/dom.tld
+ ln -s /etc/apache2/sites-available/dom.tld /etc/apache2/sites-enabled/dom.tld
+
+While on the new server X where apache2 is not installe the 'require:apache2'
+would pull in also the package apache2 before, probably among many other
+packages.
+
+ aptitude install apache2
+ cp ?/modules/apache2/files/dom.tld /etc/apache2/sites-available/dom.tld
+ ln -s /etc/apache2/sites-available/dom.tld /etc/apache2/sites-enabled/dom.tld
+
 
 
 =cut
