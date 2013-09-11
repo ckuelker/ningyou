@@ -92,6 +92,13 @@ non of thoses packages are installed:
  aptitude install vim
  aptitude install zsh
 
+Ningyou will use the alphabetical order to install the packages. Of course the
+package manager can overrule this decision if he thinks a dependency is not
+met. However this still is deterministic. And you will see this in the 'test
+mode'.
+
+
+
 
 
 =cut
