@@ -112,6 +112,25 @@ The result would be
  aptitude install zsh
  aptitude install vim
 
+And it can be easily seen, it is deterministic and easy to understand.
+
+Of course you can shoot yourself in the food with recursive dependencies.
+Ningyou tries to discover it, and will tell you. You then should correct them.
+And also the packaage manager can overrule your opinion. However it is
+important to give the correct 'requirements' (dependecies) inside the
+configuration, which are not automatically detectable by the package manager.
+
+For example you would like to deploy your new web site "dom.tld" which
+its configration is inside the file 'dom.tld', the following configuraton
+could be very common:
+
+ [link:/etc/apache2/sites-enabled/dom.tld]
+    source=/etc/apache2/sites-available/dom.tld
+    require=file:/etc/apache2/sites-available/dom.tld
+ [file:/etc/apache2/sites-available/dom.tld]
+    source=ningyou:///modules/apache2/dom.tld
+    require=package:apache2
+ [package:apache2]
 
 
 
