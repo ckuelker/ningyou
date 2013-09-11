@@ -97,6 +97,20 @@ package manager can overrule this decision if he thinks a dependency is not
 met. However this still is deterministic. And you will see this in the 'test
 mode'.
 
+You can defined 'requirements' (dependencies) by your self to change the order.
+Lets say you think vim depends on 'zsh' (Which is in reality not true). Then
+you would change the configuration like this:
+
+ [package:zsh]
+ [package:vim]
+     require=package:zsh
+ [package:tree]
+
+The result would be
+
+ aptitude install tree
+ aptitude install zsh
+ aptitude install vim
 
 
 
