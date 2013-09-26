@@ -97,7 +97,7 @@ sub run {
         @modules = @{ $s->read_modules() };
     }
 
-    foreach my $mo (sort @modules) {
+    foreach my $mo ( sort @modules ) {
         chomp $mo;
         $mo =~ s{^$wt/}{}gmx;    #/home/c/g/wt/modules/zsh -> zsh
         my $dl = 68 - $ident;
@@ -513,11 +513,12 @@ sub action {
                     $cmd =~ s/$wt/\${WT}/gmx;
                     $cmd =~ s/&&/&&\n$of/gmx;
                 }
-                $s->o("$cmd\n");
+                $s->o("    $cmd\n");
             }
             else {
 
                 #$s->o( sprintf( "%5d cmd [%s]\n", $z, $cmd ) );
+                $cmd =~ s{\n}{\n    }gmx;
                 $s->o( "    " . $cmd );
             }
         }
@@ -525,6 +526,15 @@ sub action {
     }
     if ( $o->{mode} eq 'script' or $o->{mode} eq 'full-script' ) {
         $s->o("$of# EOS - end of script\n");
+    }
+    if ( $o->{mode} eq 'show' ) {
+        if ( defined $ARGV[1] ) {
+            $s->o(
+                "$of# To install execute:\n    ningyou install " . $ARGV[1] );
+        }
+        else {
+            $s->o("$of# To install execute:\n    ningyou install");
+        }
     }
 
 }
