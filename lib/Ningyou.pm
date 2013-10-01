@@ -497,23 +497,6 @@ sub action {
 
 }
 
-sub queue_add {
-
-    #        pr=file   iv=/tmp/x  type=?  cmd=chmod 640 /home/c/.zshrc
-    my ( $s, $pr, $iv, $type, $cmd ) = @_;
-    if ( $str->{$pr}->{$iv}->{$type} ) {
-        $s->d("[$iv] already in queue\n");
-    }
-    else {
-        $s->d("queue add: [$cmd]\n");
-        push @str, $cmd;
-
-        # TODO: consider real values
-        #$str->{$pr}->{$iv}->{$type} = 1;
-        $str->{$pr}->{$iv}->{$type}->{$cmd} = 1;
-    }
-}
-
 # queries the 'require' field and deliver all  dependencies
 # require FIELD format:
 # 1. require=package:zsh
