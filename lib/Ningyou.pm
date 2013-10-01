@@ -595,10 +595,7 @@ sub read_module {
         $m->set_module( 'module' => $mo );    # remember own module name
         $s->set_cfg( $id => $m );    # add to the global configuration
     }
-
-    #print Dumper $cfg;
-    #print Dumper $s->cfg_pairs;
-
+    return $m;
 }
 
 sub id {
