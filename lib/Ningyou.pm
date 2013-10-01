@@ -538,19 +538,6 @@ sub get_dependencies {
     return @dependencies;    # ( file:a/b, file:c/d, package:x, package:y )
 }
 
-sub all_dependencies_met {
-    my ( $s, $id ) = @_;
-
-    my $fail = 0;
-    foreach my $dep_id ( $s->get_dependencies($id) ) {
-        if ( not $s->dependency_met($dep_id) ) {
-            $fail++;
-        }
-    }
-    return 1 if not $fail;
-    return 0;
-}
-
 # Decides the question if a dependency via the 'require' field
 # is already fulfilled
 sub require_ok {
