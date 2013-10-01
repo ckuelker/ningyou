@@ -302,7 +302,8 @@ sub query_unprovided {
     return if $mode eq 'full-show';
     return if $mode eq 'full-script';
 
-    my $unprovided   = 0;
+    my $unprovided = 0;
+
     # foreach provider: File, Directory, ...
     $s->v("Start query: what is already provided and what not ...\n");
     $s->d("Foreach entry id (provider:object)\n");
@@ -311,7 +312,7 @@ sub query_unprovided {
         my $provided = $s->check_provided($id);
         $unprovided++ if not $provided;
     }
-    return  $unprovided;
+    return $unprovided;
 }
 
 sub check_provided {
@@ -383,7 +384,6 @@ sub check_provided {
     return $is_provided;
 }
 
-# The validate
 # TODO: this is testing the dependency chain only 1 level deep
 #       and only for normal providers
 #       - consider to make it "indefinte" deep
@@ -413,137 +413,6 @@ sub planning {
         }
     }
     return 0;
-}
-
-sub validate {
-    my ( $s, $i ) = @_;
-    my $r = {};    # TODO
-
-    my $p  = "validate: ";
-    my $oq = scalar(@str);
-    my $q  = scalar(@str);
-
-    # z = complexity
-    my $n = 0;
-    $s->v("Validate requirements of provider ...\n");
-    $s->v("Foreach complexity 0..999999\n");
-    foreach my $z ( 0 .. 999999 ) {    # TODO make 99 a cfg val
-        $s->v("- entering complexity [$n], command counter [$q]\n");
-        $n++;
-        $oq = $q;                      # old copy of nr of actions
-        $q  = scalar(@str);            # nr of actions
-        last if $q == $oq and $q > 0;                # stop if something to do
-        last if $q == $oq and $q == 0 and $z > 0;    # stop if nothing todo
-        $s->d("z [$z] [$q]\n");
-
-        # pr(provider): file, directory, package
-        $s->v("  Foreach provider (file, directory, package, ...)\n");
-        foreach my $pr ( sort keys %{$r} ) {
-            $s->v("  - validate requirements of provider [$pr] ...\n");
-            next if $pr eq 'default';    # we do not need to install 'default'
-
-            # vi: zsh, /tmp/file, /tmp/dir, ...
-            $s->v("    Foreach object (zsh, /tmp/file, /tmp/dir, ...)\n");
-            foreach my $iv ( sort keys %{ $r->{$pr} } ) {
-                my $id = "$pr:$iv";
-                $s->v("    - object [$iv]\n");
-                my $mo = $r->{$pr}->{$iv}->{module};    # module
-                if ( $s->is_provided($id) ) {
-                    $s->v("A: [$iv] allready provided via [$pr] at [$mo]\n");
-                    next;
-                }
-                if ( $s->is_planned($id) ) {
-                    $s->v("A: [$iv] allready planned via [$pr] at [$mo]\n");
-                    next;
-                }
-
-                $s->v("Q: Can [$mo] provide [$iv] via [$pr]?\n");
-                my $so
-                    = exists $r->{$pr}->{$iv}->{source}
-                    ? $r->{$pr}->{$iv}->{source}
-                    : undef;
-                $s->v("           source points to [$so]\n")
-                    if defined $so;
-
-               # DIRECTORY with SOURCE
-               # we want to skip chmod, chown and chgrp  in case source exists
-               # (means we use rsync) because chmod,chown and chgrp would be
-               # set # to the source owner, which might be not root. In those
-               # cases /usr/local might become local user as owner.
-                if (
-                        $s->all_require_ok($id)
-                    and $pr eq 'directory'
-                    and defined $so
-                    and $s->has_provided(
-                        $id)    # exists $info->{$pr}->{$iv}->{installed}
-                    and not $s->is_provided($id)
-                    )           #   $info->{$pr}->{$iv}->{installed} )
-                {
-                    $s->store( $pr, $iv );
-                    $s->v("A: [YES] [$iv] to [$so] as [$pr] via rsync\n");
-
-                    #$info->{$pr}->{$iv}->{planned} = 1;
-                    $s->set_planned( $id => 1 );
-                }
-                elsif (
-                       $s->all_require_ok($id) and $pr eq 'directory'
-                    or $pr eq 'file'
-                    and $s->has_provided(
-                        $id)    #exists $info->{$pr}->{$iv}->{installed}
-                    and not $s->is_provided($id)
-                    )           #$info->{$pr}->{$iv}->{installed} )
-                {
-                    if ( defined $so ) {
-                        $s->v("A: [YES] [$iv] to [$so] as [$pr]\n");
-                    }
-                    else {
-                        $s->v("A: [YES] [$iv] as [$pr]\n");
-                    }
-                    $s->store( $pr, $iv );
-
-                    #$info->{$pr}->{$iv}->{planned} = 1;
-                    $s->set_planned( $id => 1 );
-                    if ( exists $r->{$pr}->{$iv}->{ensure}
-                        and $r->{$pr}->{$iv}->{ensure} ne 'removed' )
-                    {
-                        $s->v("A: [YES] allready done by provider\n");
-                    }
-                    else {
-                        $s->v(
-                            "A: [YES] provision will be done by [removal]\n"
-                        );
-                    }
-                }
-                elsif (
-                    $s->all_require_ok($id)
-                    and $s->has_provided(
-                        $id)    #exists $info->{$pr}->{$iv}->{installed}
-                    and not $s->is_provided($id)
-                    )           # $info->{$pr}->{$iv}->{installed} )
-                {
-                    if ( defined $so and $so ) {
-                        $s->v("A: [YES] [$iv] to [$so] as [$pr]\n");
-                    }
-                    else {
-                        $s->v("A: [YES] [$iv] as [$pr]\n");
-
-                    }
-                    $s->store( $pr, $iv );
-
-                    #$info->{$pr}->{$iv}->{planned} = 1;
-                    $s->set_planned( $id => 1 );
-                }
-                else {
-
-# Why $so is not defined? $s->v( "    no, dependency not met or is allready provided for [$iv] to [$so] as [$pr]\n"
-                    $s->v("A: [NO], \n");
-                    $s->v("   dependency not met or is allready provided");
-                    $s->v("   for [$iv] to [?] as [$pr]\n");
-                }
-            }
-        }
-    }
-    return $n;
 }
 
 sub should_be_installed {
