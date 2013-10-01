@@ -4,7 +4,7 @@ use Digest::MD5;
 use Moose;
 use namespace::autoclean;
 use Ningyou::Util;
-our $VERSION = '0.0.3';
+our $VERSION = '0.0.4';
 
 with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
 

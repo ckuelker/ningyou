@@ -2,7 +2,7 @@ package Ningyou::Provider::Git;
 use Moose;
 use File::Basename;
 use namespace::autoclean;
-our $VERSION = '0.0.3';
+our $VERSION = '0.0.4';
 
 with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
 
