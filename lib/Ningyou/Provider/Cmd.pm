@@ -3,7 +3,7 @@ use Moose;
 use Ningyou::Util;
 use namespace::autoclean;
 use File::stat;
-our $VERSION = '0.0.2';
+our $VERSION = '0.0.3';
 
 with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
 
