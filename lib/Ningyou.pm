@@ -538,35 +538,6 @@ sub get_dependencies {
     return @dependencies;    # ( file:a/b, file:c/d, package:x, package:y )
 }
 
-# Decides the question if a dependency via the 'require' field
-# is already fulfilled
-sub require_ok {
-    my ( $s, $id ) = @_;
-    die "ERROR: require_ok needs id argument" if not defined $id;
-    my ( $pr, $iv ) = $s->id($id);
-
-    $s->v("is the requirement for providor [$pr] regarding [$iv] OK?\n");
-
-    if ( $s->is_provided($id) ) {
-
-        #if ( exists $info->{$pr}->{$iv}->{installed} ) {
-        $s->v("pass require [$pr]->[$iv] (already installed)\n");
-        return 1;
-    }
-    elsif ( exists $str->{$pr}->{$iv}->{planned} ) {    # before pending
-        $s->v("pass require [$pr]->[$iv] (will be installed before)\n");
-        return 1;
-    }
-    elsif ( $iv eq q{} or $pr eq q{} ) {
-        die "ERROR 4: ";
-    }
-    else {
-        $s->v("fail require_ok [$pr]->[$iv]\n");
-        return 0;
-    }
-    return 0;
-}
-
 sub read_modules {
     my ( $s, $i ) = @_;
 
