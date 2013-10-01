@@ -119,10 +119,11 @@ has 'cfg' => (
         cfg_pairs  => 'kv',
     },
 );
+
 has 'master' => (
     traits  => ['Hash'],
     is      => 'rw',
-    isa     => 'HashRef[Str]',
+    isa     => 'HashRef',
     default => sub { return {}; },
     handles => {
         has_master    => 'exists',
