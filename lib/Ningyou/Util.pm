@@ -3,6 +3,7 @@ package Ningyou::Util;
 use Moose;
 use Data::Dumper;
 use namespace::autoclean;
+use Term::ReadKey;
 our $VERSION = '0.0.2';
 
 with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
@@ -16,8 +17,6 @@ has 'options' => (
     required => 1,
 );
 
-my $id = q{ } x 10;
-
 sub source_to_fqfn {
     my ( $s, $i ) = @_;
     my $wt = exists $i->{worktree} ? $i->{worktree} : die "no [worktree]";
@@ -27,12 +26,14 @@ sub source_to_fqfn {
     die "Malformed URL! [$so] is not of the form [ningyou:///<MODULE>/*]\n"
         if not $so =~ m{ningyou:///.+}mx;
 
-    $s->d("$id source_to_fqfn: [$so] -> - worktree");
+    $s->d("source_to_fqfn: [$so] -> - worktree");
     $so =~ s{ningyou:///modules/}{$wt/};
-    $s->d("$id source_to_fqfn: [$so] -> + files");
+    $s->d("source_to_fqfn: [$so] -> + files");
     $so =~ s{/$mo/}{/$mo/files/};
-    $s->d("$id source_to_fqfn: [$so]  -> -e");
-    $s->v("$id source URL [$oso] points to [$so]");
+    $s->d("source_to_fqfn: [$so]  -> -e");
+    $s->v("  source URL [$oso]");
+    $s->v("  points to");
+    $s->v("  [$so]");
 
     return $so;
 }
@@ -53,7 +54,7 @@ sub get_md5 {
     my $digest = $ctx->hexdigest;
     close $f;
 
-    $s->d("$id calculate md5 [$digest]");
+    $s->d("calculate md5 [$digest]");
     $ca->{$fn} = $digest;
     return $digest;
 }
@@ -111,6 +112,97 @@ sub get_facts {
     return $f;
 }
 
+use File::DirCompare;
+use File::Basename;
+
+sub compare_dirs {
+    my ( $s, $d1, $d2) = @_;
+use Carp;
+    carp "d1 [$d1] not a directory!\n" if not -d $d1;
+    carp "d2 [$d2] not a directory!\n" if not -d $d2;
+
+    my $equal = 1;
+
+    File::DirCompare->compare(
+        $d1, $d2,
+        sub {
+            my ( $a, $b ) = @_;
+            $equal = 0
+                ; # if the callback was called even once, the dirs are not equal
+
+            if ( !$b ) {
+                $s->v( sprintf "| File '%s' only exists in dir '%s'.\n",
+                    basename($a), dirname($a) );
+            }
+            elsif ( !$a ) {
+                $s->v( sprintf "| File '%s' only exists in dir '%s'.\n",
+                    basename($b), dirname($b) );
+            }
+            else {
+                $s->v("| File contents for\n");
+                $s->v("| [$a]\n");
+                $s->v("| and [$b] are different.\n");
+            }
+        }
+    );
+
+    return $equal;
+}
+
+sub ask_to_create_directory {
+    my ( $s, $i ) = @_;
+    $s->o("The directory [$i] does not exist!\n");
+    $s->o("Should the directory be created? [y|N]\n");
+    ReadMode('normal');
+    my $answer = ReadLine 0;
+    chomp $answer;
+    ReadMode('normal');
+
+    if ( 'y' eq lc $answer ) {
+        my $nilicm = Ningyou::Cmd->new();
+        $nilicm->cmd("mkdir -p $i");
+        $nilicm->cmd("chown $> $i");    # eff uid $>, real uid $<
+
+        # $nilicm->cmd("chgrp  $) $i");    # eff gid $),     real gid $(
+        $nilicm->cmd("chmod 0750 $i");
+        $s->o("Directory [$i] has been created.\n");
+    }
+    else {
+        $s->o("Please create it manually (stopping here)\n");
+        exit 0;
+    }
+    $s->o("\n");
+    return $i;
+}
+
+sub ask_to_create_worktree {
+    my ( $s, $i ) = @_;
+    my $wt = $i;
+    $s->o("The worktree do not exists!\n");
+    $s->o("Should the directory [$wt] be created? [y|N]\n");
+    ReadMode('normal');
+    my $answer = ReadLine 0;
+    chomp $answer;
+    ReadMode('normal');
+
+    if ( 'y' eq lc $answer ) {
+        my $nilicm = Ningyou::Cmd->new();
+        $nilicm->cmd("mkdir -p $i");
+        $nilicm->cmd("chown $> $i");    # eff uid $>, real uid $<
+            #$nilicm->cmd("chgrp  $) $i");    # eff gid $),     real gid $(
+        $nilicm->cmd("chmod 0750 $i");
+        $s->o("Directory [$i] has been created.\n");
+    }
+    else {
+        $s->o("Please create it manually (stopping here)\n");
+        exit 0;
+    }
+    $s->o("\n");
+}
+
+#print "Please specify two directory names\n" and exit if ( @ARGV < 2 );
+#printf "%s\n",
+#    &compare_dirs( $ARGV[0], $ARGV[1] ) ? 'Test: PASSED' : 'Test: FAILED';
 1;
 
 __END__
