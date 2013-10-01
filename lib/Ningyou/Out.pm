@@ -14,10 +14,10 @@ our $VERSION = '0.0.2';
 
 sub o {
     my ( $s, $i ) = @_;
-    my $o = $s->get_options;
-
     chomp $i;
-    $i = $i . "\n";
+    my $o = $s->get_options;
+    my $v = q{ } x $o->{indentation};
+    $i = $v . $i . "\n";
     if ( exists $o->{debug} and $o->{debug}) {
         my $fn = $o->{debug};
         open my $f, q{>>}, $fn or die "Can not open [$fn]";
