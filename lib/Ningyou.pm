@@ -514,50 +514,6 @@ sub queue_add {
     }
 }
 
-sub store {
-
-    #        pr=object_type, iv=id_value
-    #        pr=chown      , iv=/home/c/.zshrc
-    #        file           /tmp/c    vim      src
-    my ( $s, $pr, $iv ) = @_;
-
-    #my $mo
-    #    = exists $r->{$pr}->{$iv}->{module}
-    #    ? $r->{$pr}->{$iv}->{module}
-    #    : die "no pr [$pr], iv [$iv]";
-
-    my $mo
-        = ( $s->is_cfg( "$pr:$iv" => 'module' ) )
-        ? $s->get_cfg( "$pr:$iv" => 'module' )
-        : die "no pr [$pr], iv [$iv]";
-
-    $s->v("      store [$iv] via [$pr] for [$mo]\n");
-    die "Forget to add [$pr] to [provider] in master.ini?\n"
-        if not exists $provider->{$pr};
-
-    # This should not be needed:
-    #    eval "use $provider->{$pr}";
-    #    die $@ if defined $@ and $@;
-    my $np  = $provider->{$pr}->new();
-    my $cmd = $np->install(
-        {
-
-            # mandatory
-            cache    => $cache,
-            object   => $iv,
-            provider => $pr,
-            cfg      => $s->get_cfg("$pr:$iv"),    #$r->{$pr}->{$iv},
-            wt       => $wt,
-
-            # rsync
-            dryrun  => 0,
-            itemize => 0,
-        }
-    );
-    $s->queue_add( $pr, $iv, $pr, $cmd )
-        if not $cmd =~ m{^NOP};
-}
-
 # queries the 'require' field and deliver all  dependencies
 # require FIELD format:
 # 1. require=package:zsh
