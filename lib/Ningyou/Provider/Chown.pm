@@ -37,7 +37,7 @@ sub install {
 
     # shorten config attributes
     my $ow = exists $c->{owner} ? $c->{owner} : 'root';
-    my $mo = exists $c->{class} ? $c->{class} : die 'no class';
+    my $mo = exists $c->{module} ? $c->{module} : die 'no module';
 
     $s->d('debug output for Ningyou::Provider::Chown');
 
