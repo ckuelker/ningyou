@@ -9,7 +9,7 @@ use charnames qw(:full :short);  # unneeded in v5.16
 use Encode qw(decode_utf8);
 use Pod::Usage;
 use Moose;
-use Getopt::Long;
+use Getopt::Long qw(:config gnu_getopt permute);
 use namespace::autoclean;
 our $VERSION = '0.0.2';
 
@@ -18,38 +18,35 @@ has 'options' => (
     isa     => 'HashRef',
     reader  => 'get_options',
     writer  => 'set_options',
-    builder => 'process_options',
+    default => sub { {} },
     lazy    => 1,
+);
+has 'command' => (
+    is      => 'rw',
+    isa     => 'Str',
+    reader  => 'get_command',
+    writer  => 'set_command',
+    default => q{},
+);
+has 'modules' => (
+    is      => 'rw',
+    isa     => 'ArrayRef',
+    default => sub { [] },
 );
 
 sub process_options {
     my ( $s, $i ) = @_;
     my %opt = ();
 
-    $opt{mode}
-        = ( not defined $ARGV[0] ) ? 'show'
-        : $ARGV[0] eq 'show'        ? 'show'
-        : $ARGV[0] eq 'full-show'   ? 'full-show'
-        : $ARGV[0] eq 'script'      ? 'script'
-        : $ARGV[0] eq 'full-script' ? 'full-script'
-        : $ARGV[0] eq 'install'     ? 'install'
-        : $ARGV[0] eq 'production'  ? 'production'
-        :                             'show';
-
-    $opt{module}
-        = ( not defined $ARGV[1] ) ? 'all'
-        : ( defined $ARGV[1] and $ARGV[1] eq 'all' ) ? 'all'
-        : defined $ARGV[1] ? $ARGV[1]
-        :                    'all';
-
     GetOptions(
-        \%opt,        'configuration|c=s',
-        'debug:s',    'help',
-        'identation', 'man',
-        'module=s',   'quite',
-        ,             'raw',
-        'script',     'update',
-        'verbose',    'version',
+        \%opt,         'configuration|c=s',
+        'debug:s',     'help',
+        'indentation=s', 'man',
+        'module=s',    'quite',
+        'raw',         'script',
+        'update',      'verbose',
+        'version',     '<>',
+        sub { my ($i) = @_; $s->process_commands($i) },
     );
 
     # --help
@@ -65,9 +62,24 @@ sub process_options {
     }
 
     # --scope --mode --configuration|-c
-    $opt{identation} = 4 if not defined $opt{identation};
+    $opt{indentation} = 4 if not defined $opt{indentation};
+
     $s->set_options( \%opt );
-    return $s->get_options;
+    return \%opt;
+}
+
+sub process_commands {
+    my ( $s, $i ) = @_;
+
+    my $x = scalar $i->name;    # remove the object from the input
+    my @x = qw(show full-show script full-script install production);
+    if ( $x ~~ @x ) {
+        $s->set_command($x);
+    }
+    else {
+        push @{ $s->modules }, $x;
+    }
+    return;
 }
 
 1;
