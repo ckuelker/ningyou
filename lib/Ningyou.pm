@@ -549,6 +549,10 @@ sub read_modules {
 # read from $MODULE/manifests/i.ini
 # add it to ONE Ningyou::Type::Module
 # add it THE global configuration 'cfg'
+# CRITIQUE: actually the type Ningyou::Type::Module do only decribe
+#           a part of a module, lets say an object.
+#           returning the cfg value for a module is not possible
+#           at the moment
 sub read_module {
     my ( $s, $mo ) = @_;    # mo = module
     my $fn  = "$wt/$mo/manifests/i.ini";
@@ -595,7 +599,7 @@ sub read_module {
         $m->set_module( 'module' => $mo );    # remember own module name
         $s->set_cfg( $id => $m );    # add to the global configuration
     }
-    return $m;
+    return;
 }
 
 sub id {
