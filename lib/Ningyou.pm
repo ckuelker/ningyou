@@ -222,22 +222,22 @@ sub run {
 
     # make a query, print verbose query
     $s->v( "=" x ( 78 - $o->{indentation} ) . "\n" );
-    my $number_tested_objects = $s->query_unprovided();
+    my $unprovided_objects = $s->query_unprovided();
 
     # make a validation, print verbose validation
     $s->v( "=" x ( 78 - $o->{indentation} ) . "\n" )
-        if $number_tested_objects;
-    $s->planning($number_tested_objects) if $number_tested_objects;
+        if $unprovided_objects;
+    $s->planning($unprovided_objects) if $unprovided_objects;
 
     # print result
     $s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
     $s->v("Verbose results:\n");
-    $s->v("  number of tested objects: $number_tested_objects\n");
+    $s->v("  number of objects to update: $unprovided_objects\n");
     $s->v(
-        "  number of modules to update: " . $s->count_commands / 2 . "\n" );
+        "  number of command sections: " . $s->count_commands / 2 . "\n" );
     $s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
 
-    if ($number_tested_objects) {
+    if ($unprovided_objects) {
         $s->action();    # do action if any
         if ( $mode eq 'show' ) {
             $s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
