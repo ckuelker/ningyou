@@ -147,7 +147,6 @@ my $modules_ar = [];            # modules
 my $modules    = q{};           # modules
 my $f          = {};            # facts about system
 my $cache      = {};
-my $cfg_fn     = q{};
 my $wt         = '/dev/null';   # work tree
 my $cfg        = {};            # global cfg space
 my $pkg        = {};            # pkg from cfg that should be installed or not
@@ -171,7 +170,7 @@ sub run {
     $f = $u->get_facts;
 
     # prepare configuration
-    $cfg_fn
+    my $cfg_fn
         = ( exists $o->{configuration} and defined $o->{configuration} )
         ? $o->{configuration}
         : '~/.ningyou/master.ini';
