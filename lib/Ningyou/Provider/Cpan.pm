@@ -40,7 +40,7 @@ sub install {
     my $c  = exists $i->{cfg}      ? $i->{cfg}      : die 'no cfg';
     my $wt = exists $i->{wt}       ? $i->{wt}       : die 'no wt';
 
-    my $mo = $c->{class};
+    my $mo = $c->{module};
     my $o  = $s->get_options;
 
     my @cmd = ();
@@ -60,10 +60,10 @@ sub install {
     elsif ( defined $so and -e $so ) {
         my $bn = basename( $so, ( '.tar.gz', '.tgz' ) );
         if ( exists $c->{tmpdir} ) {
-            push @cmd, "cd $c->{tmpdir}&&tar xvzf $so&&cd $bn";
+            push @cmd, "cd $c->{tmpdir} && tar xvzf $so && cd $bn";
         }
         else {
-            push @cmd, "cd /tmp&&tar xvzf $so&&cd $bn";
+            push @cmd, "cd /tmp && tar xvzf $so && cd $bn";
         }
     }
     elsif ( defined $so ) {
@@ -73,19 +73,20 @@ sub install {
     }
     if ( $c->{'method'} eq 'build-pl' ) {
         my $c
-            = "perl Build.PL&&./Build build&&./Build test&&$env ./Build install";
+            = "perl Build.PL && ./Build build && ./Build test && $env ./Build install";
         push @cmd, $c;
     }
     elsif ( $c->{'method'} eq 'dzil' ) {
         push @cmd, "$env dzil install $so";
     }
     else {
-        push @cmd, "perl Makefile.PL&&make&&make test&&$env make install";
+        push @cmd, "perl Makefile.PL && make && make test && $env make install";
     }
 
-    my $cmd = join q{&&}, @cmd;
+    my $cmd = join q{ && }, @cmd;
+    $cmd =~ s{\s+&&\s+}{ && };
 
-    return "# $mo\n" . $cmd;
+    return  $cmd;
 }
 
 sub installed {
@@ -96,7 +97,7 @@ sub installed {
 
     # ERROR handling
     if ( not exists $c->{provide} ) {
-        my $mo = $c->{class};
+        my $mo = $c->{module};
         my $m  = "ERROR in configuration! In module [$mo]\n";
         $m .= "at section [$pr:$iv] the [provide] field is missing.\n";
         $m .= "(stopping here)\n";
