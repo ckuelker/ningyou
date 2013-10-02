@@ -442,7 +442,6 @@ sub should_be_installed {
 sub action {
     my ($s) = @_;
 
-    $s->d( Dumper($str) );
     my $o = $s->get_options;
     if ( $mode eq 'script' ) {
         $s->o("#\!/bin/sh\n");
