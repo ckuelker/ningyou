@@ -142,8 +142,8 @@ has 'master' => (
 
 # global data to store status
 my $mode       = q{};           # command
-my $modules_ar = [];            # moduls
-my $modules    = q{};           # moduls
+my $modules_ar = [];            # modules
+my $modules    = q{};           # modules
 my $f          = {};            # facts about system
 my @str        = ();            # commands (in order)
 my $str        = {};            # commands
@@ -226,7 +226,7 @@ sub run {
     $s->v( "=" x ( 78 - $o->{indentation} ) . "\n" );
     my $unprovided = $s->query_unprovided();
 
-    # make a valiatation, print verbose valiatation
+    # make a validation, print verbose validation
     $s->v( "=" x ( 78 - $o->{indentation} ) . "\n" ) if $unprovided;
     $s->planning($unprovided) if $unprovided;
 
@@ -386,7 +386,7 @@ sub check_provided {
 
 # TODO: this is testing the dependency chain only 1 level deep
 #       and only for normal providers
-#       - consider to make it "indefinte" deep
+#       - consider to make it "indefinite" deep
 #       - consider to add provider "Module"
 sub planning {
     my ( $s, $i ) = @_;
@@ -520,7 +520,7 @@ sub get_dependencies {
         my ( $pr, $str ) = $s->id($tid);
         $s->v("    id has provider [$pr]\n");
         my @d = ();
-        if ( $str =~ m{,}gmx ) {            # if commata
+        if ( $str =~ m{,}gmx ) {            # if comma
             my @d = split /,/, $str;        # zsh,vim
             foreach my $iv (@d) {
                 $s->v("     + add A dependency [$pr:$iv]\n");
@@ -549,7 +549,7 @@ sub read_modules {
 # read from $MODULE/manifests/i.ini
 # add it to ONE Ningyou::Type::Module
 # add it THE global configuration 'cfg'
-# CRITIQUE: actually the type Ningyou::Type::Module do only decribe
+# CRITIQUE: actually the type Ningyou::Type::Module do only describe
 #           a part of a module, lets say an object.
 #           returning the cfg value for a module is not possible
 #           at the moment
