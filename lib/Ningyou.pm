@@ -20,6 +20,7 @@ use namespace::autoclean;
 use Ningyou::Cmd;
 use Ningyou::Util;
 use Ningyou::Options;
+use Ningyou::Type::Module;
 our $VERSION = '0.0.4';
 
 with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
@@ -573,7 +574,6 @@ sub read_module {
         next if $pr eq 'default';
         my $id = "$pr:$iv";
         $s->d("rid [$rid] -> id [$id] ($pr:$iv)\n");
-        use Ningyou::Type::Module;
         my $m = Ningyou::Type::Module->new;
         foreach my $k ( sort keys %{ $cfg->{$rid} } ) {
             $s->d("k [$k] =>[$cfg->{$rid}->{$k}]\n");
