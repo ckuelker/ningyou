@@ -46,7 +46,7 @@ sub install {
     my $gr = exists $c->{group}    ? $c->{group}    : 'root';
     my $md = exists $c->{mode}     ? $c->{mode}     : '0644';
     my $en = exists $c->{ensure}   ? $c->{ensure}   : 'latest';
-    my $mo = exists $c->{class}    ? $c->{class}    : die 'no class';
+    my $mo = exists $c->{module}    ? $c->{module}    : die 'no module';
 
     $s->d('debug output for Ningyou::Provider::File');
 
@@ -101,7 +101,7 @@ sub install {
         $cmd = "NOP";
     }
 
-    $s->v("$id cmd [$cmd]\n");
+    $s->d("$id cmd [$cmd]\n");
     return $cmd;
 }
 
