@@ -28,7 +28,6 @@ my $id = q{ } x 8;
 
 sub init {
     my ( $s, $i ) = @_;
-    my $o   = $s->get_options;
     my $cmd = '/usr/bin/dpkg-query';
     my @q = qx($cmd -W --showformat '\${Status};\${Package};\${Version}\\n');
     $s->d("INIT");
@@ -54,10 +53,11 @@ sub install {
 
     my $fl = exists $i->{aptitude} ? $i->{aptitude} : q{};
 
-    my $mo  = $c->{class};
+    my $mo  = $c->{module};
     my $cmd = "aptitude $fl install $iv";
+    $cmd =~s{\s+}{ }gmx;
 
-    return "# $mo\n" . $cmd;
+     return $cmd;
 }
 
 sub installed {
