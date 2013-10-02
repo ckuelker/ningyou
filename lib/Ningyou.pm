@@ -241,7 +241,7 @@ sub run {
         $s->action();    # do action if any
         if ( $mode eq 'show' ) {
             $s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
-            $s->o("To install execute:($unprovided)\n");
+            $s->o("To install execute:\n");
             $s->o("# ningyou install $modules\n");
         }
     }
