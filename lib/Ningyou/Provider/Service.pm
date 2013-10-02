@@ -36,7 +36,7 @@ sub install {
 
     # shorten config attributes
     my $en = exists $c->{ensure} ? $c->{ensure} : 'latest';
-    my $mo = exists $c->{class}  ? $c->{class}  : die 'no class';
+    my $mo = exists $c->{module}  ? $c->{module}  : die 'no module';
 
     # calculated
     my $o = $s->get_options;
