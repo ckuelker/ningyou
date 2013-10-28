@@ -190,7 +190,7 @@ sub run {
     $s->o("use master configuration: $cfg_fn\n");
     $s->o("use mode: $mode\n");
     $s->o("use module: $modules\n") if $modules ne q{};
-    $s->o("use repository: $repository\n");    # linux-debian-wheezy
+    #$s->o("use repository: $repository\n");    # linux-debian-wheezy
     $s->o("use work tree: $wt\n");    # /home/c/g/ningyou/linux-.../modules
 
     # prepare print used modules
@@ -350,11 +350,12 @@ sub check_provided {
     );
     if ($is_provided) {
         $s->set_provided( "$pr:$iv" => 1 );
-        $s->v("- A: [YES] [$iv] allready provied\n");
+        $s->v("- A: [YES] [$iv] [$pr] allready provied\n");
     }
     else {
         $s->set_provided( "$pr:$iv" => 0 );
         $s->v("- A: [NO] [$iv] not provied\n");
+        $s->v("  Therefore [$iv] is going to be provided via [install]\n");
         my $cmd = $p->install(
             {
 
@@ -367,7 +368,7 @@ sub check_provided {
             }
         );
         if ( defined $cmd ) {
-            $s->v("add cmd [$cmd]");
+            $s->v("  add cmd [$cmd]");
             my $mo = $cfg->{module};
             my $y  = "=" x 78;
             my $x  = sprintf( "# === module [%s] === object [%s] ===%s",
