@@ -26,7 +26,6 @@ has 'options' => (
     required => 1,
 );
 
-my $id = q{ } x 8;
 
 sub install {
     my ( $s, $i ) = @_;
@@ -63,7 +62,7 @@ sub install {
 
     # if file exists and it should be removed:
     if ( -e $iv and $en eq 'removed' ) {
-        $s->v("$id file [$iv] exist and it should be removed");
+        $s->v("  file [$iv] exist and it should be removed");
         $cmd = "rm $iv";
     }
     # if file exists and exists checksum and exists source and 
@@ -73,18 +72,18 @@ sub install {
         and $so
         and not $u->file_md5_eq( $ca, $iv, $so ) )
     {
-        $s->v("$id file [$iv] do exist and it should be copied, MD5 differ");
+        $s->v("  file [$iv] do exist and it should be copied, MD5 differ");
         $cmd
             = "cp $so $iv && chmod $md $iv && chown $ow $iv && chgrp $gr $iv";
     }
     # if do not exists and also not source, then just touch it
     elsif ( not -e $iv and not $so ) {
-        $s->v("$id file [$iv] do exist and it should be created without source\n");
+        $s->v("  file [$iv] do exist and it should be created without source\n");
         $cmd = "touch $iv";
     }
     # if file do not exists
     elsif ( not -e $iv ) {
-        $s->v("$id file [$iv] do NOT exist and it should be copied");
+        $s->v("  file [$iv] do NOT exist and it should be copied");
         $cmd
             = "cp $so $iv && chmod $md $iv && chown $ow $iv && chgrp $gr $iv";
     }
@@ -101,7 +100,7 @@ sub install {
         $cmd = "NOP";
     }
 
-    $s->d("$id cmd [$cmd]\n");
+    $s->d("  cmd [$cmd]\n");
     return $cmd;
 }
 
