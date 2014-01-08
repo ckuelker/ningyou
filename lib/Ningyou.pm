@@ -1,4 +1,4 @@
-package Ningyou;
+  package Ningyou;
 
 # ABSTRACT: clear reproducible system administration
 
@@ -304,7 +304,7 @@ sub query_unprovided {
     my $unprovided = 0;
 
     # foreach provider: File, Directory, ...
-    $s->v("Start query: what is already provided and what not ...\n");
+    $s->v("Query: what is already provided and what not ...\n");
     $s->d("Foreach entry id (provider:object)\n");
     foreach my $id ( $s->ids_cfg ) {    # id = provider:object
         my ( $pr, $iv ) = $s->id($id);
@@ -392,6 +392,7 @@ sub planning {
     my ( $s, $i ) = @_;
     my %queue = ();
 
+    $s->v("Query: what dependencies need to be installed:\n");
     foreach my $id ( $s->ids_cfg ) {
         my ( $pr, $iv ) = $s->id($id);
 
@@ -405,7 +406,7 @@ sub planning {
             my $mo = $s->get_cfg($id)->{module}->{module};
             $s->v("- Q: What dependecies has [$id]?\n");
             foreach my $dep_id ( $s->get_dependencies($id) ) {
-                die "Invalid dependency in module [$mo]"
+                die "Invalid dependency in module [$mo], missing [:]!\n"
                     if not $dep_id =~ m{:}gmx;
                 $s->v("- A: [$id] has dependency [$dep_id]\n");
                 $s->check_provided($dep_id);
