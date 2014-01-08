@@ -29,11 +29,12 @@ TODO
 
 Christian Külker <christian.kuelker@cipworx.org>
 
-Tolmezzo, 2013
+Tolmezzo, 2014
 
 ## COPYRIGHT AND LICENSE
 
     This software is copyright (C) 2013 by Christian Külker
+    This software is copyright (C) 2014 by Christian Külker
 
 
     This program is free software; you can redistribute it and/or modify it
