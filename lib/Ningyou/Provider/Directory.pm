@@ -87,14 +87,14 @@ sub install {
     else {
         $s->v(" * directory: NOP\n");
 
-         my $m
-             = "ERROR: Unhandled sitation in $mo at section $pr:$iv\n"
-             . " Most likely this is caused by a logical misconfiguration.\n"
-             . " Known mistakes: \n"
-             . "   - rsync mode for mkdir?\n";
-         die $m;
+        my $m
+            = "ERROR: Unhandled sitation in $mo at section $pr:$iv\n"
+            . " Most likely this is caused by a logical misconfiguration.\n"
+            . " Known mistakes: \n"
+            . "   - rsync mode for mkdir?\n";
+        die $m;
     }
-    $cmd =~s{\s+}{ }gmx;
+    $cmd =~ s{\s+}{ }gmx;
     $s->v("cmd [$cmd]\n") if defined $cmd;
     return $cmd;
 }
@@ -147,12 +147,12 @@ sub installed {    # alias for "action needed"
     my $d1 = $so;
     my $d2 = $iv;
     use Carp;
-    carp "d1 [$d1] not a directory" if not -d $d1;
-    carp "d2 [$d2] not a directory" if not -d $d2;
-    $s->v("  - Q: is  [$d2] and \n");
+    #carp "1 [$d1] not a directory" if not -d $d1;
+    #carp "d2 [$d2] not a directory" if not -d $d2;
+    $s->v("  - Q: is  [$d2] and\n");
     $s->v("    [$d1]\n");
     $s->v("    equal?\n");
-    my $equal = $u->compare_dirs( $d1, $d2 );
+    my $equal = ( -d $d2 ) ? $u->compare_dirs( $d1, $d2 ) : 0;
 
     if ($equal) {
         $s->v("  - A: [YES] both directories are equal.\n");
