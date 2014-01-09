@@ -62,7 +62,7 @@ sub process_options {
     }
 
     # --scope --mode --configuration|-c
-    $opt{indentation} = 4 if not defined $opt{indentation};
+    $opt{indentation} = 0 if not defined $opt{indentation};
 
     $s->set_options( \%opt );
     return \%opt;
