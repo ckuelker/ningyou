@@ -2,7 +2,7 @@ package Ningyou::Provider::Package;
 use Moose;
 use Data::Dumper;
 use namespace::autoclean;
-our $VERSION = '0.0.4';
+our $VERSION = '0.0.5';
 
 with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
 
