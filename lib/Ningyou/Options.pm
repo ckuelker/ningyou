@@ -39,13 +39,13 @@ sub process_options {
     my %opt = ();
 
     GetOptions(
-        \%opt,         'configuration|c=s',
-        'debug:s',     'help',
+        \%opt,           'configuration|c=s',
+        'debug:s',       'help',
         'indentation=s', 'man',
-        'module=s',    'quite',
-        'raw',         'script',
-        'update',      'verbose',
-        'version',     '<>',
+        'module=s',      'quite',
+        'raw',           'script',
+        'update',        'verbose',
+        'version',       '<>',
         sub { my ($i) = @_; $s->process_commands($i) },
     );
 
@@ -72,12 +72,15 @@ sub process_commands {
     my ( $s, $i ) = @_;
 
     my $x = scalar $i->name;    # remove the object from the input
-    my @x = qw(show full-show script full-script install production);
+    my @x = qw(help show script install production);
     if ( $x ~~ @x ) {
         $s->set_command($x);
     }
     else {
         push @{ $s->modules }, $x;
+    }
+    if ( $x eq 'help' ) {
+        pod2usage(1);
     }
     return;
 }

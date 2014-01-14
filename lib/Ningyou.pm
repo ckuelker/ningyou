@@ -1,4 +1,4 @@
-  package Ningyou;
+package Ningyou;
 
 # ABSTRACT: clear reproducible system administration
 
@@ -145,6 +145,7 @@ has 'master' => (
 my $mode       = q{};           # command
 my $modules_ar = [];            # modules
 my $modules    = q{};           # modules
+my $result     = {};            # modules
 my $f          = {};            # facts about system
 my $cache      = {};
 my $wt         = '/dev/null';   # work tree
@@ -185,21 +186,33 @@ sub run {
     }
 
     # print preamble
-    $s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
-    $s->o("Ningyou v$VERSION for [$f->{fqdn}]\n");
-    $s->o("use master configuration: $cfg_fn\n");
-    $s->o("use mode: $mode\n");
-    $s->o("use module: $modules\n") if $modules ne q{};
-    #$s->o("use repository: $repository\n");    # linux-debian-wheezy
-    $s->o("use work tree: $wt\n");    # /home/c/g/ningyou/linux-.../modules
+    # $s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
+    $mode = ( $mode eq q{} ) ? 'show' : $mode;
+    my $comment = ( $mode eq 'script' ) ? '# ' : q{};
+    $s->o("#!/bin/sh\n") if $mode eq 'script';
+    $s->o(    $comment
+            . 'Ningyou '
+            . $s->c( 'version', "v$VERSION" ) . " for "
+            . $s->c( 'host',    $f->{fqdn} )
+            . ' with configuration '
+            . $s->c( 'file', $cfg_fn )
+            . "\n" );
+
+    my $str = ( not defined $modules or $modules eq q{} ) ? 'all' : $modules;
+    $s->o(    $comment
+            . $s->c( 'mode', ucfirst($mode) )
+            . " module(s) "
+            . $s->c( 'module', $str ) . " in "
+            . $s->c( 'file',   $wt )
+            . "\n" );
 
     # prepare print used modules
     my $dot = q{ } . '.' x 70;
     my $dl  = 68 - $o->{indentation};
 
     # print used modules and read its configuration
-    $s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
-    $s->o("Modules concidered processing: (switch on/off via master.ini)\n");
+    #$s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
+    $s->v("Modules concidered processing: (switch on/off via master.ini)\n");
     my @modules = ();
     if ( $modules ne q{} and $modules ne 'all' ) {
         @modules = @{$modules_ar};
@@ -212,12 +225,13 @@ sub run {
         $mo =~ s{^$wt/}{}gmx;    #/home/c/g/wt/modules/zsh -> zsh
         my $md = $mo . $dot;
         if ( $s->should_be_installed($mo) ) {
-            $s->o( sprintf( "%-$dl.${dl}s [ %s ]\n", $md, 'YES' ) );
             $s->read_module($mo);
+            $result->{$mo}->{considered} = 1;
         }
         else {
-            $s->o( sprintf( "%-$dl.${dl}s [ %s ]\n", $md, 'NO ' ) );
+            $result->{$mo}->{considered} = 0;
         }
+
     }
 
     # make a query, print verbose query
@@ -230,23 +244,45 @@ sub run {
     $s->planning($unprovided_objects) if $unprovided_objects;
 
     # print result
-    $s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
+    #$s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
     $s->v("Verbose results:\n");
     $s->v("  number of objects to update: $unprovided_objects\n");
-    $s->v(
-        "  number of command sections: " . $s->count_commands / 2 . "\n" );
-    $s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
+    $s->v( "  number of command sections: " . $s->count_commands / 2 . "\n" );
+
+    foreach my $mo ( sort @modules ) {
+        chomp $mo;
+        $mo =~ s{^$wt/}{}gmx;    #/home/c/g/wt/modules/zsh -> zsh
+        my $md = $s->c( 'module', $mo ) . $dot;
+        my $considered
+            = ( $result->{$mo}->{considered} )
+            ? $s->c( 'yes', 'YES' )
+            : $s->c( 'no',  'NO ' );
+        my $todo
+            = ( not $result->{$mo}->{considered} ) ? $s->c( 'done', '----' )
+            : ( $result->{$mo}->{todo} ) ? $s->c( 'todo', 'TODO' )
+            :                              $s->c( 'done', 'DONE' );
+
+        $s->o(
+            sprintf(
+                "%-$dl.${dl}s [ %s ] [ %s ]\n", $md, $considered, $todo
+            )
+        ) if $mode eq 'show';
+
+    }
+
+    #$s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
 
     if ($unprovided_objects) {
         $s->action();    # do action if any
         if ( $mode eq 'show' ) {
-            $s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
-            $s->o("To install execute:\n");
-            $s->o("# ningyou install $modules\n");
+
+            #$s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
+            $s->o( $s->c( 'execute', "To install execute:\n" ) );
+            $s->o( $s->c( 'execute', "# ningyou install $modules\n" ) );
         }
     }
     else {
-        $s->o("Ningyou is already up-to-date\n");
+        $s->o( $s->c( 'ready', "Ningyou is already up-to-date\n" ) );
     }
 
     $s->d("END\n");
@@ -367,17 +403,21 @@ sub check_provided {
                 wt       => $wt,
             }
         );
+### ###
         if ( defined $cmd ) {
             $s->v("  add cmd [$cmd]");
             my $mo = $cfg->{module};
             my $y  = "=" x 78;
             my $x  = sprintf( "# === module [%s] === object [%s] ===%s",
                 $mo, $id, $y );
-            $s->add_command( sprintf( "%-.74s", $x ) );
-            $s->add_command($cmd);
+            $s->add_command( sprintf( "%-.74s\n", $s->c( 'comment', $x ) ) );
+            $s->add_command( $s->c( 'command', $cmd ) . "\n" );
+            $result->{$mo}->{'todo'} = 1;
         }
         else {
             $s->v("no cmd from install\n");
+            my $mo = $cfg->{module};
+            $result->{$mo}->{todo} = 0;
         }
     }
 
@@ -444,55 +484,57 @@ sub action {
 
     my $o = $s->get_options;
     if ( $mode eq 'script' ) {
-        $s->o("#\!/bin/sh\n");
-        $s->o("# Ningyou v$VERSION action script\n");
-        $s->o("# for [$f->{fqdn}] as [$repository]\n");
         $s->v(    "# number of modules to update: "
                 . $s->count_commands / 2
                 . "\n" );
-        $s->o("# module name(s): $modules\n");
         $s->o("export WT=$wt\n");
     }
     else {
         if ( exists $o->{install} and $o->{install} ) {
-            $s->o("the following commands will be executed:\n");
+
+            #$s->o("the following commands will be executed:\n");
         }
         else {
-            $s->o("the following commands would be executed:\n");
+
+            #$s->o("the following commands would be executed:\n");
         }
     }
     my $z = 0;
 
-    foreach my $cmd ( $s->all_commands ) {
-        if (   $mode eq 'production'
-            or $mode eq 'install' )
-        {
-            $s->o("execute: [$cmd]\n");
-            my $nilicm = Ningyou::Cmd->new();
-            $nilicm->cmd($cmd);
-        }
-        else {
-            if ( not exists $o->{raw} ) {
-                $cmd =~ s/^\s+//gmx;
-                if ( $mode eq 'show' or $mode eq 'full-show' ) {
-                    $cmd =~ s/^/# /gmx;
-                }
-                $cmd =~ s/$wt/\${WT}/gmx;
-                $cmd =~ s/&&/&&\n/gmx;
-            }
-            if ( $mode eq 'show' or $mode eq 'full-show' ) {
-                $cmd =~ s{\n}{\n    #}gmx;
+    if ( $mode eq 'script' ) {
+        foreach my $cmd ( $s->all_commands ) {
+            if (   $mode eq 'production'
+                or $mode eq 'install' )
+            {
+                $s->o("execute: [$cmd]\n");
+                my $nilicm = Ningyou::Cmd->new();
+                $nilicm->cmd($cmd);
             }
             else {
-                $cmd =~ s{\n}{\n   }gmx;
+                if ( not exists $o->{raw} ) {
+                    $cmd =~ s/^\s+//gmx;
+                    if ( $mode eq 'show' ) {
+                        $cmd =~ s/^/# /gmx;
+                    }
+                    $cmd =~ s/$wt/\${WT}/gmx;
+                    $cmd =~ s/&&/&&\n/gmx;
+                }
+                if ( $mode eq 'show' ) {
+
+                    #$cmd =~ s{\n}{\n    #}gmx;
+                    $cmd =~ s{\n}{\n#}gmx;
+                }
+                else {
+
+                    #$cmd =~ s{\n}{\n   }gmx;
+                    $cmd =~ s{\n}{\n}gmx;
+                }
+                $cmd =~ s{\s+\n}{\n}gmx;
+                $s->o($cmd);
             }
-            $cmd =~ s{\s+\n}{\n}gmx;
-            $s->o($cmd);
+            $z++;
         }
-        $z++;
-    }
-    if ( $mode eq 'script' or $mode eq 'full-script' ) {
-        $s->o("# EOS - end of script\n");
+        $s->o( $s->c( 'comment', "# EOS - end of script\n" ) );
     }
 
 }
