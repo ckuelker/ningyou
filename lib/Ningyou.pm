@@ -249,6 +249,12 @@ sub run {
     $s->v("  number of objects to update: $unprovided_objects\n");
     $s->v( "  number of command sections: " . $s->count_commands / 2 . "\n" );
 
+    $s->v("\n") if $mode eq 'show';
+    my $dx = $dl - 12;
+    $s->v(
+        sprintf( "%-$dx.${dx}s  %s %s\n", 'module', 'considered', 'status' ) )
+        if $mode eq 'show';
+    $s->v( "_" x ( 78 - $o->{indentation} ) . "\n" ) if $mode eq 'show';
     foreach my $mo ( sort @modules ) {
         chomp $mo;
         $mo =~ s{^$wt/}{}gmx;    #/home/c/g/wt/modules/zsh -> zsh
