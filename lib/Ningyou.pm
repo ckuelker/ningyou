@@ -283,13 +283,16 @@ sub run {
         if ( $mode eq 'show' ) {
 
             #$s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
-            $s->o("Execute with:");
+            $s->o("Apply:");
             if ( $modules eq q{} ) {
-                $s->o( $s->c( 'execute', " ningyou install all\n" ) );
+                $s->o( $s->c( 'execute', " ningyou install all" ) );
+                $s->o( ' What would be done:'
+                        . $s->c( 'execute', " ningyou script all\n" ) );
             }
             else {
-                $s->o( $s->c( 'execute', " ningyou install $modules\n" ) );
-
+                $s->o( $s->c( 'execute', " ningyou install $modules" ) );
+                $s->o( ' What would be done:'
+                        . $s->c( 'execute', " ningyou script $modules\n" ) );
             }
 
         }
