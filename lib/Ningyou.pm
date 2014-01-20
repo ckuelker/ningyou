@@ -367,9 +367,15 @@ sub check_provided {
     my ( $s,  $id ) = @_;
     my ( $pr, $iv ) = $s->id($id);
     my $o = $s->get_options;
-    $s->v("- Q: do provider [$pr] provide object [$iv]?\n");
+    $s->v(    "- Q: do provider "
+            . $s->c( 'file', $pr )
+            . " provide object "
+            . $s->c( 'module', $iv )
+            . "?\n" );
     my $msg
-        = "ERROR: provider [$pr] not supported!\n"
+        = "ERROR: provider "
+        . $s->c( 'file', $pr )
+        . " not supported!\n"
         . "Please install the provider Ningyou::Provider::"
         . ucfirst $pr
         . "\nand consider adding it at"
@@ -399,12 +405,21 @@ sub check_provided {
     );
     if ($is_provided) {
         $s->set_provided( "$pr:$iv" => 1 );
-        $s->v("- A: [YES] [$iv] [$pr] allready provied\n");
+        $s->v(    "- A: "
+                . $s->c( 'yes',    'YES' ) . ", "
+                . $s->c( 'module', $iv ) . " "
+                . $s->c( 'file',   $pr )
+                . " allready provied\n" );
     }
     else {
         $s->set_provided( "$pr:$iv" => 0 );
-        $s->v("- A: [NO] [$iv] not provied\n");
-        $s->v("  Therefore [$iv] is going to be provided via [install]\n");
+        $s->v(    "- A: "
+                . $s->c( 'no',     'NO' ) . ", "
+                . $s->c( 'module', $iv )
+                . " not provied\n" );
+        $s->v(    "  Therefore "
+                . $s->c( 'module', $iv )
+                . " is going to be provided via [install]\n" );
         my $cmd = $p->install(
             {
 
@@ -449,19 +464,35 @@ sub planning {
     foreach my $id ( $s->ids_cfg ) {
         my ( $pr, $iv ) = $s->id($id);
 
-        $s->v("- Q: Should object [$iv] be provided via [$pr]?\n");
+        $s->v(    "- Q: Should object "
+                . $s->c( 'module', $iv )
+                . " be provided via "
+                . $s->c( 'file', $pr )
+                . "?\n" );
         if ( $s->get_provided($id) ) {
-            $s->v("- A: [NO] Should not be provided via [$pr]\n");
+            $s->v(    "- A: "
+                    . $s->c( 'no', 'NO' )
+                    . ", should not be provided via "
+                    . $s->c( 'file', $pr )
+                    . "\n" );
             next;
         }
         else {
-            $s->v("- A: [YES] Should be provided via [$pr]\n");
+            $s->v(    "- A: "
+                    . $s->c( 'yes', 'YES' )
+                    . ", should be provided via "
+                    . $s->c( 'file', $pr )
+                    . "\n" );
             my $mo = $s->get_cfg($id)->{module}->{module};
-            $s->v("- Q: What dependecies has [$id]?\n");
+            $s->v(    "- Q: What dependecies has "
+                    . $s->c( 'module', $id )
+                    . "?\n" );
             foreach my $dep_id ( $s->get_dependencies($id) ) {
                 die "Invalid dependency in module [$mo], missing [:]!\n"
                     if not $dep_id =~ m{:}gmx;
-                $s->v("- A: [$id] has dependency [$dep_id]\n");
+                $s->v(    "- A: "
+                        . $s->c( 'module', $id )
+                        . " has dependency [$dep_id]\n" );
                 $s->check_provided($dep_id);
             }
         }
@@ -573,7 +604,7 @@ sub get_dependencies {
     foreach my $tid (@dep_test) {           # package:zsh,vim
         $s->v("  - Test dependency id [$tid]\n");
         my ( $pr, $str ) = $s->id($tid);
-        $s->v("    id has provider [$pr]\n");
+        $s->v( "    id has provider " . $s->c( 'file', $pr ) . "\n" );
         my @d = ();
         if ( $str =~ m{,}gmx ) {            # if comma
             my @d = split /,/, $str;        # zsh,vim
@@ -617,7 +648,10 @@ sub read_module {
     my $def = {};
     foreach my $rid ( sort keys %{$cfg} ) {    # default : file
         my ( $pr, $iv ) = $s->id($rid);
-        $s->d("pr [$pr] iv [$iv]\n");          # pr [default] iv [file]
+        $s->d(    "pr "
+                . $s->c( 'file',   $pr ) . " iv "
+                . $s->c( 'module', $iv )
+                . "\n" );                      # pr [default] iv [file]
         next if $pr ne 'default';
         $def->{$iv} = $cfg->{$rid};    # def->{file} = cfg->{default:file}
     }
