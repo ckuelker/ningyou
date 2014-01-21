@@ -3,7 +3,7 @@ use strict;
 use Ningyou;
 use Ningyou::Options;
 use warnings;
-our $VERSION = '0.0.7';
+our $VERSION = '0.0.8';
 
 my $no = Ningyou::Options->new();
 my $n = Ningyou->new( options => $no->get_options );

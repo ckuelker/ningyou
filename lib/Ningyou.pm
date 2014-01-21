@@ -21,7 +21,7 @@ use Ningyou::Cmd;
 use Ningyou::Util;
 use Ningyou::Options;
 use Ningyou::Type::Module;
-our $VERSION = '0.0.7';
+our $VERSION = '0.0.8';
 
 with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
 

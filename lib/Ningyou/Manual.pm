@@ -1,5 +1,5 @@
 package Ningyou::Manual
-our $VERSION = '0.0.7';
+our $VERSION = '0.0.8';
 
 1;
 __END__
