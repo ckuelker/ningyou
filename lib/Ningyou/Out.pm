@@ -29,6 +29,7 @@ use vars qw(%COLOR_THEMES %COLORS $COLOR $COLOR_THEME $COLOR_DEPTH);
 	    ready => 'green',
 	    execute => 'red',
 	    todo => 'bright_red',
+	    error=> 'bright_red',
 	    done      => 'bright_green',
             module    => 'yellow',
 	    comment  => 'blue',
