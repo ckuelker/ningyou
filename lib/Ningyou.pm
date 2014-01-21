@@ -142,17 +142,17 @@ has 'master' => (
 # global data
 
 # global data to store status
-my $mode       = q{};           # command
-my $modules_ar = [];            # modules
-my $modules    = q{};           # modules
-my $result     = {};            # modules
-my $f          = {};            # facts about system
+my $mode       = q{};            # command
+my $modules_ar = [];             # modules
+my $modules    = q{};            # modules
+my $result     = {};             # modules
+my $f          = {};             # facts about system
 my $cache      = {};
-my $wt         = '/dev/null';   # work tree
-my $cfg        = {};            # global cfg space
-my $pkg        = {};            # pkg from cfg that should be applied or not
+my $wt         = '/dev/null';    # work tree
+my $cfg        = {};             # global cfg space
+my $pkg        = {};             # pkg from cfg that should be applied or not
 my $repository = 'none';
-my $provider   = {};            # file, git, ...
+my $provider   = {};             # file, git, ...
 
 sub run {
     my ( $s, $i ) = @_;
@@ -161,7 +161,7 @@ sub run {
     my $opt = Ningyou::Options->new;
     $opt->process_options;
     my $o = $opt->get_options;
-    $s->set_options($o);        # set for Ningyou::Out ...
+    $s->set_options($o);         # set for Ningyou::Out ...
     $mode       = $opt->get_command;
     $modules_ar = $opt->modules;
     $modules    = join q{ }, @{$modules_ar};
@@ -422,7 +422,9 @@ sub check_provided {
                 . " not provied\n" );
         $s->v(    "  Therefore "
                 . $s->c( 'module', $iv )
-                . " is going to be provided via [".$c->('file','apply')."]\n" );
+                . " is going to be provided via ["
+                . $s->c( 'file', 'apply' )
+                . "]\n" );
         my $cmd = $p->apply(
             {
 
@@ -441,8 +443,14 @@ sub check_provided {
             my $y  = "=" x 78;
             my $x  = sprintf( "# === module [%s] === object [%s] ===%s",
                 $mo, $id, $y );
-            $s->add_command( sprintf( "%-.74s\n", $s->c( 'comment', $x ) ) );
-            $s->add_command( $s->c( 'command', $cmd ) . "\n" );
+            if ( $mode eq 'apply' ) {
+                $s->add_command($cmd);
+            }
+            else {
+                $s->add_command(
+                    sprintf( "%-.74s\n", $s->c( 'comment', $x ) ) );
+                $s->add_command( $s->c( 'command', $cmd ) . "\n" );
+            }
             $result->{$mo}->{'todo'} = 1;
         }
         else {
@@ -535,55 +543,34 @@ sub action {
                 . $s->count_commands / 2
                 . "\n" );
         $s->o("export WT=$wt\n");
-    }
-    else {
-        if ( exists $o->{apply} and $o->{apply} ) {
-
-            #$s->o("the following commands will be executed:\n");
-        }
-        else {
-
-            #$s->o("the following commands would be executed:\n");
-        }
-    }
-    my $z = 0;
-
-    if ( $mode eq 'script' ) {
+        my $z = 0;
         foreach my $cmd ( $s->all_commands ) {
-            if (   $mode eq 'production'
-                or $mode eq 'apply' )
-            {
-                $s->o("execute: [$cmd]\n");
-                my $nilicm = Ningyou::Cmd->new();
-                $nilicm->cmd($cmd);
-            }
-            else {
-                if ( not exists $o->{raw} ) {
-                    $cmd =~ s/^\s+//gmx;
-                    if ( $mode eq 'show' ) {
-                        $cmd =~ s/^/# /gmx;
-                    }
-                    $cmd =~ s/$wt/\${WT}/gmx;
-                    $cmd =~ s/&&/&&\n/gmx;
-                }
+            if ( not exists $o->{raw} ) {
+                $cmd =~ s/^\s+//gmx;
                 if ( $mode eq 'show' ) {
-
-                    #$cmd =~ s{\n}{\n    #}gmx;
-                    $cmd =~ s{\n}{\n#}gmx;
+                    $cmd =~ s/^/# /gmx;
                 }
-                else {
-
-                    #$cmd =~ s{\n}{\n   }gmx;
-                    $cmd =~ s{\n}{\n}gmx;
-                }
-                $cmd =~ s{\s+\n}{\n}gmx;
-                $s->o($cmd);
+                $cmd =~ s/$wt/\${WT}/gmx;
+                $cmd =~ s/&&/&&\n/gmx;
             }
+            $cmd =~ s{\n}{\n}gmx;
+            $cmd =~ s{\s+\n}{\n}gmx;
+            $s->o($cmd);
             $z++;
         }
         $s->o( $s->c( 'comment', "# EOS - end of script\n" ) );
     }
-
+    if ( $mode eq 'apply' ) {
+        foreach my $cmd ( $s->all_commands ) {
+            next if $cmd =~ m{^#};
+            $s->o("$cmd\n");
+            my $nilicm = Ningyou::Cmd->new();
+            my ( $out, $err, $res ) = $nilicm->cmd($cmd);
+            if ($err) {
+                $s->o( $s->c( 'error', $err . " " . $res ) );
+            }
+        }
+    }
 }
 
 # queries the 'require' field and deliver all  dependencies
