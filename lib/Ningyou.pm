@@ -446,6 +446,7 @@ sub check_provided {
         if ( defined $cmd ) {
             $s->v("  add cmd [$cmd]");
             my $mo = $cfg->{module};
+            $s->v("  module  [$mo]");
             my $y  = "=" x 78;
             my $x  = sprintf( "# === module [%s] === object [%s] ===%s",
                 $mo, $id, $y );
