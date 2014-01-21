@@ -18,7 +18,7 @@ has 'options' => (
 
 my $id = q{ } x 8;
 
-sub install {
+sub apply {
     my ( $s, $i ) = @_;
 
     # if no cache is desired then ca can be {}
@@ -71,9 +71,9 @@ sub install {
     return $cmd;
 }
 
-sub installed {    # alias for "action needed"
+sub applied {    # alias for "action needed"
     my ( $s, $i ) = @_;
-    my $cmd = $s->install($i);
+    my $cmd = $s->apply($i);
     return 1 if $cmd =~ m/^NOP/mx;
     return 0;
 }

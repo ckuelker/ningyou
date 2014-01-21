@@ -17,7 +17,7 @@ has 'options' => (
 
 my $id = q{ } x 8;
 
-sub install {
+sub apply {
     my ( $s, $i ) = @_;
     my $iv = exists $i->{object} ? $i->{object} : die 'no [object]';
     my $c  = exists $i->{cfg}    ? $i->{cfg}    : die "no [cfg]";
@@ -33,7 +33,7 @@ sub install {
     return $cmd;
 }
 
-sub installed {
+sub applied {
     my ( $s, $i ) = @_;
     my $iv = exists $i->{object} ? $i->{object} : die "no [object]";
     my $c  = exists $i->{cfg}    ? $i->{cfg}    : die "no [cfg]";

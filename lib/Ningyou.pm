@@ -150,7 +150,7 @@ my $f          = {};            # facts about system
 my $cache      = {};
 my $wt         = '/dev/null';   # work tree
 my $cfg        = {};            # global cfg space
-my $pkg        = {};            # pkg from cfg that should be installed or not
+my $pkg        = {};            # pkg from cfg that should be applied or not
 my $repository = 'none';
 my $provider   = {};            # file, git, ...
 
@@ -224,7 +224,7 @@ sub run {
         chomp $mo;
         $mo =~ s{^$wt/}{}gmx;    #/home/c/g/wt/modules/zsh -> zsh
         my $md = $mo . $dot;
-        if ( $s->should_be_installed($mo) ) {
+        if ( $s->should_be_applied($mo) ) {
             $s->read_module($mo);
             $result->{$mo}->{considered} = 1;
         }
@@ -285,12 +285,12 @@ sub run {
             #$s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
             $s->o("Apply:");
             if ( $modules eq q{} ) {
-                $s->o( $s->c( 'execute', " ningyou install all" ) );
+                $s->o( $s->c( 'execute', " ningyou apply all" ) );
                 $s->o( ' What would be done:'
                         . $s->c( 'execute', " ningyou script all\n" ) );
             }
             else {
-                $s->o( $s->c( 'execute', " ningyou install $modules" ) );
+                $s->o( $s->c( 'execute', " ningyou apply $modules" ) );
                 $s->o( ' What would be done:'
                         . $s->c( 'execute', " ningyou script $modules\n" ) );
             }
@@ -346,7 +346,7 @@ sub get_worktree {
     return $wt;
 }
 
-# query OBJECTs of PROVIDER if installed or not
+# query OBJECTs of PROVIDER if applied or not
 # returns number of unprovided objects
 sub query_unprovided {
     my ( $s, $i ) = @_;
@@ -394,7 +394,7 @@ sub check_provided {
         ? $s->get_cfg($id)->{module}
         : {};
 
-    my $is_provided = $p->installed(
+    my $is_provided = $p->applied(
         {
             cfg      => $cfg,     #$r->{$pr}->{$iv},
             object   => $iv,
@@ -422,8 +422,8 @@ sub check_provided {
                 . " not provied\n" );
         $s->v(    "  Therefore "
                 . $s->c( 'module', $iv )
-                . " is going to be provided via [install]\n" );
-        my $cmd = $p->install(
+                . " is going to be provided via [".$c->('file','apply')."]\n" );
+        my $cmd = $p->apply(
             {
 
                 # mandatory
@@ -446,7 +446,7 @@ sub check_provided {
             $result->{$mo}->{'todo'} = 1;
         }
         else {
-            $s->v("no cmd from install\n");
+            $s->v("no cmd from apply\n");
             my $mo = $cfg->{module};
             $result->{$mo}->{todo} = 0;
         }
@@ -463,7 +463,7 @@ sub planning {
     my ( $s, $i ) = @_;
     my %queue = ();
 
-    $s->v("Query: what dependencies need to be installed:\n");
+    $s->v("Query: what dependencies need to be applied:\n");
     foreach my $id ( $s->ids_cfg ) {
         my ( $pr, $iv ) = $s->id($id);
 
@@ -503,23 +503,23 @@ sub planning {
     return 0;
 }
 
-sub should_be_installed {
+sub should_be_applied {
     my ( $s, $mo ) = @_;
 
     return 1 if ( exists $pkg->{$mo} );
     $pkg->{$mo} = 0;
 
-    # if should be installed globally: [packages]
+    # if should be applied globally: [packages]
     $pkg->{$mo}++
         if ( exists $cfg->{packages}->{$mo}
         and $cfg->{packages}->{$mo} );
 
-    # if should be installed for repository
+    # if should be applied for repository
     $pkg->{$mo}++
         if ( exists $cfg->{$repository}->{$mo}
         and $cfg->{$repository}->{$mo} );
 
-    # if it should be installed for client
+    # if it should be applied for client
     $pkg->{$mo}++
         if exists $cfg->{ $f->{fqdn} }->{$mo}
             and $cfg->{ $f->{fqdn} }->{$mo};
@@ -537,7 +537,7 @@ sub action {
         $s->o("export WT=$wt\n");
     }
     else {
-        if ( exists $o->{install} and $o->{install} ) {
+        if ( exists $o->{apply} and $o->{apply} ) {
 
             #$s->o("the following commands will be executed:\n");
         }
@@ -551,7 +551,7 @@ sub action {
     if ( $mode eq 'script' ) {
         foreach my $cmd ( $s->all_commands ) {
             if (   $mode eq 'production'
-                or $mode eq 'install' )
+                or $mode eq 'apply' )
             {
                 $s->o("execute: [$cmd]\n");
                 my $nilicm = Ningyou::Cmd->new();
