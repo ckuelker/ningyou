@@ -3,7 +3,7 @@ use Data::Dumper;
 use File::Basename;
 use Moose;
 use namespace::autoclean;
-our $VERSION = '0.0.6';
+our $VERSION = '0.0.7';
 
 # GLOBAL MANDATORY
 # [cpan:yare-dzil]

@@ -6,7 +6,7 @@ package Ningyou::Cmd;
 use Capture::Tiny 'tee';
 use Moose;
 use namespace::autoclean;
-our $VERSION = '0.0.6';
+our $VERSION = '0.0.7';
 
 sub cmd {
     my ( $s, $cmd ) = @_;

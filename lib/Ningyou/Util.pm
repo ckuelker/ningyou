@@ -4,7 +4,7 @@ use Moose;
 use Data::Dumper;
 use namespace::autoclean;
 use Term::ReadKey;
-our $VERSION = '0.0.6';
+our $VERSION = '0.0.7';
 
 with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
 

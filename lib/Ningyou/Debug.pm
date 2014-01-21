@@ -10,7 +10,7 @@ use charnames qw(:full :short);  # unneeded in v5.16
 use Data::Dumper;
 use Moose::Role;
 use namespace::autoclean;
-our $VERSION = '0.0.6';
+our $VERSION = '0.0.7';
 
 sub d {
     my ( $s, $i ) = @_;

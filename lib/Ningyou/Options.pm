@@ -11,7 +11,7 @@ use Pod::Usage;
 use Moose;
 use Getopt::Long qw(:config gnu_getopt permute);
 use namespace::autoclean;
-our $VERSION = '0.0.6';
+our $VERSION = '0.0.7';
 
 has 'options' => (
     is      => 'rw',
