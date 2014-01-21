@@ -244,7 +244,7 @@ sub run {
     $s->planning($unprovided_objects) if $unprovided_objects;
 
     # print result
-    #$s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
+    $s->v( "=" x ( 78 - $o->{indentation} ) . "\n" );
     $s->v("Verbose results:\n");
     $s->v("  number of objects to update: $unprovided_objects\n");
     $s->v( "  number of command sections: " . $s->count_commands / 2 . "\n" );
@@ -276,14 +276,12 @@ sub run {
 
     }
 
-    #$s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
+    $s->v( "=" x ( 78 - $o->{indentation} ) . "\n" );
 
     if ($unprovided_objects) {
         $s->action();    # do action if any
         if ( $mode eq 'show' ) {
-
-            #$s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
-            $s->o("Apply:");
+            $s->v( "=" x ( 78 - $o->{indentation} ) . "\n" );
             if ( $modules eq q{} ) {
                 $s->o( $s->c( 'execute', " ningyou apply all" ) );
                 $s->o( ' What would be done:'
@@ -294,7 +292,6 @@ sub run {
                 $s->o( ' What would be done:'
                         . $s->c( 'execute', " ningyou script $modules\n" ) );
             }
-
         }
     }
     else {
@@ -539,9 +536,7 @@ sub action {
 
     my $o = $s->get_options;
     if ( $mode eq 'script' ) {
-        $s->v(    "# number of modules to update: "
-                . $s->count_commands / 2
-                . "\n" );
+        $s->v("# number of modules to update: " . $s->count_commands / 2 . "\n" );
         $s->o("export WT=$wt\n");
         my $z = 0;
         foreach my $cmd ( $s->all_commands ) {
