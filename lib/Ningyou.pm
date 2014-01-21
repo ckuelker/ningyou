@@ -220,9 +220,18 @@ sub run {
     else {
         @modules = @{ $s->read_modules() };
     }
+    if ( $mode eq 'list' ) {
+        foreach my $mo ( sort @modules ) {
+            chomp $mo;
+            $mo =~ s{^$wt/}{}gmx;    #/home/c/g/wt/modules/zsh -> zsh
+            $s->o( $s->c( 'module', "$mo " ) );
+        }
+        $s->o("\n");
+        return;
+    }
     foreach my $mo ( sort @modules ) {
         chomp $mo;
-        $mo =~ s{^$wt/}{}gmx;    #/home/c/g/wt/modules/zsh -> zsh
+        $mo =~ s{^$wt/}{}gmx;        #/home/c/g/wt/modules/zsh -> zsh
         my $md = $mo . $dot;
         if ( $s->should_be_applied($mo) ) {
             $s->read_module($mo);
@@ -536,7 +545,9 @@ sub action {
 
     my $o = $s->get_options;
     if ( $mode eq 'script' ) {
-        $s->v("# number of modules to update: " . $s->count_commands / 2 . "\n" );
+        $s->v(    "# number of modules to update: "
+                . $s->count_commands / 2
+                . "\n" );
         $s->o("export WT=$wt\n");
         my $z = 0;
         foreach my $cmd ( $s->all_commands ) {
