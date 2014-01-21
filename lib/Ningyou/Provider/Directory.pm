@@ -17,7 +17,7 @@ has 'options' => (
     required => 1,
 );
 
-sub install {
+sub apply {
     my ( $s, $i ) = @_;
 
     # if no cache is desired, then ca can be {}
@@ -117,7 +117,7 @@ sub install {
 #          'dryrun' => 1,
 #          'cache' => {}
 #        };
-sub installed {    # alias for "action needed"
+sub applied {    # alias for "action needed"
     my ( $s, $i ) = @_;
     my $iv = exists $i->{object} ? $i->{object} : die 'no object';
     my $wt = exists $i->{wt}     ? $i->{wt}     : die 'no wt';

@@ -23,7 +23,7 @@ has 'options' => (
 
 my $id = q{ } x 8;
 
-sub install {
+sub apply {
     my ( $s, $i ) = @_;
 
     my $o = $s->get_options;
@@ -48,7 +48,7 @@ sub install {
     return $cmd;
 }
 
-sub installed {    # alias for "action needed"
+sub applied {    # alias for "action needed"
     my ( $s, $i ) = @_;
     my $c  = exists $i->{cfg}      ? $i->{cfg}      : die "no [cfg]";
     my $pr = exists $i->{provider} ? $i->{provider} : die "no [provider]";

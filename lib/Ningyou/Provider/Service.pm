@@ -26,7 +26,7 @@ my $id = q{ } x 8;
 # * Status will be checked with "status" (not "show" or others)
 # * Some init scripts do not suport "status"
 
-sub install {
+sub apply {
     my ( $s, $i ) = @_;
 
     # if no cache is desiredm then ca can be {}
@@ -77,7 +77,7 @@ sub install {
     return $cmd;
 }
 
-sub installed {    # alias for "action needed"
+sub applied {    # alias for "action needed"
     my ( $s, $i ) = @_;
     my $iv = exists $i->{object} ? $i->{object} : die "no [object]";
     my $c  = exists $i->{cfg}    ? $i->{cfg}    : die "no [cfg]";

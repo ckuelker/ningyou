@@ -32,7 +32,7 @@ has 'options' => (
 
 my $id = q{ } x 8;
 
-sub install {
+sub apply {
     my ( $s, $i ) = @_;
     my $ca = exists $i->{cache}    ? $i->{cache}    : die 'no cache';
     my $iv = exists $i->{object}   ? $i->{object}   : die 'no object';
@@ -89,7 +89,7 @@ sub install {
     return  $cmd;
 }
 
-sub installed {
+sub applied {
     my ( $s, $i ) = @_;
     my $c  = exists $i->{cfg}      ? $i->{cfg}      : die "no [cfg]";
     my $pr = exists $i->{provider} ? $i->{provider} : die "no [provider]";
