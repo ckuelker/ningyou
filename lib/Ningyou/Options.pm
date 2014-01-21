@@ -72,7 +72,7 @@ sub process_commands {
     my ( $s, $i ) = @_;
 
     my $x = scalar $i->name;    # remove the object from the input
-    my @x = qw(help show script apply production);
+    my @x = qw(help show script apply list);
     if ( $x ~~ @x ) {
         $s->set_command($x);
     }
