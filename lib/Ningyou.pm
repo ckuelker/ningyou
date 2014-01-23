@@ -175,7 +175,7 @@ sub run {
         = ( exists $o->{configuration} and defined $o->{configuration} )
         ? $o->{configuration}
         : '~/.ningyou/master.ini';
-    $cfg = $s->get_or_setup_cfg($cfg_fn);
+    $cfg = $s->get_or_setup_cfg( $cfg_fn, $u );
 
     # update system package meta data
     if ( exists $cfg->{status}->{packages}
@@ -312,10 +312,14 @@ sub run {
 }
 
 sub get_or_setup_cfg {
-    my ( $s, $cfg_fn ) = @_;
+    my ( $s, $cfg_fn, $u ) = @_;
 
     my $fn = glob $cfg_fn;    # master cfg (~/.ningyou/master.ini)
     my $d  = dirname($fn);
+    if ( $mode eq 'init' ) {
+        die "Can not create $d, it is already there! (please remove)\n";
+        $u->ask_to_create_directory($d);
+    }
 
     die "please provide directory $d\n"                if not -d $d;
     die "please provide master configuration $d/$fn\n" if not -e $fn;
@@ -447,8 +451,8 @@ sub check_provided {
             $s->v("  add cmd [$cmd]");
             my $mo = $cfg->{module};
             $s->v("  module  [$mo]");
-            my $y  = "=" x 78;
-            my $x  = sprintf( "# === module [%s] === object [%s] ===%s",
+            my $y = "=" x 78;
+            my $x = sprintf( "# === module [%s] === object [%s] ===%s",
                 $mo, $id, $y );
             if ( $mode eq 'apply' ) {
                 $s->add_command($cmd);

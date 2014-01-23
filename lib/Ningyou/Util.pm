@@ -116,8 +116,8 @@ use File::DirCompare;
 use File::Basename;
 
 sub compare_dirs {
-    my ( $s, $d1, $d2) = @_;
-use Carp;
+    my ( $s, $d1, $d2 ) = @_;
+    use Carp;
     carp "d1 [$d1] not a directory!\n" if not -d $d1;
     carp "d2 [$d2] not a directory!\n" if not -d $d2;
 
@@ -160,19 +160,20 @@ sub ask_to_create_directory {
 
     if ( 'y' eq lc $answer ) {
         my $nilicm = Ningyou::Cmd->new();
-        $nilicm->cmd("mkdir -p $i");
-        $nilicm->cmd("chown $> $i");    # eff uid $>, real uid $<
+        my $d      = glob $i;
+        $nilicm->cmd("mkdir -p $d");
+        $nilicm->cmd("chown $> $d");    # eff uid $>, real uid $<
 
         # $nilicm->cmd("chgrp  $) $i");    # eff gid $),     real gid $(
-        $nilicm->cmd("chmod 0750 $i");
-        $s->o("Directory [$i] has been created.\n");
+        $nilicm->cmd("chmod 0750 $d");
+        $s->o("Directory [$d] has been created.\n");
     }
     else {
         $s->o("Please create it manually (stopping here)\n");
         exit 0;
     }
     $s->o("\n");
-    return $i;
+    return $d;
 }
 
 sub ask_to_create_worktree {
