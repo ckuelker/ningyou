@@ -190,66 +190,65 @@ sub ask_to_create_configuration {
 
     if ( 'y' eq lc $answer ) {
         $s->o(
-            "What is the name of your repository? (Example: linux-debian-wheezy)\n";
-                $r = ReadLine 0;
-                chomp $r;
-                $s->o(
-                "What is the path to your repository? (Example: /home/c/g/ningyou)\n";
-                    $w = ReadLine 0;
-                    chomp $r;
-                    _
+            "What is the repository name? (Example: linux-debian-wheezy)\n" );
+        $r = ReadLine 0;
+        chomp $r;
+        $s->o(
+            "What is the repository path? (Example: /home/c/g/ningyou)\n" );
+        $w = ReadLine 0;
+        chomp $r;
 
-                    my $z = 0;
-                    my $c = q{};
-                    while ( my $data = <DATA> ) {
-                    $data =~ s{\[%\s+host\s+ %\]}{$h}gmx;
-                    $data =~ s{\[%\s+worktree\s+ %\]}{$w}gmx;
-                    $c .= $data;
-                    $z++;
-                }
-                open my $f, q{>}, $fn or die "Can not open [$fn]!\n";
-                    print $f $c;
-                    close $f;
-
-                    $s->o("Configuration [$i] has been created.\n");
-            }
-            else {
-                $s->o("Please create it manually (stopping here)\n");
-                exit 0;
-            }
-            $s->o("\n");
-                return $i;
+        my $z = 0;
+        my $c = q{};
+        while ( my $data = <DATA> ) {
+            $data =~ s{\[%\s+host\s+ %\]}{$h}gmx;
+            $data =~ s{\[%\s+worktree\s+ %\]}{$w}gmx;
+            $c .= $data;
+            $z++;
         }
+        open my $f, q{>}, $i or die "Can not open [$i]!\n";
+        print $f $c;
+        close $f;
 
-        sub ask_to_create_worktree {
-            my ( $s, $i ) = @_;
-            my $wt = $i;
-            $s->o("The worktree do not exists!\n");
-            $s->o("Should the directory [$wt] be created? [y|N]\n");
-            ReadMode('normal');
-            my $answer = ReadLine 0;
-            chomp $answer;
-            ReadMode('normal');
+        $s->o("Configuration [$i] has been created.\n");
+    }
+    else {
+        $s->o("Please create it manually (stopping here)\n");
+        exit 0;
+    }
+    $s->o("\n");
+    return $i;
+}
 
-            if ( 'y' eq lc $answer ) {
-                my $nilicm = Ningyou::Cmd->new();
-                $nilicm->cmd("mkdir -p $i");
-                $nilicm->cmd("chown $> $i");    # eff uid $>, real uid $<
-                 #$nilicm->cmd("chgrp  $) $i");    # eff gid $),     real gid $(
-                $nilicm->cmd("chmod 0750 $i");
-                $s->o("Directory [$i] has been created.\n");
-            }
-            else {
-                $s->o("Please create it manually (stopping here)\n");
-                exit 0;
-            }
-            $s->o("\n");
-        }
+sub ask_to_create_worktree {
+    my ( $s, $i ) = @_;
+    my $wt = $i;
+    $s->o("The worktree do not exists!\n");
+    $s->o("Should the directory [$wt] be created? [y|N]\n");
+    ReadMode('normal');
+    my $answer = ReadLine 0;
+    chomp $answer;
+    ReadMode('normal');
 
-   #print "Please specify two directory names\n" and exit if ( @ARGV < 2 );
-   #printf "%s\n",
-   #    &compare_dirs( $ARGV[0], $ARGV[1] ) ? 'Test: PASSED' : 'Test: FAILED';
-        1;
+    if ( 'y' eq lc $answer ) {
+        my $nilicm = Ningyou::Cmd->new();
+        $nilicm->cmd("mkdir -p $i");
+        $nilicm->cmd("chown $> $i");    # eff uid $>, real uid $<
+            #$nilicm->cmd("chgrp  $) $i");    # eff gid $),     real gid $(
+        $nilicm->cmd("chmod 0750 $i");
+        $s->o("Directory [$i] has been created.\n");
+    }
+    else {
+        $s->o("Please create it manually (stopping here)\n");
+        exit 0;
+    }
+    $s->o("\n");
+}
+
+#print "Please specify two directory names\n" and exit if ( @ARGV < 2 );
+#printf "%s\n",
+#    &compare_dirs( $ARGV[0], $ARGV[1] ) ? 'Test: PASSED' : 'Test: FAILED';
+1;
 
 __END__
 
