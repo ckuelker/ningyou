@@ -322,7 +322,7 @@ sub get_or_setup_cfg {
     }
 
     die "please provide directory $d\n"                if not -d $d;
-    die "please provide master configuration $d/$fn\n" if not -e $fn;
+    die "please provide master configuration $fn\n" if not -e $fn;
     $cfg        = Config::INI::Reader->read_file($fn);
     $repository = $s->get_repository( $cfg, $f->{fqdn} );
     $wt         = $s->get_worktree( $cfg, $repository );
