@@ -160,20 +160,19 @@ sub ask_to_create_directory {
 
     if ( 'y' eq lc $answer ) {
         my $nilicm = Ningyou::Cmd->new();
-        my $d      = glob $i;
-        $nilicm->cmd("mkdir -p $d");
-        $nilicm->cmd("chown $> $d");    # eff uid $>, real uid $<
+        $nilicm->cmd("mkdir -p $i");
+        $nilicm->cmd("chown $> $i");    # eff uid $>, real uid $<
 
         # $nilicm->cmd("chgrp  $) $i");    # eff gid $),     real gid $(
-        $nilicm->cmd("chmod 0750 $d");
-        $s->o("Directory [$d] has been created.\n");
+        $nilicm->cmd("chmod 0750 $i");
+        $s->o("Directory [$i] has been created.\n");
     }
     else {
         $s->o("Please create it manually (stopping here)\n");
         exit 0;
     }
     $s->o("\n");
-    return $d;
+    return $i;
 }
 
 sub ask_to_create_worktree {
