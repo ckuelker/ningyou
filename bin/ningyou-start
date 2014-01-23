@@ -21,7 +21,7 @@ ningyou
 
     ningyou [OPTIONS] <MODE> <SCOPE>
  
-    MODE:  [help|show|script|apply|production]
+    MODE:  [help|show|script|apply|init]
     SCOPE: [NAME OF MODULE|all]
 
 =head1 OPTIONS
@@ -33,6 +33,8 @@ Common options. To get more information use --man
 =head2 --debug <FILE>
 
 =head2 --help # (this page)
+
+=head2 --init
 
 =head2 --man  # (more infomation)
 
@@ -47,12 +49,14 @@ Common options. To get more information use --man
  ningyou [OPTIONS] script      all : print the current commands as script
  ningyou [OPTIONS] apply       all : executes commands automatically
  ningyou [OPTIONS] list            : show all modules
+ ningyou [OPTIONS] init            : bootstrap ningyou
 
 =head1 SCOPE
 
  ningyou [OPTIONS] show all : show what would be done for all modules
  ningyou [OPTIONS] show vim : show what would be done for the vim module
      
+ Scopes are possible with: show, script and apply
 
 =head1 BUGS
 
