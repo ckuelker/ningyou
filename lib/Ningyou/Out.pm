@@ -90,8 +90,7 @@ sub o {
 
     #chomp $i;
     my $o           = $s->get_options;
-    my $indentation = exists $o->{indentation}
-        and defined $o->{indentation} : $o->{indentation} : 0;
+    my $indentation = exists $o->{indentation} ? $o->{indentation} : 0;
     my $v = q{ } x $indentation;
 
     #$i = $v . $i . "\n";
