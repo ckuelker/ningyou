@@ -175,35 +175,81 @@ sub ask_to_create_directory {
     return $i;
 }
 
-sub ask_to_create_worktree {
-    my ( $s, $i ) = @_;
-    my $wt = $i;
-    $s->o("The worktree do not exists!\n");
-    $s->o("Should the directory [$wt] be created? [y|N]\n");
+sub ask_to_create_configuration {
+
+    # i=~/.ningyou/master.ini w=/home/c/g/ningyou r=linux-debian-wheezy
+    my ( $s, $i, $w, $r ) = @_;
+    my $h = qx(hostname -f);
+    chomp $h;
+    $s->o("The configuration [$i] does not exist!\n");
+    $s->o("Should the configuration be created for [$h]? [y|N]\n");
     ReadMode('normal');
     my $answer = ReadLine 0;
     chomp $answer;
     ReadMode('normal');
 
     if ( 'y' eq lc $answer ) {
-        my $nilicm = Ningyou::Cmd->new();
-        $nilicm->cmd("mkdir -p $i");
-        $nilicm->cmd("chown $> $i");    # eff uid $>, real uid $<
-            #$nilicm->cmd("chgrp  $) $i");    # eff gid $),     real gid $(
-        $nilicm->cmd("chmod 0750 $i");
-        $s->o("Directory [$i] has been created.\n");
-    }
-    else {
-        $s->o("Please create it manually (stopping here)\n");
-        exit 0;
-    }
-    $s->o("\n");
-}
+        $s->o(
+            "What is the name of your repository? (Example: linux-debian-wheezy)\n";
+                $r = ReadLine 0;
+                chomp $r;
+                $s->o(
+                "What is the path to your repository? (Example: /home/c/g/ningyou)\n";
+                    $w = ReadLine 0;
+                    chomp $r;
+                    _
 
-#print "Please specify two directory names\n" and exit if ( @ARGV < 2 );
-#printf "%s\n",
-#    &compare_dirs( $ARGV[0], $ARGV[1] ) ? 'Test: PASSED' : 'Test: FAILED';
-1;
+                    my $z = 0;
+                    my $c = q{};
+                    while ( my $data = <DATA> ) {
+                    $data =~ s{\[%\s+host\s+ %\]}{$h}gmx;
+                    $data =~ s{\[%\s+worktree\s+ %\]}{$w}gmx;
+                    $c .= $data;
+                    $z++;
+                }
+                open my $f, q{>}, $fn or die "Can not open [$fn]!\n";
+                    print $f $c;
+                    close $f;
+
+                    $s->o("Configuration [$i] has been created.\n");
+            }
+            else {
+                $s->o("Please create it manually (stopping here)\n");
+                exit 0;
+            }
+            $s->o("\n");
+                return $i;
+        }
+
+        sub ask_to_create_worktree {
+            my ( $s, $i ) = @_;
+            my $wt = $i;
+            $s->o("The worktree do not exists!\n");
+            $s->o("Should the directory [$wt] be created? [y|N]\n");
+            ReadMode('normal');
+            my $answer = ReadLine 0;
+            chomp $answer;
+            ReadMode('normal');
+
+            if ( 'y' eq lc $answer ) {
+                my $nilicm = Ningyou::Cmd->new();
+                $nilicm->cmd("mkdir -p $i");
+                $nilicm->cmd("chown $> $i");    # eff uid $>, real uid $<
+                 #$nilicm->cmd("chgrp  $) $i");    # eff gid $),     real gid $(
+                $nilicm->cmd("chmod 0750 $i");
+                $s->o("Directory [$i] has been created.\n");
+            }
+            else {
+                $s->o("Please create it manually (stopping here)\n");
+                exit 0;
+            }
+            $s->o("\n");
+        }
+
+   #print "Please specify two directory names\n" and exit if ( @ARGV < 2 );
+   #printf "%s\n",
+   #    &compare_dirs( $ARGV[0], $ARGV[1] ) ? 'Test: PASSED' : 'Test: FAILED';
+        1;
 
 __END__
 
@@ -214,4 +260,42 @@ __END__
 Ningyou::Util - aux. utils for Ningyou
 
 =cut
+__DATA__
+[global]
+kernel=Linux
+distribution=Debian
 
+[provider]
+file      = Ningyou::Provider::File
+directory = Ningyou::Provider::Directory
+cpan      = Ningyou::Provider::Cpan
+package   = Ningyou::Provider::Package
+git       = Ningyou::Provider::Git
+link      = Ningyou::Provider::Link
+service   = Ningyou::Provider::Service
+chown     = Ningyou::Provider::Chown
+chgrp     = Ningyou::Provider::Chgrp
+chmod     = Ningyou::Provider::Chmod
+cmd       = Ningyou::Provider::Cmd
+
+; assign a repository to a node
+[nodes]
+[% host %]=[% repository %]
+
+; define at least one repository: repository=path
+[repositories]
+linux-debian-wheezy=[% worktree %]/modules
+
+; modules to be installed or ignored globally
+[packages]
+ningyou=1
+
+; REPOSITORY [repository-name]
+; modules to be installed or ignored per repository
+[linux-debian-wheezy]
+ningyou=1
+
+; HOST [FQDN-host-name]
+; modules to be installed or ignored per host
+[% host %]
+ningyou=1

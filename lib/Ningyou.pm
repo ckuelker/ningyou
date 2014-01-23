@@ -319,6 +319,8 @@ sub get_or_setup_cfg {
     if ( $mode eq 'init' ) {
         die "Can not create $d, it is already there! (please remove)\n" if -d $d;
         $u->ask_to_create_directory($d);
+        die "Can not create $fn, it is already there! (please remove)\n" if -e $fn;
+        $u->ask_to_create_configuration($fn);
     }
 
     die "please provide directory $d\n"                if not -d $d;
