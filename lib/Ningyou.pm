@@ -317,7 +317,7 @@ sub get_or_setup_cfg {
     my $fn = glob $cfg_fn;    # master cfg (~/.ningyou/master.ini)
     my $d  = dirname($fn);
     if ( $mode eq 'init' ) {
-        die "Can not create $d, it is already there! (please remove)\n";
+        die "Can not create $d, it is already there! (please remove)\n" if -d $d;
         $u->ask_to_create_directory($d);
     }
 
