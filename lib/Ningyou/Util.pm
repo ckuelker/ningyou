@@ -149,10 +149,101 @@ sub compare_dirs {
     return $equal;
 }
 
+sub ask_question {
+    my ( $s, $i ) = @_;
+    my $q = exists $i->{q} ? $i->{q} : die "no 'q'\n";    # question
+    my $e = exists $i->{e} ? $i->{e} : q{};               # example
+    my $do = 1;
+    my $a  = q{};
+    while ( not $a ) {
+        $s->o( $q . "\n" );
+        $s->o( "example: " . $e . "\n" );
+        $s->o(': ');
+        ReadMode('normal');
+        $a = ReadLine 0;
+        chomp $a;
+        ReadMode('normal');
+    }
+    $s->o("\n");
+    return $a;
+}
+
+sub ask_for_user {
+    my ( $s, $i ) = @_;
+    my ($e1000) = getpwuid(1000);
+    my $e  = defined $e1000 ? $e1000 : 'bilbo';
+    my $do = 1;
+    my $a  = q{};
+    while ($do) {
+        my $q = 'please provide a login/user name (example ';
+        $s->o( $q . $s->c( 'module', $e ) . ")\n$i: " );
+        ReadMode('normal');
+        $a = ReadLine 0;
+        chomp $a;
+        ReadMode('normal');
+        my $n = getpwnam($a);
+        $do = 0 if defined $n and $n;
+        $s->o("\n");
+    }
+    return $a;
+}
+
+sub ask_for_group {
+    my ( $s, $i ) = @_;
+    my ($e1000) = getgrgid(1000);
+    my $e  = defined $e1000 ? $e1000 : 'bilbo';
+    my $do = 1;
+    my $a  = q{};
+    while ($do) {
+        my $q = 'please provide a gid/group name (example ';
+        $s->o( $q . $s->c( 'module', $e ) . ")\n$i: " );
+        ReadMode('normal');
+        $a = ReadLine 0;
+        chomp $a;
+        ReadMode('normal');
+        my $n = getgrnam($a);
+        $do = 0 if defined $n and $n;
+        $s->o("\n");
+    }
+    return $a;
+}
+
+sub ask_for_directory {
+    my ( $s, $i ) = @_;
+    my $dir   = exists $i->{dir}   ? $i->{dir}   : die "no 'dir'\n";
+    my $uid   = exists $i->{uid}   ? $i->{uid}   : die "no 'uid'\n";
+    my $gid   = exists $i->{gid}   ? $i->{gid}   : die "no 'gid'\n";
+    my $mode  = exists $i->{mode}  ? $i->{mode}  : die "no 'mode'\n";
+    my $cause = exists $i->{cause} ? $i->{cause} : die "no 'cause'\n";
+    my $do    = 1;
+    my $d     = q{};
+    while ($do) {
+        my $q = "please provide a directory\n(example ";
+        $s->o( $q . $s->c( 'file', $dir ) . ")\n$cause: " );
+        ReadMode('normal');
+        $d = ReadLine 0;
+        chomp $d;
+        ReadMode('normal');
+        $s->o("\n");
+        my $n
+            = ( -d $d )
+            ? $d
+            : $s->ask_to_create_directory(
+            { dir => $d, uid => $uid, gid => $gid, mode => $mode } );
+        $do = 0 if -d $n;
+    }
+    return $d;
+}
+
 sub ask_to_create_directory {
     my ( $s, $i ) = @_;
-    $s->o("The directory [$i] does not exist!\n");
-    $s->o("Should the directory be created? [y|N]\n");
+    my $dir  = exists $i->{dir}  ? $i->{dir}  : die "no 'dir'\n";
+    my $uid  = exists $i->{uid}  ? $i->{uid}  : die "no 'uid'\n";
+    my $gid  = exists $i->{gid}  ? $i->{gid}  : die "no 'gid'\n";
+    my $mode = exists $i->{mode} ? $i->{mode} : die "no 'mode'\n";
+    return $i if -d $i;
+    $s->o( "the directory " . $s->c( 'file', $dir ) . "\ndoes not exist!\n" );
+    $s->o("should the directory be created? [y|N]\n");
     ReadMode('normal');
     my $answer = ReadLine 0;
     chomp $answer;
@@ -160,64 +251,87 @@ sub ask_to_create_directory {
 
     if ( 'y' eq lc $answer ) {
         my $nilicm = Ningyou::Cmd->new();
-        $nilicm->cmd("mkdir -p $i");
-        $nilicm->cmd("chown $> $i");    # eff uid $>, real uid $<
+        $nilicm->cmd("mkdir -p $dir");
+        if ( defined $uid ) {
+            $nilicm->cmd("chown $uid $dir");
+        }
+        else {
+            $nilicm->cmd("chown $> $dir");    # eff uid $>, real uid $<
+        }
+        if ( defined $gid ) {
+            $nilicm->cmd("chgrp  $gid $dir");
+        }
+        else {
 
-        # $nilicm->cmd("chgrp  $) $i");    # eff gid $),     real gid $(
-        $nilicm->cmd("chmod 0750 $i");
-        $s->o("Directory [$i] has been created.\n");
+            # $nilicm->cmd("chgrp  $) $i");    # eff gid $),     real gid $(
+        }
+        if ( defined $mode ) {
+            $nilicm->cmd("chmod $mode $dir");
+        }
+        else {
+            $nilicm->cmd("chmod 0750 $dir");
+        }
+        $s->o(
+            "Directory " . $s->c( 'file', $dir ) . " has been created.\n" );
     }
     else {
         $s->o("Please create it manually (stopping here)\n");
         exit 0;
     }
     $s->o("\n");
-    return $i;
+    return $dir;
 }
 
 sub ask_to_create_configuration {
 
-    # i=~/.ningyou/master.ini w=/home/c/g/ningyou r=linux-debian-wheezy
-    my ( $s, $i, $w, $r ) = @_;
-    my $h = qx(hostname -f);
+    # fn=~/.ningyou/master.ini wt=/home/c/g/ningyou rn=linux-debian-wheezy
+    my ( $s, $i ) = @_;
+    my $fn  = exists $i->{fn}  ? $i->{fn}  : die "no 'fn'\n";   # cfg
+    my $wt  = exists $i->{wt}  ? $i->{wt}  : die "no 'wt'\n";   # work
+    my $rn  = exists $i->{rn}  ? $i->{rn}  : die "no 'rn'\n";   # rep
+    my $ker = exists $i->{ker} ? $i->{ker} : die "no 'ker'\n";  # kernel
+    my $dis = exists $i->{dis} ? $i->{dis} : die "no 'dis'\n";  # distribution
+    my $rel = exists $i->{rel} ? $i->{rel} : die "no 'rel'\n";  # release
+    my $h   = qx(hostname -f);
     chomp $h;
-    $s->o("The configuration [$i] does not exist!\n");
-    $s->o("Should the configuration be created for [$h]? [y|N]\n");
+    $s->o(
+        "The configuration " . $s->c( 'file', $fn ) . " does not exist!\n" );
+    $s->o( "    host:        " . $s->c( 'module', $h ) . "\n" );
+    $s->o( "    repository:  " . $s->c( 'mode',   $rn ) . "\n" );
+    $s->o( "    module path: " . $s->c( 'file',   $wt ) . "\n" );
+    $s->o("Should the configuration be created? [y|N]\n");
     ReadMode('normal');
     my $answer = ReadLine 0;
     chomp $answer;
     ReadMode('normal');
 
     if ( 'y' eq lc $answer ) {
-        $s->o(
-            "What is the repository name? (Example: linux-debian-wheezy)\n" );
-        $r = ReadLine 0;
-        chomp $r;
-        $s->o(
-            "What is the repository path? (Example: /home/c/g/ningyou)\n" );
-        $w = ReadLine 0;
-        chomp $r;
-
         my $z = 0;
         my $c = q{};
         while ( my $data = <DATA> ) {
-            $data =~ s{\[%\s+host\s+ %\]}{$h}gmx;
-            $data =~ s{\[%\s+worktree\s+ %\]}{$w}gmx;
+            $data =~ s{\[%\s+host\s+%\]}{$h}gmx;
+            $data =~ s{\[%\s+worktree\s+%\]}{$wt}gmx;
+            $data =~ s{\[%\s+repository\s+%\]}{$rn}gmx;
+            $data =~ s{\[%\s+kernel\s+%\]}{$ker}gmx;
+            $data =~ s{\[%\s+distribution\s+%\]}{$dis}gmx;
+            $data =~ s{\[%\s+release\s+%\]}{$rel}gmx;
             $c .= $data;
             $z++;
         }
-        open my $f, q{>}, $i or die "Can not open [$i]!\n";
+        open my $f, q{>}, $fn or die "Can not open [$fn]!\n";
         print $f $c;
         close $f;
 
-        $s->o("Configuration [$i] has been created.\n");
+        $s->o(    "Configuration "
+                . $s->c( 'file', $fn )
+                . " has been created.\n" );
     }
     else {
         $s->o("Please create it manually (stopping here)\n");
         exit 0;
     }
     $s->o("\n");
-    return $i;
+    return $wt;
 }
 
 sub ask_to_create_worktree {
@@ -250,8 +364,6 @@ sub ask_to_create_worktree {
 #    &compare_dirs( $ARGV[0], $ARGV[1] ) ? 'Test: PASSED' : 'Test: FAILED';
 1;
 
-__END__
-
 =pod
 
 =head1 NAME
@@ -259,10 +371,12 @@ __END__
 Ningyou::Util - aux. utils for Ningyou
 
 =cut
+
 __DATA__
 [global]
-kernel=Linux
-distribution=Debian
+kernel=[% kernel %]
+distribution=[% distribution %]
+release=[% release %]
 
 [provider]
 file      = Ningyou::Provider::File
@@ -283,7 +397,7 @@ cmd       = Ningyou::Provider::Cmd
 
 ; define at least one repository: repository=path
 [repositories]
-linux-debian-wheezy=[% worktree %]/modules
+[% repository %]=[% worktree %]
 
 ; modules to be installed or ignored globally
 [packages]
@@ -291,10 +405,10 @@ ningyou=1
 
 ; REPOSITORY [repository-name]
 ; modules to be installed or ignored per repository
-[linux-debian-wheezy]
+[[% repository %]]
 ningyou=1
 
 ; HOST [FQDN-host-name]
 ; modules to be installed or ignored per host
-[% host %]
+[[% host %]]
 ningyou=1

@@ -317,13 +317,85 @@ sub get_or_setup_cfg {
     my $fn = glob $cfg_fn;    # master cfg (~/.ningyou/master.ini)
     my $d  = dirname($fn);
     if ( $mode eq 'init' ) {
-        die "Can not create $d, it is already there! (please remove)\n" if -d $d;
-        $u->ask_to_create_directory($d);
-        die "Can not create $fn, it is already there! (please remove)\n" if -e $fn;
-        $u->ask_to_create_configuration($fn);
+        die sprintf(
+            "Can not create %s, it is already there! (please remove)\n",
+            $s->c( 'file', $d ) )
+            if -d $d;
+
+        my $q   = "Which kernel are you using?\nSupported: Linux";
+        my $ker = $u->ask_question(
+            { q => $q, e => $s->c( 'module', 'Linux' ) } );
+        $q = "Which distribution are you using?\nSupported: Debian";
+        my $dis = $u->ask_question(
+            { q => $q, e => $s->c( 'module', 'Debian' ) } );
+        $q = "Which release are you using?\nSupported: Wheezy";
+        my $rel = $u->ask_question(
+            { q => $q, e => $s->c( 'module', 'Wheezy' ) } );
+        my $r = join '-', lc $ker, lc $dis, lc $rel;    # linux-debian-wheezy
+
+        # ask for repo user
+        my $uid = $u->ask_for_user('for your repository');
+
+        # ask for repo group
+        my $gid = $u->ask_for_group('for your repository');
+
+        # ask for repo location
+        $wt = "/home/$uid/g/ningyou";
+        $wt = $u->ask_for_directory(
+            {
+                dir   => $wt,
+                uid   => $uid,
+                gid   => $gid,
+                mode  => '0750',
+                cause => 'for your ningyou repository'
+            }
+        );
+
+        # /home/c/g/ningyou/linux-debian-wheezy/modules
+        $wt .= "/$r/modules";
+        $u->ask_to_create_directory(
+            {
+                dir   => $wt,
+                uid   => 'root',
+                gid   => 'root',
+                mode  => '0750',
+                cause => 'for your module working tree'
+            }
+        ) if not -d $wt;
+
+        die sprintf(
+            "Can not create %s, it is already there! (please remove)\n",
+            $s->c( 'file', $d ) )
+            if -d $d;
+        $u->ask_to_create_directory(
+            {
+                dir   => $d,
+                uid   => 'root',
+                gid   => 'root',
+                mode  => '0750',
+                cause => 'for your master configuration'
+            }
+        );
+        die "Can not create $fn, it is already there! (please remove)\n"
+            if -e $fn;
+        $u->ask_to_create_configuration(
+            {
+                ker => $ker,    # kernel
+                dis => $dis,    # distribution
+                rel => $rel,    # release
+                fn  => $fn,     # config file name
+                wt  => $wt,     # working tree (.../modules)
+                rn  => $r       # repository name
+            }
+        );
     }
 
-    die "please provide directory $d\n"                if not -d $d;
+    die sprintf(
+        "please provide %s (or execute %s)\n",
+        $s->c( 'file',    $d ),
+        $s->c( 'execute', 'ningyou init' )
+    ) if not -d $d;
+
     die "please provide master configuration $fn\n" if not -e $fn;
     $cfg        = Config::INI::Reader->read_file($fn);
     $repository = $s->get_repository( $cfg, $f->{fqdn} );
