@@ -16,16 +16,14 @@ with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
 #     sensure  = latest
 #     checksum = md5   (for checksum source is mandatory)
 
-
 has 'options' => (
-    is      => 'rw',
-    isa     => 'HashRef',
-    reader  => 'get_options',
-    writer  => 'set_options',
-    default => sub { return {}; },
+    is       => 'rw',
+    isa      => 'HashRef',
+    reader   => 'get_options',
+    writer   => 'set_options',
+    default  => sub { return {}; },
     required => 1,
 );
-
 
 sub apply {
     my ( $s, $i ) = @_;
@@ -45,13 +43,13 @@ sub apply {
     my $gr = exists $c->{group}    ? $c->{group}    : 'root';
     my $md = exists $c->{mode}     ? $c->{mode}     : '0644';
     my $en = exists $c->{ensure}   ? $c->{ensure}   : 'latest';
-    my $mo = exists $c->{module}    ? $c->{module}    : die 'no module';
+    my $mo = exists $c->{module}   ? $c->{module}   : die 'no module';
 
     $s->d('debug output for Ningyou::Provider::File');
 
     # calculated
     my $cmd = q{};
-    my $u   = Ningyou::Util->new({options=>$o});
+    my $u   = Ningyou::Util->new( { options => $o } );
     my $pr  = 'file';
     my $so
         = exists $c->{source}
@@ -65,7 +63,8 @@ sub apply {
         $s->v("  file [$iv] exist and it should be removed");
         $cmd = "rm $iv";
     }
-    # if file exists and exists checksum and exists source and 
+
+    # if file exists and exists checksum and exists source and
     # checksum to matching
     elsif ( -e $iv
         and $cs
@@ -76,17 +75,22 @@ sub apply {
         $cmd
             = "cp $so $iv && chmod $md $iv && chown $ow $iv && chgrp $gr $iv";
     }
+
     # if do not exists and also not source, then just touch it
     elsif ( not -e $iv and not $so ) {
-        $s->v("  file [$iv] do exist and it should be created without source\n");
+        $s->v(
+            "  file [$iv] do exist and it should be created without source\n"
+        );
         $cmd = "touch $iv";
     }
+
     # if file do not exists
     elsif ( not -e $iv ) {
         $s->v("  file [$iv] do NOT exist and it should be copied");
         $cmd
             = "cp $so $iv && chmod $md $iv && chown $ow $iv && chgrp $gr $iv";
     }
+
     # do we have a checksum but no source?
     elsif ( $cs and not $so ) {
         my $m
