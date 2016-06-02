@@ -27,7 +27,7 @@ has 'options' => (
 
 sub apply {
     my ( $s, $i ) = @_;
-
+use Data::Dumper;
     my $o = $s->get_options;
 
     #use Data::Dumper;die Dumper($o);
@@ -43,7 +43,7 @@ sub apply {
     my $gr = exists $c->{group}    ? $c->{group}    : 'root';
     my $md = exists $c->{mode}     ? $c->{mode}     : '0644';
     my $en = exists $c->{ensure}   ? $c->{ensure}   : 'latest';
-    my $mo = exists $c->{module}   ? $c->{module}   : die 'no module';
+    my $mo = exists $c->{module}   ? $c->{module}   : confess "no module in cfg\n" . Dumper($c);
 
     $s->d('debug output for Ningyou::Provider::File');
 
