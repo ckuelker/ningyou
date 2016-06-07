@@ -41,14 +41,22 @@ my $id = q{ } x 8;
 
 sub init {
     my ( $s, $i ) = @_;
-    my $cmd = '/usr/bin/dpkg-query';
-    my @q = qx($cmd -W --showformat '\${Status};\${Package};\${Version}\\n');
+    my $cmd = {
+      Debian => q(/usr/bin/dpkg-query -W --showformat '${Status};${Package};${Version}\n'),
+      CentOS => q(rpm -qa --qf '%{INSTALLTIME};%{NAME};%{VERSION}-%{RELEASE}'),
+    };
+    my $os = qx(facter  operatingsystem); # TODO: move this to central space
+    chomp $os;
+    die "ERR: OS [$os] not supported" if not exists $cmd->{$os};
+
+    my @q = qx($cmd->{$os});
     $s->d("INIT");
     foreach my $q (@q) {
         chomp $q;
 
-        # STATUS             PACKAGE  VERSION
-        # install ok applied xsltproc 1.1.26-6+squeeze3
+        #         STATUS              PACKAGE          VERSION
+        # DEBIAN: install ok applied; xsltproc;        1.1.26-6+squeeze3
+	# CENTOS: 1388535064;         bash-completion; svn28792.0-32.el7
         my ( $status, $package, $version ) = split /;/, $q;
         $i->{package}->{$package}->{version} = $version;
         $i->{package}->{$package}->{status}  = $status;
