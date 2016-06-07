@@ -36,9 +36,8 @@ use vars qw(%COLOR_THEMES %COLORS $COLOR $COLOR_THEME $COLOR_DEPTH);
             command => 'yellow',
             file    => 'magenta',
             module  => 'bright_yellow',
-
             string => 'bright_yellow',
-            string => 'bright_cyan',
+            dir => 'bright_cyan',
             object => 'bright_green',
             symbol => 'cyan',
             linum  => 'black on_white',
