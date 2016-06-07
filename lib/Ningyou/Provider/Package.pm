@@ -48,7 +48,7 @@ sub init {
         CentOS =>
             q(rpm -qa --qf '%{INSTALLTIME};%{NAME};%{VERSION}-%{RELEASE}\n'),
     };
-    $os = qx(facter  operatingsystem);   # TODO: move this to central space
+    $os = qx(facter  operatingsystem);    # TODO: move this to central space
     chomp $os;
     die "ERR: OS [$os] not supported" if not exists $cmd->{$os};
 
@@ -82,8 +82,8 @@ sub apply {
 
     my $mo  = $c->{module};
     my $cmd = {
-        Debian => qq{aptitude $fl install $iv"},
-	CentOS => qq{yum -y install $iv"},
+        Debian => qq{aptitude $fl install $iv},
+        CentOS => qq{yum -y install $iv},
     };
     die "ERR: OS [$os] not supported" if not exists $cmd->{$os};
     my $rcmd = $cmd->{$os};
