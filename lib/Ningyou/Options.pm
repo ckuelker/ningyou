@@ -41,12 +41,13 @@ sub process_options {
     GetOptions(
         \%opt,           'configuration|c=s',
         'debug:s',       'help',
-        'indentation=s', 'man',
-        'module=s',      'quite',
-        'raw',           'script',
-        'update',        'verbose',
-        'version',       '<>',
-        sub { my ($i) = @_; $s->process_commands($i) },
+        'indentation=s', 'init',
+        'man',
+        'module=s', 'quite',
+        'raw',      'script',
+        'update',   'verbose',
+        'version',  '<>',
+        sub { my ( $i, $j ) = @_; $s->process_commands( $i, $j ) },
     );
 
     # --help
@@ -69,14 +70,19 @@ sub process_options {
 }
 
 sub process_commands {
-    my ( $s, $i ) = @_;
+    my ( $s, $i, $j ) = @_;
 
-    my $x = scalar $i->name;    # remove the object from the input
+    #my $x = scalar $i->name;    # remove the object from the input
+    my $x = scalar $i;
     my @x = qw(help show script apply list init);
-    if ( $x ~~ @x ) {
+
+    #if ( $x ~~ @x ) {
+    if ( grep { $_ eq $x } @x ) {
+        print "SET\n";
         $s->set_command($x);
     }
     else {
+        print "PUSH\n";
         push @{ $s->modules }, $x;
     }
     if ( $x eq 'help' ) {

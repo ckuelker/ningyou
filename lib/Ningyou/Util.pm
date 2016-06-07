@@ -19,21 +19,26 @@ has 'options' => (
 
 sub source_to_fqfn {
     my ( $s, $i ) = @_;
-    my $wt = exists $i->{worktree} ? $i->{worktree} : die "no [worktree]";
-    my $mo = exists $i->{module}   ? $i->{module}   : die "no [module]";
-    my $so = exists $i->{source}   ? $i->{source}   : return undef;
+    my $mt
+        = exists $i->{moduletree} ? $i->{moduletree} : die "no [moduletree]";
+    my $mo = exists $i->{module} ? $i->{module} : die "no [module]";
+    my $so = exists $i->{source} ? $i->{source} : return undef;
     my $oso = $so;
-    die "Malformed URL! [$so] is not of the form [ningyou:///<MODULE>/*]\n"
-        if not $so =~ m{ningyou:///.+}mx;
+    die
+        "Malformed URL! [$so] is not of the form [ningyou://<MODULE>/*] or [ningyou://~/*\n"
 
-    $s->d("source_to_fqfn: [$so] -> - worktree");
-    $so =~ s{ningyou:///modules/}{$wt/};
-    $s->d("source_to_fqfn: [$so] -> + files");
-    $so =~ s{/$mo/}{/$mo/files/};
-    $s->d("source_to_fqfn: [$so]  -> -e");
-    $s->v("  source URL [$oso]");
-    $s->v("  points to");
-    $s->v("  [$so]");
+        if not $so =~ m{ningyou://.+}mx;
+
+    if ( $so =~ s{ningyou://~}{$mt/$mo/files}gmx ) {
+        $s->d("source_to_fqfn: short URL (tilde) [$so]");
+    }
+    elsif ( $so =~ s{ningyou:///modules/$mo}{$mt/$mo/files}gmx ) {
+        $s->d("source_to_fqfn: long URL [$so]");
+    }
+    $s->v("  source URL requested from module");
+    $s->v( "    -> " . $s->c( 'todo', $oso ) );
+    $s->v("  points to calculated source FILE|DIRECTORY");
+    $s->v( "    -> " . $s->c( 'file', $so ) );
 
     return $so;
 }
@@ -101,7 +106,9 @@ sub get_facts {
             $f->{dist}
                 = exists $x->{operatingsystem} ? $x->{operatingsystem} : 'na';
             $f->{domain} = exists $x->{domain} ? $x->{domain} : 'na';
-            $f->{fqdn} = "$f->{host}.$f->{domain}";
+            $f->{fqdn}   = "$f->{host}.$f->{domain}";
+            $f->{fqdn}   = qx(hostname --fqdn);
+            chomp $f->{fqdn};
         }
         else {
             die "need Sys::Facter or facter\n";
@@ -282,56 +289,27 @@ sub ask_to_create_directory {
     return $dir;
 }
 
-sub ask_to_create_configuration {
+sub init_master_configuration {
+
+    # wt=/srv/ningyou-syscfg /home/c/g/ningyou
+    # rp= debian-gnu-linux-8.4-jessie
+    # ho=x0.c8i.org
 
     # fn=~/.ningyou/master.ini wt=/home/c/g/ningyou rn=linux-debian-wheezy
     my ( $s, $i ) = @_;
-    my $fn  = exists $i->{fn}  ? $i->{fn}  : die "no 'fn'\n";   # cfg
-    my $wt  = exists $i->{wt}  ? $i->{wt}  : die "no 'wt'\n";   # work
-    my $rn  = exists $i->{rn}  ? $i->{rn}  : die "no 'rn'\n";   # rep
-    my $ker = exists $i->{ker} ? $i->{ker} : die "no 'ker'\n";  # kernel
-    my $dis = exists $i->{dis} ? $i->{dis} : die "no 'dis'\n";  # distribution
-    my $rel = exists $i->{rel} ? $i->{rel} : die "no 'rel'\n";  # release
-    my $h   = qx(hostname -f);
-    chomp $h;
-    $s->o(
-        "The configuration " . $s->c( 'file', $fn ) . " does not exist!\n" );
-    $s->o( "    host:        " . $s->c( 'module', $h ) . "\n" );
-    $s->o( "    repository:  " . $s->c( 'mode',   $rn ) . "\n" );
-    $s->o( "    module path: " . $s->c( 'file',   $wt ) . "\n" );
-    $s->o("Should the configuration be created? [y|N]\n");
-    ReadMode('normal');
-    my $answer = ReadLine 0;
-    chomp $answer;
-    ReadMode('normal');
-
-    if ( 'y' eq lc $answer ) {
-        my $z = 0;
-        my $c = q{};
-        while ( my $data = <DATA> ) {
-            $data =~ s{\[%\s+host\s+%\]}{$h}gmx;
-            $data =~ s{\[%\s+worktree\s+%\]}{$wt}gmx;
-            $data =~ s{\[%\s+repository\s+%\]}{$rn}gmx;
-            $data =~ s{\[%\s+kernel\s+%\]}{$ker}gmx;
-            $data =~ s{\[%\s+distribution\s+%\]}{$dis}gmx;
-            $data =~ s{\[%\s+release\s+%\]}{$rel}gmx;
-            $c .= $data;
-            $z++;
-        }
-        open my $f, q{>}, $fn or die "Can not open [$fn]!\n";
-        print $f $c;
-        close $f;
-
-        $s->o(    "Configuration "
-                . $s->c( 'file', $fn )
-                . " has been created.\n" );
+    my $wt = exists $i->{wt} ? $i->{wt} : die "no 'wt'\n";    # work
+    my $rn = exists $i->{rn} ? $i->{rn} : die "no 'rn'\n";    # rep
+    my $hn = exists $i->{hn} ? $i->{hn} : die "no 'hn'\n";    # host
+    my $z  = 0;
+    my $c  = q{};
+    while ( my $data = <DATA> ) {
+        $data =~ s{\[%\s+host\s+%\]}{$hn}gmx;
+        $data =~ s{\[%\s+worktree\s+%\]}{$wt}gmx;
+        $data =~ s{\[%\s+repository\s+%\]}{$rn}gmx;
+        $c .= $data;
+        $z++;
     }
-    else {
-        $s->o("Please create it manually (stopping here)\n");
-        exit 0;
-    }
-    $s->o("\n");
-    return $wt;
+    return $c;
 }
 
 sub ask_to_create_worktree {
@@ -374,9 +352,9 @@ Ningyou::Util - aux. utils for Ningyou
 
 __DATA__
 [global]
-kernel=[% kernel %]
-distribution=[% distribution %]
-release=[% release %]
+;kernel=[% kernel %]
+;distribution=[% distribution %]
+;release=[% release %]
 
 [provider]
 file      = Ningyou::Provider::File
@@ -399,9 +377,13 @@ cmd       = Ningyou::Provider::Cmd
 [repositories]
 [% repository %]=[% worktree %]
 
-; modules to be installed or ignored globally
-[packages]
+; Ningyou modules to be installed or ignored globally
+[modules]
 ningyou=1
+
+; single packages to be installed or ignored globally
+;[packages]
+;ningyou=0
 
 ; REPOSITORY [repository-name]
 ; modules to be installed or ignored per repository

@@ -33,10 +33,10 @@ sub apply {
     my $ca = exists $i->{cache}  ? $i->{cache}  : die 'no cache';
     my $iv = exists $i->{object} ? $i->{object} : die 'no object';
     my $c  = exists $i->{cfg}    ? $i->{cfg}    : die 'no cfg';
-    my $wt = exists $i->{wt}     ? $i->{wt}     : die 'no wt';
+    my $mt = exists $i->{mt}     ? $i->{mt}     : die 'no mt';
 
     # shorten config attributes
-    my $ow = exists $c->{mode} ? $c->{mode} : 'root';
+    my $ow = exists $c->{mode}   ? $c->{mode}   : 'root';
     my $mo = exists $c->{module} ? $c->{module} : die 'no module';
 
     $s->d('debug output for Ningyou::Provider::Chmod');
@@ -54,7 +54,7 @@ sub applied {    # alias for "action needed"
     my $pr = exists $i->{provider} ? $i->{provider} : die "no [provider]";
     my $iv = exists $i->{object}   ? $i->{object}   : die "no [object]";
 
-    my $md0 = sprintf('%o', (stat $iv)[2] & 07777);
+    my $md0 = sprintf( '%o', ( stat $iv )[2] & 07777 );
     my $md1 = exists $c->{mode} ? $c->{mode} : '0644';
 
     return 1 if $md0 eq $md1;

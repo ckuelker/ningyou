@@ -38,7 +38,7 @@ sub apply {
     my $iv = exists $i->{object}   ? $i->{object}   : die 'no object';
     my $pr = exists $i->{provider} ? $i->{provider} : die 'no provider';
     my $c  = exists $i->{cfg}      ? $i->{cfg}      : die 'no cfg';
-    my $wt = exists $i->{wt}       ? $i->{wt}       : die 'no wt';
+    my $mt = exists $i->{mt}       ? $i->{mt}       : die 'no mt';
 
     my $mo = $c->{module};
     my $o  = $s->get_options;
@@ -47,7 +47,7 @@ sub apply {
     my $u = Ningyou::Util->new( {} );
 
     my $so = $u->source_to_fqfn(
-        { module => $mo, worktree => $wt, source => $c->{'source'} } );
+        { module => $mo, moduletree => $mt, source => $c->{'source'} } );
     $s->d("$id so [$so]");
     my $env = q{};
     if ( exists $c->{'perl5lib'} ) {
@@ -80,13 +80,14 @@ sub apply {
         push @cmd, "$env dzil install $so";
     }
     else {
-        push @cmd, "perl Makefile.PL && make && make test && $env make install";
+        push @cmd,
+            "perl Makefile.PL && make && make test && $env make install";
     }
 
     my $cmd = join q{ && }, @cmd;
     $cmd =~ s{\s+&&\s+}{ && };
 
-    return  $cmd;
+    return $cmd;
 }
 
 sub applied {

@@ -36,11 +36,11 @@ use vars qw(%COLOR_THEMES %COLORS $COLOR $COLOR_THEME $COLOR_DEPTH);
             command => 'yellow',
             file    => 'magenta',
             module  => 'bright_yellow',
-            string => 'bright_yellow',
-            dir => 'bright_cyan',
-            object => 'bright_green',
-            symbol => 'cyan',
-            linum  => 'black on_white',
+            string  => 'bright_yellow',
+            dir     => 'bright_cyan',
+            object  => 'bright_green',
+            symbol  => 'cyan',
+            linum   => 'black on_white',
         },
     },
     default256 => {
@@ -90,7 +90,7 @@ sub o {
     #chomp $i;
     my $o           = $s->get_options;
     my $indentation = exists $o->{indentation} ? $o->{indentation} : 0;
-    my $v = q{ } x $indentation;
+    my $v           = q{ } x $indentation;
 
     #$i = $v . $i . "\n";
     $i = $v . $i;

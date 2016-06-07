@@ -6,6 +6,20 @@ use namespace::autoclean;
 use Ningyou::Util;
 our $VERSION = '0.0.9';
 
+# USAGE
+#
+# MANDATORY
+#     [directory:<PATH_TO_DIRECTORY>]
+#     module
+# OPTIONAL
+#     owner=root
+#     group=root
+#     mode=0755 (always 4 digits)
+#     ensure=latest
+# OPTIONAL RSYNC
+#     mode
+#     purge
+
 with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
 
 has 'options' => (
@@ -25,7 +39,7 @@ sub apply {
     my $iv = exists $i->{object}   ? $i->{object}   : die 'no object';
     my $pr = exists $i->{provider} ? $i->{provider} : die 'no provider';
     my $c  = exists $i->{cfg}      ? $i->{cfg}      : die 'no cfg';
-    my $wt = exists $i->{wt}       ? $i->{wt}       : die 'no wt';
+    my $mt = exists $i->{mt}       ? $i->{mt}       : die 'no mt';
 
     # shorten config attributes
     my $ow = exists $c->{owner}  ? $c->{owner}  : 'root';
@@ -47,7 +61,7 @@ sub apply {
     my $so
         = exists $c->{source}
         ? $u->source_to_fqfn(
-        { module => $mo, worktree => $wt, source => $c->{source} } )
+        { module => $mo, moduletree => $mt, source => $c->{source} } )
         : 0;
 
     my $cmd = undef;
@@ -104,7 +118,7 @@ sub apply {
 #          'provider' => 'directory',
 #          'object' => '/home/c/bin',
 #          'itemize' => 1,
-#          'wt' => '/home/c/g/ningyou/linux-debian-wheezy/modules',
+#          'mt' => '/home/c/g/ningyou/linux-debian-wheezy/modules',
 #          'cfg' => {
 #                     'owner' => 'c',
 #                     'source' => 'ningyou:///modules/home-bin/bin',
@@ -120,7 +134,7 @@ sub apply {
 sub applied {    # alias for "action needed"
     my ( $s, $i ) = @_;
     my $iv = exists $i->{object} ? $i->{object} : die 'no object';
-    my $wt = exists $i->{wt}     ? $i->{wt}     : die 'no wt';
+    my $mt = exists $i->{mt}     ? $i->{mt}     : die 'no mt';
     my $c  = exists $i->{cfg}    ? $i->{cfg}    : die 'no cfg';
     my $mo = exists $c->{module} ? $c->{module} : die 'no module';
     my $o  = $s->get_options;
@@ -128,7 +142,7 @@ sub applied {    # alias for "action needed"
     my $so
         = exists $c->{source}
         ? $u->source_to_fqfn(
-        { module => $mo, worktree => $wt, source => $c->{source} } )
+        { module => $mo, moduletree => $mt, source => $c->{source} } )
         : 0;
 
     if ( not $so ) {    # no source given, aka mkdir directory only
@@ -147,6 +161,7 @@ sub applied {    # alias for "action needed"
     my $d1 = $so;
     my $d2 = $iv;
     use Carp;
+
     #carp "1 [$d1] not a directory" if not -d $d1;
     #carp "d2 [$d2] not a directory" if not -d $d2;
     $s->v("  - Q: is  [$d2] and\n");

@@ -10,10 +10,14 @@ with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
 # FORMAT MANDATORY
 # [file:/path/to/file]
 # FORMAT OPTIONALLY
-#     source   = ningyou:///modules/kvm-smtp-cipworx-org/qemu
-#     owner    = root
-#     group    = root
-#     sensure  = latest
+#     source   = ningyou://modules/kvm-smtp-cipworx-org/qemu
+#     source   = ningyou://~/qemu
+#                points to: <WT>/<REPO>/modules/<MODULE>/files/qemu
+#                (if source do not exists, empty file will be created)
+#     owner    = root (only set if no file or file updated)
+#     group    = root (only set if no file or file updated)
+#     mode     = 0644  (always 4 digits!, only set if no file or file updated)
+#     sensure  = latest|removed
 #     checksum = md5   (for checksum source is mandatory)
 
 has 'options' => (
@@ -27,15 +31,13 @@ has 'options' => (
 
 sub apply {
     my ( $s, $i ) = @_;
-use Data::Dumper;
     my $o = $s->get_options;
 
-    #use Data::Dumper;die Dumper($o);
-    # if no cache is desiredm then ca can be {}
+    # if no cache is desired, then ca can be {}
     my $ca = exists $i->{cache}  ? $i->{cache}  : die 'no cache';
     my $iv = exists $i->{object} ? $i->{object} : die 'no object';
     my $c  = exists $i->{cfg}    ? $i->{cfg}    : die 'no cfg';
-    my $wt = exists $i->{wt}     ? $i->{wt}     : die 'no wt';
+    my $mt = exists $i->{mt}     ? $i->{mt}     : die 'no mt';
 
     # shorten config attributes
     my $cs = exists $c->{checksum} ? $c->{checksum} : 0;
@@ -43,7 +45,10 @@ use Data::Dumper;
     my $gr = exists $c->{group}    ? $c->{group}    : 'root';
     my $md = exists $c->{mode}     ? $c->{mode}     : '0644';
     my $en = exists $c->{ensure}   ? $c->{ensure}   : 'latest';
-    my $mo = exists $c->{module}   ? $c->{module}   : confess "no module in cfg\n" . Dumper($c);
+    my $mo
+        = exists $c->{module}
+        ? $c->{module}
+        : confess "no module in cfg\n" . Dumper($c);
 
     $s->d('debug output for Ningyou::Provider::File');
 
@@ -54,7 +59,7 @@ use Data::Dumper;
     my $so
         = exists $c->{source}
         ? $u->source_to_fqfn(
-        { module => $mo, worktree => $wt, source => $c->{source} } )
+        { module => $mo, moduletree => $mt, source => $c->{source} } )
         : 0;
     $s->d("source [$so]");
 

@@ -1,4 +1,4 @@
-package Ningyou::Manual
+package Ningyou::Manual;
 our $VERSION = '0.0.9';
 
 1;

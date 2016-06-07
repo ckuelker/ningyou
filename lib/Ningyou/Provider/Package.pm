@@ -1,4 +1,17 @@
 package Ningyou::Provider::Package;
+
+# USAGE:
+#
+# <MODULE>/manifests/i.ini
+#
+# MANDATORY:
+# [package:<PACKAGE>]
+#
+# OPTIONAL:
+# TODO: require=<MODULE>|depend=<MODULE> (dependency on ningyou module)
+# status=
+# version=
+
 use Moose;
 use Data::Dumper;
 use namespace::autoclean;
@@ -34,6 +47,7 @@ sub init {
     foreach my $q (@q) {
         chomp $q;
 
+        # STATUS             PACKAGE  VERSION
         # install ok applied xsltproc 1.1.26-6+squeeze3
         my ( $status, $package, $version ) = split /;/, $q;
         $i->{package}->{$package}->{version} = $version;
@@ -49,15 +63,15 @@ sub apply {
     my $iv = exists $i->{object}   ? $i->{object}   : die 'no object';
     my $pr = exists $i->{provider} ? $i->{provider} : die 'no provider';
     my $c  = exists $i->{cfg}      ? $i->{cfg}      : die 'no cfg';
-    my $wt = exists $i->{wt}       ? $i->{wt}       : die 'no wt';
+    my $mt = exists $i->{mt}       ? $i->{mt}       : die 'no mt';
 
     my $fl = exists $i->{aptitude} ? $i->{aptitude} : q{};
 
     my $mo  = $c->{module};
     my $cmd = "aptitude $fl install $iv";
-    $cmd =~s{\s+}{ }gmx;
+    $cmd =~ s{\s+}{ }gmx;
 
-     return $cmd;
+    return $cmd;
 }
 
 sub applied {

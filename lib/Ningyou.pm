@@ -148,8 +148,10 @@ my $modules    = q{};            # modules
 my $result     = {};             # modules
 my $f          = {};             # facts about system
 my $cache      = {};
-my $wt         = '/dev/null';    # work tree
+my $wt         = '/dev/null';    # work tree (/srv/ningyou)
+my $mt         = '/dev/null';    # modules tree (/srv/ningyou/<REPO>/modules)
 my $cfg        = {};             # global cfg space
+my $cfg_fn     = undef;          # global cfg space file name
 my $pkg        = {};             # pkg from cfg that should be applied or not
 my $repository = 'none';
 my $provider   = {};             # file, git, ...
@@ -171,11 +173,11 @@ sub run {
     $f = $u->get_facts;
 
     # prepare configuration
-    my $cfg_fn
+    my $rfn
         = ( exists $o->{configuration} and defined $o->{configuration} )
         ? $o->{configuration}
-        : '~/.ningyou/master.ini';
-    $cfg = $s->get_or_setup_cfg( $cfg_fn, $u );
+        : '~/.ningyou/repository.ini';
+    ( $cfg_fn, $cfg ) = $s->get_or_setup_cfg( $rfn, $u );
 
     # update system package meta data
     if ( exists $cfg->{status}->{packages}
@@ -194,7 +196,7 @@ sub run {
             . 'Ningyou '
             . $s->c( 'version', "v$VERSION" ) . " for "
             . $s->c( 'host',    $f->{fqdn} )
-            . ' with configuration '
+            . "\n# with configuration "
             . $s->c( 'file', $cfg_fn )
             . "\n" );
 
@@ -203,7 +205,7 @@ sub run {
             . $s->c( 'mode', ucfirst($mode) )
             . " module(s) "
             . $s->c( 'module', $str ) . " in "
-            . $s->c( 'file',   $wt )
+            . $s->c( 'dir',    $mt )
             . "\n" );
 
     # prepare print used modules
@@ -223,15 +225,16 @@ sub run {
     if ( $mode eq 'list' ) {
         foreach my $mo ( sort @modules ) {
             chomp $mo;
-            $mo =~ s{^$wt/}{}gmx;    #/home/c/g/wt/modules/zsh -> zsh
+            $mo =~ s{^$mt/}{}gmx;    #/home/c/g/wt/modules/zsh -> zsh
             $s->o( $s->c( 'module', "$mo " ) );
         }
         $s->o("\n");
         return;
     }
+
     foreach my $mo ( sort @modules ) {
         chomp $mo;
-        $mo =~ s{^$wt/}{}gmx;        #/home/c/g/wt/modules/zsh -> zsh
+        $mo =~ s{^$mt/}{}gmx;        #/home/c/g/wt/modules/zsh -> zsh
         my $md = $mo . $dot;
         if ( $s->should_be_applied($mo) ) {
             $s->read_module($mo);
@@ -266,7 +269,7 @@ sub run {
     $s->v( "_" x ( 78 - $o->{indentation} ) . "\n" ) if $mode eq 'show';
     foreach my $mo ( sort @modules ) {
         chomp $mo;
-        $mo =~ s{^$wt/}{}gmx;    #/home/c/g/wt/modules/zsh -> zsh
+        $mo =~ s{^$mt/}{}gmx;    #/home/c/g/wt/modules/zsh -> zsh
         my $md = $s->c( 'module', $mo ) . $dot;
         my $considered
             = ( $result->{$mo}->{considered} )
@@ -292,9 +295,10 @@ sub run {
         if ( $mode eq 'show' ) {
             $s->v( "=" x ( 78 - $o->{indentation} ) . "\n" );
             if ( $modules eq q{} ) {
-                $s->o( $s->c( 'execute', " ningyou apply all" ) );
-                $s->o( ' What would be done:'
-                        . $s->c( 'execute', " ningyou script all\n" ) );
+                $s->o( "Apply changes: "
+                        . $s->c( 'execute', " ningyou apply all" ) );
+                $s->o( ' What would be done: '
+                        . $s->c( 'execute', "ningyou script all\n" ) );
             }
             else {
                 $s->o( $s->c( 'execute', " ningyou apply $modules" ) );
@@ -311,123 +315,178 @@ sub run {
     return 1;
 }
 
-sub get_or_setup_cfg {
-    my ( $s, $cfg_fn, $u ) = @_;
+sub get_uid {
+    my @o   = qx(facter);
+    my $uid = undef;
+    foreach my $line (@o) {
+        if ( $line =~ m{^id\s+=>\s+(.*)}gmx ) {
+            $uid = $1;
+        }
+    }
+    chomp $uid;
+    return $uid;
+}
 
-    my $fn = glob $cfg_fn;    # master cfg (~/.ningyou/master.ini)
+sub get_gid {
+    my @o   = qx(facter);
+    my $gid = undef;
+    foreach my $line (@o) {
+        if ( $line =~ m{^gid\s+=>\s+(.*)}gmx ) {
+            $gid = $1;
+        }
+    }
+    chomp $gid;
+    return $gid;
+}
+
+sub get_distribution {
+    my @o   = qx(facter);
+    my $dis = undef;
+    foreach my $line (@o) {
+        if ( $line =~ m{^lsbdistdescription\s+=>\s+(.*)}gmx ) {
+            $dis = lc($1);
+        }
+    }
+    chomp $dis;
+    $dis =~ s{\s+|/}{-}gmx;
+    $dis =~ s{\(|\)}{}gmx;
+    return $dis;
+}
+
+sub init_dir {
+    my ( $s, $dn ) = @_;
+    if ( -d $dn ) {
+        print "ERROR: directory [$dn] exists\n";
+        print "please clean up before using ningyou init\n";
+        exit 2;
+    }
+    else {
+        my $c = Ningyou::Cmd->new();
+        $c->cmd("mkdir -p $dn");
+        $c->cmd("chown $> $dn");     # eff uid $>, real uid $<
+        $c->cmd("chmod 700 $dn");    # eff gid $), real gid $(
+    }
+    return $dn;
+}
+
+sub init_file {
+    my ( $s, $fn, $n ) = @_;
+    if ( -f $fn ) {
+        print "ERROR: file [$fn] exists\n";
+        print "please clean up before using ningyou init\n";
+        exit 2;
+    }
+    else {
+        my $c = Ningyou::Cmd->new();
+        $c->cmd("touch $fn");
+        $c->cmd("chown $> $fn");     # eff uid $>, real uid $<
+        $c->cmd("chmod 600 $fn");    # eff gid $), real gid $(
+        open my $f, q{>}, $fn or die "ERR: can not open [$fn]\n";
+        print $f "$n\n";
+        close $f;
+    }
+    return $fn;
+}
+
+sub git_init {
+    my ($s) = @_;
+    my $c = Ningyou::Cmd->new();
+    my ( $o, $e, $r ) = $c->cmd("git init");
+    return ( $o, $e, $r );
+}
+
+sub get_or_setup_cfg {
+    my ( $s, $rfn, $u ) = @_;
+
+    my $fn = glob $rfn;      # master cfg (~/.ningyou/repository.ini)
     my $d  = dirname($fn);
     if ( $mode eq 'init' ) {
-        die sprintf(
-            "Can not create %s, it is already there! (please remove)\n",
-            $s->c( 'file', $d ) )
-            if -d $d;
-
-        my $q   = "Which kernel are you using?\nSupported: Linux";
-        my $ker = $u->ask_question(
-            { q => $q, e => $s->c( 'module', 'Linux' ) } );
-        $q = "Which distribution are you using?\nSupported: Debian";
-        my $dis = $u->ask_question(
-            { q => $q, e => $s->c( 'module', 'Debian' ) } );
-        $q = "Which release are you using?\nSupported: Wheezy";
-        my $rel = $u->ask_question(
-            { q => $q, e => $s->c( 'module', 'Wheezy' ) } );
-        my $r = join '-', lc $ker, lc $dis, lc $rel;    # linux-debian-wheezy
-
-        # ask for repo user
-        my $uid = $u->ask_for_user('for your repository');
-
-        # ask for repo group
-        my $gid = $u->ask_for_group('for your repository');
-
-        # ask for repo location
-        $wt = "/home/$uid/g/ningyou";
-        $wt = $u->ask_for_directory(
-            {
-                dir   => $wt,
-                uid   => $uid,
-                gid   => $gid,
-                mode  => '0750',
-                cause => 'for your ningyou repository'
-            }
+        my $pwd = qx(pwd);
+        chomp $pwd;
+        my $h = qx(hostname --fqdn);
+        chomp $h;
+        my $rn = $s->get_distribution();
+        my $wt = "$pwd";
+        my $rp = "$pwd/$rn/modules";
+        $s->o(    "Initializing empty Ningyou repository in "
+                . $s->c( 'dir', $pwd )
+                . "\n" );
+        $s->o( "for host " . $s->c( 'host', $h ) . "\n" );
+        $s->o( "creating new directory " . $s->c( 'dir', $rp ) . "\n" );
+        $s->init_dir($rp);
+        $s->o(    "creating new file      "
+                . $s->c( 'file', "$pwd/master.ini" )
+                . "\n" );
+        $s->init_file(
+            "$pwd/master.ini",
+            $u->init_master_configuration(
+                { hn => $h, wt => $wt, rn => $rn }
+            )
         );
+        $s->o(    "creating new directory "
+                . $s->c( 'dir', "$rp/modules" )
+                . "\n" );
+        $s->init_dir("$rp/modules");
+        my $dn0 = glob "~/.ningyou";
+        $s->o( "creating new directory " . $s->c( 'dir', $dn0 ) . "\n" );
+        $s->init_dir($dn0);
+        my $fn1 = $dn0 . "/repository.ini";
+        $s->o( "creating new file      " . $s->c( 'file', $fn1 ) . "\n" );
+        $s->init_file( $fn1, "[global]\nworktree=$wt\n" );
+        $s->o("intializing git repository\n");
+        $s->git_init($pwd);
+    }
+    else {
 
-        # /home/c/g/ningyou/linux-debian-wheezy/modules
-        $wt .= "/$r/modules";
-        $u->ask_to_create_directory(
-            {
-                dir   => $wt,
-                uid   => 'root',
-                gid   => 'root',
-                mode  => '0750',
-                cause => 'for your module working tree'
-            }
-        ) if not -d $wt;
-
-        die sprintf(
-            "Can not create %s, it is already there! (please remove)\n",
-            $s->c( 'file', $d ) )
-            if -d $d;
-        $u->ask_to_create_directory(
-            {
-                dir   => $d,
-                uid   => 'root',
-                gid   => 'root',
-                mode  => '0750',
-                cause => 'for your master configuration'
-            }
-        );
-        die "Can not create $fn, it is already there! (please remove)\n"
-            if -e $fn;
-        $u->ask_to_create_configuration(
-            {
-                ker => $ker,    # kernel
-                dis => $dis,    # distribution
-                rel => $rel,    # release
-                fn  => $fn,     # config file name
-                wt  => $wt,     # working tree (.../modules)
-                rn  => $r       # repository name
-            }
-        );
     }
 
-    die sprintf(
-        "please provide %s (or execute %s)\n",
-        $s->c( 'file',    $d ),
-        $s->c( 'execute', 'ningyou init' )
-    ) if not -d $d;
+    # read ~/.ningyou/repository.ini
+    die "ERR: no [$fn]. Execute 'ningyou init'\n" if not -f $fn;
+    my $rcfg = Config::INI::Reader->read_file($fn);
+    my $wtp  = $rcfg->{global}->{worktree};
+    $s->v( "worktree" . $s->c( 'dir', $wtp ) . "\n" );
+    my $cfg_fn = "$wtp/master.ini";
+    die "please provide master configuration $cfg_fn\n" if not -e $cfg_fn;
 
-    die "please provide master configuration $fn\n" if not -e $fn;
-    $cfg        = Config::INI::Reader->read_file($fn);
+    # read /srv/ningyou/master.ini
+    my $cfg = Config::INI::Reader->read_file($cfg_fn);
     $repository = $s->get_repository( $cfg, $f->{fqdn} );
-    $wt         = $s->get_worktree( $cfg, $repository );
-    die "please provide working tree $wt\n" if not -d $wt;
-    $provider = $cfg->{provider};
 
-    return $cfg;
+    $mt = $s->get_moduletree( $cfg, $repository );
+    die "please provide working tree $mt\n" if not -d $mt;
+    $provider = $cfg->{provider};
+    return ( $cfg_fn, $cfg );
 }
 
 sub get_repository {
-    my ( $s, $c, $d ) = @_;    #  c = cfg (master), d = fqdn
+    my ( $s, $c, $h ) = @_;    #  c = cfg (master.ini), d = fqdn
+    $s->d("get_repository: host [$h]");
 
-    my $m = "ERROR: Node [$d] not mentioned in section [nodes]\n";
+    my $m
+        = "ERROR: Node "
+        . $s->c( 'host', $h )
+        . " not mentioned in section [nodes]\n";
     $m .= "Please add node to master.ini\n";
-    my $r = exists $c->{nodes}->{$d} ? $c->{nodes}->{$d} : die $m;
-    $s->d("use repository: $r\n");
+
+    my $r = exists $c->{nodes}->{$h} ? $c->{nodes}->{$h} : die $m;
+    $s->d("get_repository: use repository [$r]\n");
 
     return $r;
 }
 
-sub get_worktree {
-    my ( $s, $c, $r ) = @_;    # c = cfg (master), r = repository name
+sub get_moduletree {
+    my ( $s, $c, $r ) = @_;    # c =cfg (master.ini), r = repository name
 
     my $se = 'repositories';
     my $m  = "ERROR: a repository called '$r' is\n";
     $m .= "not mentioned in section [$se]!\n";
     $m .= "Please add repository to master.ini\n";
     my $wt = exists $c->{$se}->{$r} ? $c->{$se}->{$r} : die $m;
+    my $mt = "$wt/$r/modules";
     $s->d("use worktree: $wt\n");
+    $s->d("use moduletree: $mt\n");
 
-    return $wt;
+    return $mt;
 }
 
 # query OBJECTs of PROVIDER if applied or not
@@ -454,11 +513,11 @@ sub check_provided {
     my ( $s,  $id ) = @_;
     my ( $pr, $iv ) = $s->id($id);
     my $o = $s->get_options;
-    $s->v(    "- Q: do provider "
+    $s->v(    "* Checking provided "
             . $s->c( 'file', $pr )
             . " provide object "
             . $s->c( 'module', $iv )
-            . "?\n" );
+            . "\n" );
     my $msg
         = "ERROR: provider "
         . $s->c( 'file', $pr )
@@ -478,13 +537,62 @@ sub check_provided {
         ? $s->get_cfg($id)->{module}
         : {};
 
+    if ( exists $cfg->{require} ) {
+        $cfg->{require} =~ s{\s+}{}gmx;
+        $s->v(    "- Q: "
+                . $s->c( 'file', $id )
+                . " requires "
+                . $s->c( 'file', $cfg->{require} )
+                . ",\n" );
+        $s->v("     are all requirements met?\n");
+        use Data::Dumper;
+        $s->v( "cfg: \n" . Dumper($cfg) );
+        my $rcfg
+            = ( $s->is_cfg( $cfg->{require} )
+                and exists $s->get_cfg( $cfg->{require} )->{module} )
+            ? $s->get_cfg( $cfg->{require} )->{module}
+            : {};
+        my ( $rpr, $riv ) = $s->id( $cfg->{require} );
+        $s->d("module [$riv]\n");
+        my $require_ok = $p->applied(
+            {
+                cfg      => $rcfg,    #$r->{$pr}->{$iv},
+                object   => $riv,
+                module   => $riv,
+                provider => $rpr,
+                cache    => $cache,
+                mt       => $mt,
+                dryrun   => 1,
+                itemize  => 1,
+                base     => '-a',
+            }
+        );
+        if ($require_ok) {
+            $s->v(    "- A: "
+                    . $s->c( 'yes', 'YES' )
+                    . ", dependency is met, will continue\n" );
+
+        }
+        else {
+            $s->v(    "- A: "
+                    . $s->c( 'no', 'NO' )
+                    . ", dependency is NOT met, will abbort\n" );
+            return 0;
+        }
+    }
+    $s->v(    "- Q: do provider "
+            . $s->c( 'file', $pr )
+            . " provide object "
+            . $s->c( 'module', $iv )
+            . "?\n" );
+
     my $is_provided = $p->applied(
         {
             cfg      => $cfg,     #$r->{$pr}->{$iv},
             object   => $iv,
             provider => $pr,
             cache    => $cache,
-            wt       => $wt,
+            mt       => $mt,
             dryrun   => 1,
             itemize  => 1,
             base     => '-a',
@@ -517,7 +625,7 @@ sub check_provided {
                 object   => $iv,
                 provider => $pr,
                 cfg      => $cfg,
-                wt       => $wt,
+                mt       => $mt,
             }
         );
 ### ###
@@ -580,7 +688,7 @@ sub planning {
                     . $s->c( 'file', $pr )
                     . "\n" );
             my $mo = $s->get_cfg($id)->{module}->{module};
-            $s->v(    "- Q: What dependecies has "
+            $s->v(    "- Q: What direct dependecies has "
                     . $s->c( 'module', $id )
                     . "?\n" );
             foreach my $dep_id ( $s->get_dependencies($id) ) {
@@ -598,14 +706,17 @@ sub planning {
 
 sub should_be_applied {
     my ( $s, $mo ) = @_;
+    my $sr = "should_be_applied: ";
+    $s->d( $sr . "mo [$mo]" );
 
     return 1 if ( exists $pkg->{$mo} );
     $pkg->{$mo} = 0;
+    $s->d( $sr . "pkg->{$mo} do not exists" );
 
-    # if should be applied globally: [packages]
+    # if should be applied globally: [modules]
     $pkg->{$mo}++
-        if ( exists $cfg->{packages}->{$mo}
-        and $cfg->{packages}->{$mo} );
+        if ( exists $cfg->{modules}->{$mo}
+        and $cfg->{modules}->{$mo} );
 
     # if should be applied for repository
     $pkg->{$mo}++
@@ -615,7 +726,7 @@ sub should_be_applied {
     # if it should be applied for client
     $pkg->{$mo}++
         if exists $cfg->{ $f->{fqdn} }->{$mo}
-            and $cfg->{ $f->{fqdn} }->{$mo};
+        and $cfg->{ $f->{fqdn} }->{$mo};
     return $pkg->{$mo};
 }
 
@@ -627,7 +738,7 @@ sub action {
         $s->v(    "# number of modules to update: "
                 . $s->count_commands / 2
                 . "\n" );
-        $s->o("export WT=$wt\n");
+        $s->o("export MT=$mt\n");
         my $z = 0;
         foreach my $cmd ( $s->all_commands ) {
             if ( not exists $o->{raw} ) {
@@ -635,7 +746,7 @@ sub action {
                 if ( $mode eq 'show' ) {
                     $cmd =~ s/^/# /gmx;
                 }
-                $cmd =~ s/$wt/\${WT}/gmx;
+                $cmd =~ s/$mt/\${MT}/gmx;
                 $cmd =~ s/&&/&&\n/gmx;
             }
             $cmd =~ s{\n}{\n}gmx;
@@ -703,7 +814,7 @@ sub read_modules {
     my ( $s, $i ) = @_;
 
     my @m = ();
-    find( sub { push @m, "$File::Find::dir$/" if (/manifests$/); }, $wt );
+    find( sub { push @m, "$File::Find::dir$/" if (/manifests$/); }, $mt );
     return \@m;
 }
 
@@ -716,7 +827,7 @@ sub read_modules {
 #           at the moment
 sub read_module {
     my ( $s, $mo ) = @_;    # mo = module
-    my $fn  = "$wt/$mo/manifests/i.ini";
+    my $fn  = "$mt/$mo/manifests/i.ini";
     my $cfg = Config::INI::Reader->read_file($fn);
 
     # collect default values first

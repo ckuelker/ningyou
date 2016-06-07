@@ -27,7 +27,7 @@ sub apply {
     my $c  = exists $i->{cfg}    ? $i->{cfg}    : die 'no cfg';
 
     # shorten config attributes
-    my $mo = exists $c->{module}  ? $c->{module}  : die 'no module';
+    my $mo = exists $c->{module} ? $c->{module} : die 'no module';
     my $so = exists $c->{source} ? $c->{source} : die 'no source';
     my $en = exists $c->{ensure} ? $c->{ensure} : 'created';
     my $ow = exists $c->{owner}  ? $c->{owner}  : 'root';

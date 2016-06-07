@@ -34,10 +34,10 @@ sub apply {
     my $ca = exists $i->{cache}  ? $i->{cache}  : die 'no cache';
     my $iv = exists $i->{object} ? $i->{object} : die 'no object';
     my $c  = exists $i->{cfg}    ? $i->{cfg}    : die 'no cfg';
-    my $wt = exists $i->{wt}     ? $i->{wt}     : die 'no wt';
+    my $mt = exists $i->{mt}     ? $i->{mt}     : die 'no mt';
 
     # shorten config attributes
-    my $ow = exists $c->{mode} ? $c->{mode} : 'root';
+    my $ow = exists $c->{mode}   ? $c->{mode}   : 'root';
     my $mo = exists $c->{module} ? $c->{module} : die 'no module';
 
     $s->d('debug output for Ningyou::Provider::Chmod');
