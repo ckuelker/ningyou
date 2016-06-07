@@ -351,6 +351,7 @@ sub get_distribution {
     chomp $dis;
     $dis =~ s{\s+|/}{-}gmx;
     $dis =~ s{\(|\)}{}gmx;
+    $dis =~ s{-$}{}gmx; # rm space (hyphen) at the end
     return $dis;
 }
 
