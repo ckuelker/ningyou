@@ -78,11 +78,9 @@ sub process_commands {
 
     #if ( $x ~~ @x ) {
     if ( grep { $_ eq $x } @x ) {
-        print "SET\n";
         $s->set_command($x);
     }
     else {
-        print "PUSH\n";
         push @{ $s->modules }, $x;
     }
     if ( $x eq 'help' ) {
