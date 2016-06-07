@@ -38,6 +38,7 @@ has 'options' => (
 );
 
 my $id = q{ } x 8;
+my $os = q{};
 
 sub init {
     my ( $s, $i ) = @_;
@@ -47,7 +48,7 @@ sub init {
         CentOS =>
             q(rpm -qa --qf '%{INSTALLTIME};%{NAME};%{VERSION}-%{RELEASE}\n'),
     };
-    my $os = qx(facter  operatingsystem);   # TODO: move this to central space
+    $os = qx(facter  operatingsystem);   # TODO: move this to central space
     chomp $os;
     die "ERR: OS [$os] not supported" if not exists $cmd->{$os};
 
@@ -80,10 +81,15 @@ sub apply {
     my $fl = exists $i->{aptitude} ? $i->{aptitude} : q{};
 
     my $mo  = $c->{module};
-    my $cmd = "aptitude $fl install $iv";
-    $cmd =~ s{\s+}{ }gmx;
+    my $cmd = {
+        Debian => qq{aptitude $fl install $iv"},
+	CentOS => qq{yum -y install $iv"},
+    };
+    die "ERR: OS [$os] not supported" if not exists $cmd->{$os};
+    my $rcmd = $cmd->{$os};
+    $rcmd =~ s{\s+}{ }gmx;
 
-    return $cmd;
+    return $rcmd;
 }
 
 sub applied {
