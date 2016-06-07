@@ -45,7 +45,7 @@ sub init {
         Debian =>
             q(/usr/bin/dpkg-query -W --showformat '${Status};${Package};${Version}\n'),
         CentOS =>
-            q(rpm -qa --qf '%{INSTALLTIME};%{NAME};%{VERSION}-%{RELEASE}'),
+            q(rpm -qa --qf '%{INSTALLTIME};%{NAME};%{VERSION}-%{RELEASE}\n'),
     };
     my $os = qx(facter  operatingsystem);   # TODO: move this to central space
     chomp $os;
