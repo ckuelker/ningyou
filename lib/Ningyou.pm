@@ -10,7 +10,8 @@ use warnings qw(FATAL utf8);     # make encoding glitches fatal
 use open qw(:std :utf8);         # undeclared streams in UTF-8
 use charnames qw(:full :short);  # unneeded in v5.16
 
-use Config::INI::Reader;         #use Config::Any;
+#use Config::INI::Reader;         #use Config::Any;
+use Config::Tiny;
 use Data::Dumper;
 use Encode qw(decode_utf8);
 use File::Basename;
@@ -442,14 +443,16 @@ sub get_or_setup_cfg {
 
     # read ~/.ningyou/repository.ini
     die "ERR: no [$fn]. Execute 'ningyou init'\n" if not -f $fn;
-    my $rcfg = Config::INI::Reader->read_file($fn);
+    #my $rcfg = Config::INI::Reader->read_file($fn);
+    my $rcfg = Config::Tiny->read($fn,'utf8');
     my $wtp  = $rcfg->{global}->{worktree};
     $s->v( "worktree" . $s->c( 'dir', $wtp ) . "\n" );
     my $cfg_fn = "$wtp/master.ini";
     die "please provide master configuration $cfg_fn\n" if not -e $cfg_fn;
 
     # read /srv/ningyou/master.ini
-    my $cfg = Config::INI::Reader->read_file($cfg_fn);
+    #my $cfg = Config::INI::Reader->read_file($cfg_fn);
+    my $cfg = Config::Tiny->read($cfg_fn,'utf8');
     $repository = $s->get_repository( $cfg, $f->{fqdn} );
 
     $mt = $s->get_moduletree( $cfg, $repository );
@@ -828,7 +831,8 @@ sub read_modules {
 sub read_module {
     my ( $s, $mo ) = @_;    # mo = module
     my $fn  = "$mt/$mo/manifests/i.ini";
-    my $cfg = Config::INI::Reader->read_file($fn);
+    #my $cfg = Config::INI::Reader->read_file($fn);
+    my $cfg = Config::Tiny->read($fn,'utf8');
 
     # collect default values first
     my $def = {};
