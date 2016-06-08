@@ -79,7 +79,7 @@ sub process_commands {
     my $ref = ref $i;
     # my $x = scalar $i->name;    # remove the object from the input
     #                                          Perl 5.14  Perld 5.20
-    my $x = $ref eq 'Getopt::Long::Callback' ? scalar $i->name : $i;
+    my $x = $ref eq 'Getopt::Long::CallBack' ? scalar $i->name : $i;
 
     $s->d("Ningyou::Options::process_commands: x [$x]");
     my @x = qw(help show script apply list init);
