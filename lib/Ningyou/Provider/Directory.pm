@@ -66,7 +66,7 @@ sub apply {
 
     my $cmd = undef;
 
-    $s->d("so [$so]\n") if $so;
+    $s->d("Ningyou::Provider::Directory::apply so [$so]\n") if $so;
 
     $s->v("  * Install provider [$pr]\n");
 
@@ -147,11 +147,11 @@ sub applied {    # alias for "action needed"
 
     if ( not $so ) {    # no source given, aka mkdir directory only
         if ( -d $iv ) {
-            $s->d("xxx A: [YES]\n");
+            $s->d("Ningyou::Provider::Directory::applied A: [YES]\n");
             return 1;
         }
         else {
-            $s->d("xxx A: [NO]\n");
+            $s->d("Ningyou::Provider::Directory::applied A: [NO]\n");
             return 0;
 
         }
