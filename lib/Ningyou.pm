@@ -839,7 +839,7 @@ sub read_module {
     my $def = {};
     foreach my $rid ( sort keys %{$cfg} ) {    # default : file
         my ( $pr, $iv ) = $s->id($rid);
-        $s->d(    "pr "
+        $s->d(    "Ningyou::read_module: pr "
                 . $s->c( 'file',   $pr ) . " iv "
                 . $s->c( 'module', $iv )
                 . "\n" );                      # pr [default] iv [file]
@@ -852,10 +852,10 @@ sub read_module {
         my ( $pr, $iv ) = $s->id($rid);
         next if $pr eq 'default';
         my $id = "$pr:$iv";
-        $s->d("rid [$rid] -> id [$id] ($pr:$iv)\n");
+        $s->d("Ningyou::read_module: rid [$rid] -> id [$id] ($pr:$iv)\n");
         my $m = Ningyou::Type::Module->new;
         foreach my $k ( sort keys %{ $cfg->{$rid} } ) {
-            $s->d("k [$k] =>[$cfg->{$rid}->{$k}]\n");
+            $s->d("Ningyou::read_module: k [$k] =>[$cfg->{$rid}->{$k}]\n");
             $m->set_module( $k => $cfg->{$rid}->{$k} );    # 'owner' => 'c'
         }
 
@@ -866,15 +866,16 @@ sub read_module {
             next if $field eq 'module';
 
             # splice in default field values
-            $s->d("Q: do we apply default value for field [$field]?\n");
+            $s->d("Ningyou::read_module: Q: do we apply default value for field [$field]?\n");
             if ( not $m->is_module($field) ) {
-                $s->d("A: YES ($def->{$pr}->{$field})\n");
+                $s->d("Ningyou::read_module: A: YES ($def->{$pr}->{$field})\n");
                 $m->set_module( $field => $def->{$pr}->{$field} );
             }
             else {
-                $s->d("A: NO\n");
+                $s->d("Ningyou::read_module: A: NO\n");
             }
         }
+	$s->d("Ningyou::read_module: will set module to [$mo]");
         $m->set_module( 'module' => $mo );    # remember own module name
         $s->set_cfg( $id => $m );    # add to the global configuration
     }
