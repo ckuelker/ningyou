@@ -13,7 +13,7 @@ use Getopt::Long qw(:config gnu_getopt permute);
 use namespace::autoclean;
 our $VERSION = '0.0.9';
 
-with 'Ningyou::Debug';
+with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
 
 has 'options' => (
     is      => 'rw',
