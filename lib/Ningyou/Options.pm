@@ -13,6 +13,8 @@ use Getopt::Long qw(:config gnu_getopt permute);
 use namespace::autoclean;
 our $VERSION = '0.0.9';
 
+with 'Ningyou::Debug';
+
 has 'options' => (
     is      => 'rw',
     isa     => 'HashRef',
@@ -72,8 +74,11 @@ sub process_options {
 sub process_commands {
     my ( $s, $i, $j ) = @_;
 
+    $s->d("Ningyou::Options::process_commands: ");
+
     #my $x = scalar $i->name;    # remove the object from the input
     my $x = scalar $i;
+    $s->d("Ningyou::Options::process_commands: x [$x]");
     my @x = qw(help show script apply list init);
 
     #if ( $x ~~ @x ) {
