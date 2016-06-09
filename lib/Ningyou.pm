@@ -358,7 +358,7 @@ sub get_distribution {
 sub init_dir {
     my ( $s, $dn ) = @_;
     if ( -d $dn ) {
-        print "ERROR: directory [$dn] exists\n";
+        print "ERR 01: directory [$dn] exists\n";
         print "please clean up before using ningyou init\n";
         exit 2;
     }
@@ -374,7 +374,7 @@ sub init_dir {
 sub init_file {
     my ( $s, $fn, $n ) = @_;
     if ( -f $fn ) {
-        print "ERROR: file [$fn] exists\n";
+        print "ERR 02: file [$fn] exists\n";
         print "please clean up before using ningyou init\n";
         exit 2;
     }
@@ -383,7 +383,8 @@ sub init_file {
         $c->cmd("touch $fn");
         $c->cmd("chown $> $fn");     # eff uid $>, real uid $<
         $c->cmd("chmod 600 $fn");    # eff gid $), real gid $(
-        open my $f, q{>}, $fn or die "ERR: can not open [$fn]\n";
+        open my $f, q{>}, $fn or die "ERR 03: can not open [$fn]\n";
+
         print $f "$n\n";
         close $f;
     }
@@ -443,7 +444,7 @@ sub get_or_setup_cfg {
     }
 
     # read ~/.ningyou/repository.ini
-    die "ERR: no [$fn]. Execute 'ningyou init'\n" if not -f $fn;
+    die "ERR 04: no [$fn]. Execute 'ningyou init'\n" if not -f $fn;
     #my $rcfg = Config::INI::Reader->read_file($fn);
     my $rcfg = Config::Tiny->read($fn,'utf8');
     my $wtp  = $rcfg->{global}->{worktree};
@@ -463,11 +464,11 @@ sub get_or_setup_cfg {
 }
 
 sub get_repository {
-    my ( $s, $c, $h ) = @_;    #  c = cfg (master.ini), d = fqdn
+    my ( $s, $c, $h ) = @_;    #  c = cfg (master.ini), h = fqdn
     $s->d("get_repository: host [$h]");
 
     my $m
-        = "ERROR: Node "
+        = "ERR 05: Node "
         . $s->c( 'host', $h )
         . " not mentioned in section [nodes]\n";
     $m .= "Please add node to master.ini\n";
@@ -482,7 +483,7 @@ sub get_moduletree {
     my ( $s, $c, $r ) = @_;    # c =cfg (master.ini), r = repository name
 
     my $se = 'repositories';
-    my $m  = "ERROR: a repository called '$r' is\n";
+    my $m  = "ERR 06: a repository called '$r' is\n";
     $m .= "not mentioned in section [$se]!\n";
     $m .= "Please add repository to master.ini\n";
     my $wt = exists $c->{$se}->{$r} ? $c->{$se}->{$r} : die $m;
@@ -523,7 +524,7 @@ sub check_provided {
             . $s->c( 'module', $iv )
             . "\n" );
     my $msg
-        = "ERROR: provider "
+        = "ERR 07: provider "
         . $s->c( 'file', $pr )
         . " not supported!\n"
         . "Please install the provider Ningyou::Provider::"
