@@ -85,6 +85,8 @@ sub get_facts {
         $f->{host}   = defined $sf->hostname ? $sf->hostname : 'na';
         $f->{domain} = defined $sf->domain   ? $sf->domain   : 'na';
         $f->{fqdn}   = "$f->{host}.$f->{domain}";
+            $f->{fqdn}   = qx(hostname --fqdn);
+            chomp $f->{fqdn};
         1;
     } or do {
 
