@@ -10,7 +10,6 @@ use warnings qw(FATAL utf8);     # make encoding glitches fatal
 use open qw(:std :utf8);         # undeclared streams in UTF-8
 use charnames qw(:full :short);  # unneeded in v5.16
 
-#use Config::INI::Reader;         #use Config::Any;
 use Config::Tiny;
 use Data::Dumper;
 use Encode qw(decode_utf8);
