@@ -936,7 +936,7 @@ sub read_one_module {
 
 sub id {
     my ( $s, $id ) = @_;
-    my ( $pr, $iv ) = split /\s*:\s*/, $id;
+    my ( $pr, $iv ) = split /\s*:\s*/, $id, 2;
     return ( $pr, $iv );
 }
 
