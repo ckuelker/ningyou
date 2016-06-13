@@ -164,9 +164,12 @@ sub run {
     $opt->process_options;
     my $o = $opt->get_options;
     $s->set_options($o);         # set for Ningyou::Out ...
-    $mode       = $opt->get_command;
+    $s->d("Ningyou::run version $VERSION");
+    $mode = $opt->get_command;
+    $s->d("Ningyou::run mode [$mode]");
     $modules_ar = $opt->modules;
-    $modules    = join q{ }, @{$modules_ar};
+    $modules = join q{ }, @{$modules_ar};
+    $s->d("Ningyou::run modules [$modules]");
 
     # prepare facts
     my $u = Ningyou::Util->new;
@@ -177,31 +180,36 @@ sub run {
         = ( exists $o->{configuration} and defined $o->{configuration} )
         ? $o->{configuration}
         : '~/.ningyou/repository.ini';
+    $s->d("Ningyou::run rfn [$rfn]");
     ( $cfg_fn, $cfg ) = $s->get_or_setup_cfg( $rfn, $u );
+    $s->d("Ningyou::run cfg_fn [$cfg_fn]");
 
     # update system package meta data
     if ( exists $cfg->{status}->{packages}
         and $cfg->{status}->{packages} eq 'always-update-on-start'
         or exists $o->{update} )
     {
+        $s->d("Ningyou::run update package status ...]");
         system('aptitude update');
+        $s->d("Ningyou::run ... update package status]");
     }
 
     # print preamble
     # $s->o( "=" x ( 78 - $o->{indentation} ) . "\n" );
     $mode = ( $mode eq q{} ) ? 'show' : $mode;
-    my $comment = ( $mode eq 'script' ) ? '# ' : q{};
+    $s->d("Ningyou::run mode [$mode]");
+    my $cmmnt = ( $mode eq 'script' ) ? '# ' : q{};
     $s->o("#!/bin/sh\n") if $mode eq 'script';
-    $s->o(    $comment
+    $s->o(    $cmmnt
             . 'Ningyou '
             . $s->c( 'version', "v$VERSION" ) . " for "
             . $s->c( 'host',    $f->{fqdn} )
-            . "\n# with configuration "
-            . $s->c( 'file', $cfg_fn )
             . "\n" );
+    $s->o(
+        $cmmnt . "Using configuration " . $s->c( 'file', $cfg_fn ) . "\n" );
 
     my $str = ( not defined $modules or $modules eq q{} ) ? 'all' : $modules;
-    $s->o(    $comment
+    $s->o(    $cmmnt
             . $s->c( 'mode', ucfirst($mode) )
             . " module(s) "
             . $s->c( 'module', $str ) . " in "
@@ -223,6 +231,7 @@ sub run {
         @modules = @{ $s->read_modules() };
     }
     if ( $mode eq 'list' ) {
+        $s->d("Ningyou::run list modules");
         foreach my $mo ( sort @modules ) {
             chomp $mo;
             $mo =~ s{^$mt/}{}gmx;    #/home/c/g/wt/modules/zsh -> zsh
@@ -498,6 +507,8 @@ sub get_moduletree {
 # returns number of unprovided objects
 sub query_unprovided {
     my ( $s, $i ) = @_;
+    my $se = "Ningyou::query_unprovided";
+    $s->d($se);
     return if $mode eq 'full-show';
     return if $mode eq 'full-script';
 
@@ -505,36 +516,46 @@ sub query_unprovided {
 
     # foreach provider: File, Directory, ...
     $s->v("Query: what is already provided and what not ...\n");
-    $s->d("Foreach entry id (provider:object)\n");
+    $s->d("$se Foreach entry id (provider:object)\n");
     foreach my $id ( $s->ids_cfg ) {    # id = provider:object
         my ( $pr, $iv ) = $s->id($id);
-        my $provided = $s->check_provided($id);
-        $unprovided++ if not $provided;
+        $s->d("$se pr [$pr] iv [$iv]");
+        if ( not $s->check_provided($id) ) {
+            $unprovided++;
+            $s->d("$se => unprovided");
+        }
     }
     return $unprovided;
 }
 
 sub check_provided {
-    my ( $s,  $id ) = @_;
-    my ( $pr, $iv ) = $s->id($id);
+    my ( $s, $id ) = @_;                # id=package:vim
+
+    my $se = "Ningyou::check_provided";
+    $s->d($se);
+    my ( $pr, $iv ) = $s->id($id);      # pr=package, iv=vim
+    my $prnt_pr = $s->c( 'file',   $pr );
+    my $prnt_iv = $s->c( 'module', $iv );
+    $s->d("$se pr [$pr] iv [$iv]");
     my $o = $s->get_options;
-    $s->v(    "* Checking provided "
-            . $s->c( 'file', $pr )
-            . " provide object "
-            . $s->c( 'module', $iv )
-            . "\n" );
+    $s->v("* Checking provided $prnt_pr provide object $prnt_iv\n");
     my $msg
-        = "ERR 07: provider "
-        . $s->c( 'file', $pr )
-        . " not supported!\n"
+        = "ERR 07: provider $prnt_pr not supported!\n"
         . "Please install the provider Ningyou::Provider::"
         . ucfirst $pr
         . "\nand consider adding it at"
         . " section [providers] in master.ini\n";
     die $msg if not exists $provider->{$pr};
-    my $module = "Ningyou::Provider::" . ucfirst $pr;
-    eval "use $module";
+    my $ppm = "Ningyou::Provider::" . ucfirst $pr;
+    $s->d("$se Perl provider module [$ppm]");
+    eval "use $ppm";
     die $@ if defined $@ and $@;
+
+    # $o = {
+    #        'indentation' => 0,
+    #        'debug' => '/tmp/ningyou.log',
+    #        'verbose' => 1
+    #      };
     my $p = $provider->{$pr}->new( { options => $o } );
 
     # $cfg = (
@@ -569,7 +590,7 @@ sub check_provided {
             ? $s->get_cfg( $cfg->{require} )->{module}
             : {};
         my ( $rpr, $riv ) = $s->id( $cfg->{require} );
-        $s->d("module [$riv]\n");
+        $s->d("RIV module [$riv]\n");
         my $require_ok = $p->applied(
             {
                 cfg      => $rcfg,    #$r->{$pr}->{$iv},
@@ -596,16 +617,12 @@ sub check_provided {
             return 0;
         }
     }
-    $s->v(    "- Q: do provider "
-            . $s->c( 'file', $pr )
-            . " provide object "
-            . $s->c( 'module', $iv )
-            . "?\n" );
-
+    $s->v("- Q: do provider $prnt_pr provide object $prnt_iv?\n");
+    $s->d("$se object [$iv]");
     my $is_provided = $p->applied(
         {
             cfg      => $cfg,     #$r->{$pr}->{$iv},
-            object   => $iv,
+            object   => $iv,      # /srv/new-dir
             provider => $pr,
             cache    => $cache,
             mt       => $mt,
@@ -633,6 +650,10 @@ sub check_provided {
                 . " is going to be provided via ["
                 . $s->c( 'file', 'apply' )
                 . "]\n" );
+
+        # TODO: check, if 'apply' is really correct. Better use 'applied'?
+        # WHY? actually we do only want to exec apply when installing
+        # or apply in a dry mode when 'script' is used
         my $cmd = $p->apply(
             {
 
@@ -756,7 +777,7 @@ sub action {
                 . "\n" );
         $s->o("export MT=$mt\n");
         my $z = 0;
-        foreach my $cmd ( $s->all_commands ) { # already sorted
+        foreach my $cmd ( $s->all_commands ) {    # already sorted
             if ( not exists $o->{raw} ) {
                 $cmd =~ s/^\s+//gmx;
                 if ( $mode eq 'show' ) {
@@ -773,7 +794,7 @@ sub action {
         $s->o( $s->c( 'comment', "# EOS - end of script\n" ) );
     }
     if ( $mode eq 'apply' ) {
-        foreach my $cmd ( $s->all_commands ) { # already sorted
+        foreach my $cmd ( $s->all_commands ) {    # already sorted
             next if $cmd =~ m{^#};
             $s->o("$cmd\n");
             my $nilicm = Ningyou::Cmd->new();
@@ -808,9 +829,9 @@ sub get_dependencies {
         my ( $pr, $str ) = $s->id($tid);
         $s->v( "    id has provider " . $s->c( 'file', $pr ) . "\n" );
         my @d = ();
-        if ( $str =~ m{,}gmx ) {            # if comma
-            my @d = split /,/, $str;        # zsh,vim
-            foreach my $iv (@d) { # order given by admin
+        if ( $str =~ m{,}gmx ) {     # if comma
+            my @d = split /,/, $str;    # zsh,vim
+            foreach my $iv (@d) {       # order given by admin
                 $s->v("     + add A dependency [$pr:$iv]\n");
                 push @dependencies, "$pr:$iv";
             }
@@ -843,6 +864,8 @@ sub read_modules {
 #           at the moment
 sub read_module {
     my ( $s, $mo ) = @_;    # mo = module
+    my $sr = "Ningyou::read_one_module";
+    $s->d($sr);
     my $fn = "$mt/$mo/manifests/i.ini";
 
     #my $cfg = Config::INI::Reader->read_file($fn);
