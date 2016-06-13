@@ -702,31 +702,29 @@ sub planning {
 
     $s->v("Query: what dependencies need to be applied:\n");
     foreach my $id ( sort $s->ids_cfg ) {
+        $s->d("id [$id]");
         my ( $pr, $iv ) = $s->id($id);
+        my $piv = $s->c( 'module', $iv );
+        my $ppr = $s->c( 'file',   $pr );
 
-        $s->v(    "- Q: Should object "
-                . $s->c( 'module', $iv )
-                . " be provided via "
-                . $s->c( 'file', $pr )
-                . "?\n" );
+        $s->v("- Q: Should object $piv be provided via $ppr?\n");
         if ( $s->get_provided($id) ) {
             $s->v(    "- A: "
                     . $s->c( 'no', 'NO' )
-                    . ", should not be provided via "
-                    . $s->c( 'file', $pr )
-                    . "\n" );
+                    . ", should not be provided via $ppr\n" );
             next;
         }
         else {
             $s->v(    "- A: "
                     . $s->c( 'yes', 'YES' )
-                    . ", should be provided via "
-                    . $s->c( 'file', $pr )
-                    . "\n" );
+                    . ", should be provided via $ppr\n" );
+
+            # TODO: check if ->{module}->{object}
             my $mo = $s->get_cfg($id)->{module}->{module};
             $s->v(    "- Q: What direct dependecies has "
                     . $s->c( 'module', $id )
                     . "?\n" );
+            my $n = 0;
             foreach my $dep_id ( $s->get_dependencies($id) ) {
                 die "Invalid dependency in module [$mo], missing [:]!\n"
                     if not $dep_id =~ m{:}gmx;
@@ -734,7 +732,9 @@ sub planning {
                         . $s->c( 'module', $id )
                         . " has dependency [$dep_id]\n" );
                 $s->check_provided($dep_id);
+                $n++;
             }
+            $s->v("- A: none") if not $n;
         }
     }
     return 0;
@@ -901,10 +901,10 @@ sub read_one_module {
             my ( $pr, $iv ) = $s->id($rid);
             next if $pr eq 'default';
             my $id = "$pr:$iv";
-            $s->d( "$sr: rid [$rid] -> id [$id] ($pr:$iv)\n" );
+            $s->d("$sr: rid [$rid] -> id [$id] ($pr:$iv)\n");
             my $m = Ningyou::Type::Object->new;
             foreach my $k ( sort keys %{ $cfg->{$rid} } ) {
-                $s->d( "$sr: k [$k] =>[$cfg->{$rid}->{$k}]\n" );
+                $s->d("$sr: k [$k] =>[$cfg->{$rid}->{$k}]\n");
                 $m->set_object( $k => $cfg->{$rid}->{$k} );   # 'owner' => 'c'
             }
 
@@ -919,7 +919,7 @@ sub read_one_module {
                     "$sr: Q: do we apply default value for field [$field]?\n"
                 );
                 if ( not $m->is_object($field) ) {
-                    $s->d( "$sr: A: YES ($def->{$pr}->{$field})\n" );
+                    $s->d("$sr: A: YES ($def->{$pr}->{$field})\n");
                     $m->set_object( $field => $def->{$pr}->{$field} );
                 }
                 else {
