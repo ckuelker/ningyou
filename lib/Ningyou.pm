@@ -743,7 +743,7 @@ sub planning {
 sub should_be_applied {
     my ( $s, $mo ) = @_;
     my $sr = "Ningyou::should_be_applied: ";
-    $s->d( $sr . "mo [$mo]" );
+    $s->d( $sr . "module [$mo]" );
 
     return 1 if ( exists $pkg->{$mo} );
     $pkg->{$mo} = 0;
@@ -859,10 +859,10 @@ sub read_all_modules {
 }
 
 # read from $MODULE/manifests/i.ini
-# add it to ONE Ningyou::Type::Module
+# add it to ONE Ningyou::Type::Object
 # add it THE global configuration 'cfg'
-# CRITIQUE: actually the type Ningyou::Type::Module do only describe
-#           a part of a module, lets say an object.
+# CRITIQUE: actually the type Ningyou::Type::Object do only describe
+#           a part of a module, lets say an OBJECT.
 #           returning the cfg value for a module is not possible
 #           at the moment
 sub read_one_module {
@@ -896,7 +896,7 @@ sub read_one_module {
         foreach my $k ( sort keys %{ $cfg->{$rid} } ) {
             $s->d(
                 "Ningyou::read_one_module: k [$k] =>[$cfg->{$rid}->{$k}]\n");
-            $m->set_module( $k => $cfg->{$rid}->{$k} );    # 'owner' => 'c'
+            $m->set_object( $k => $cfg->{$rid}->{$k} );    # 'owner' => 'c'
         }
 
         # add default values to the module
@@ -909,18 +909,18 @@ sub read_one_module {
             $s->d(
                 "Ningyou::read_one_module: Q: do we apply default value for field [$field]?\n"
             );
-            if ( not $m->is_module($field) ) {
+            if ( not $m->is_object($field) ) {
                 $s->d(
                     "Ningyou::read_one_module: A: YES ($def->{$pr}->{$field})\n"
                 );
-                $m->set_module( $field => $def->{$pr}->{$field} );
+                $m->set_object( $field => $def->{$pr}->{$field} );
             }
             else {
                 $s->d("Ningyou::read_one_module: A: NO\n");
             }
         }
         $s->d("Ningyou::read_one_module: will set module to [$mo]");
-        $m->set_module( 'module' => $mo );    # remember own module name
+        $m->set_object( 'module' => $mo );    # remember own module name
         $s->set_cfg( $id => $m );    # add to the global configuration
     }
     return;
