@@ -20,7 +20,7 @@ use namespace::autoclean;
 use Ningyou::Cmd;
 use Ningyou::Util;
 use Ningyou::Options;
-use Ningyou::Type::Module;
+use Ningyou::Type::Object;
 our $VERSION = '0.0.9';
 
 with 'Ningyou::Debug', 'Ningyou::Verbose', 'Ningyou::Out';
@@ -102,11 +102,11 @@ has 'command' => (
 #            'purge' => '1',
 #            'module' => 'home-bin'
 #        }
-#    }, 'Ningyou::Type::Module' )
+#    }, 'Ningyou::Type::Object' )
 has 'cfg' => (
     traits  => ['Hash'],
     is      => 'rw',
-    isa     => 'HashRef[Ningyou::Type::Module]',
+    isa     => 'HashRef[Ningyou::Type::Object]',
     default => sub { return {}; },
     handles => {
         has_cfg    => 'exists',
@@ -350,7 +350,7 @@ sub get_distribution {
     chomp $dis;
     $dis =~ s{\s+|/}{-}gmx;
     $dis =~ s{\(|\)}{}gmx;
-    $dis =~ s{-$}{}gmx; # rm space (hyphen) at the end
+    $dis =~ s{-$}{}gmx;    # rm space (hyphen) at the end
     return $dis;
 }
 
@@ -444,16 +444,17 @@ sub get_or_setup_cfg {
 
     # read ~/.ningyou/repository.ini
     die "ERR 04: no [$fn]. Execute 'ningyou init'\n" if not -f $fn;
+
     #my $rcfg = Config::INI::Reader->read_file($fn);
-    my $rcfg = Config::Tiny->read($fn,'utf8');
-    my $wtp  = $rcfg->{global}->{worktree};
+    my $rcfg = Config::Tiny->read( $fn, 'utf8' );
+    my $wtp = $rcfg->{global}->{worktree};
     $s->v( "worktree" . $s->c( 'dir', $wtp ) . "\n" );
     my $cfg_fn = "$wtp/master.ini";
     die "please provide master configuration $cfg_fn\n" if not -e $cfg_fn;
 
     # read /srv/ningyou/master.ini
     #my $cfg = Config::INI::Reader->read_file($cfg_fn);
-    my $cfg = Config::Tiny->read($cfg_fn,'utf8');
+    my $cfg = Config::Tiny->read( $cfg_fn, 'utf8' );
     $repository = $s->get_repository( $cfg, $f->{fqdn} );
 
     $mt = $s->get_moduletree( $cfg, $repository );
@@ -536,10 +537,21 @@ sub check_provided {
     die $@ if defined $@ and $@;
     my $p = $provider->{$pr}->new( { options => $o } );
 
+    # $cfg = (
+    #     'object' => {
+    #                      'source' => 'ningyou://~/bin',
+    #                      'ensure' => 'latest',
+    #                      'module' => 'home-c-bin'
+    #                 }
+    #     }, 'Ningyou::Type::Object' );
     my $cfg
-        = ( $s->is_cfg($id) and exists $s->get_cfg($id)->{module} )
-        ? $s->get_cfg($id)->{module}
+        = ( $s->is_cfg($id) and exists $s->get_cfg($id)->{object} )
+        ? $s->get_cfg($id)->{object}
         : {};
+    my $module
+        = exists $cfg->{module}
+        ? $cfg->{module}
+        : die "no module in CFG: " . Dumper($cfg);
 
     if ( exists $cfg->{require} ) {
         $cfg->{require} =~ s{\s+}{}gmx;
@@ -831,9 +843,10 @@ sub read_modules {
 #           at the moment
 sub read_module {
     my ( $s, $mo ) = @_;    # mo = module
-    my $fn  = "$mt/$mo/manifests/i.ini";
+    my $fn = "$mt/$mo/manifests/i.ini";
+
     #my $cfg = Config::INI::Reader->read_file($fn);
-    my $cfg = Config::Tiny->read($fn,'utf8');
+    my $cfg = Config::Tiny->read( $fn, 'utf8' );
 
     # collect default values first
     my $def = {};
@@ -853,7 +866,7 @@ sub read_module {
         next if $pr eq 'default';
         my $id = "$pr:$iv";
         $s->d("Ningyou::read_module: rid [$rid] -> id [$id] ($pr:$iv)\n");
-        my $m = Ningyou::Type::Module->new;
+        my $m = Ningyou::Type::Object->new;
         foreach my $k ( sort keys %{ $cfg->{$rid} } ) {
             $s->d("Ningyou::read_module: k [$k] =>[$cfg->{$rid}->{$k}]\n");
             $m->set_module( $k => $cfg->{$rid}->{$k} );    # 'owner' => 'c'
@@ -866,16 +879,19 @@ sub read_module {
             next if $field eq 'module';
 
             # splice in default field values
-            $s->d("Ningyou::read_module: Q: do we apply default value for field [$field]?\n");
+            $s->d(
+                "Ningyou::read_module: Q: do we apply default value for field [$field]?\n"
+            );
             if ( not $m->is_module($field) ) {
-                $s->d("Ningyou::read_module: A: YES ($def->{$pr}->{$field})\n");
+                $s->d(
+                    "Ningyou::read_module: A: YES ($def->{$pr}->{$field})\n");
                 $m->set_module( $field => $def->{$pr}->{$field} );
             }
             else {
                 $s->d("Ningyou::read_module: A: NO\n");
             }
         }
-	$s->d("Ningyou::read_module: will set module to [$mo]");
+        $s->d("Ningyou::read_module: will set module to [$mo]");
         $m->set_module( 'module' => $mo );    # remember own module name
         $s->set_cfg( $id => $m );    # add to the global configuration
     }
