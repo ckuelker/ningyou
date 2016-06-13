@@ -515,7 +515,7 @@ sub query_unprovided {
     # foreach provider: File, Directory, ...
     $s->v("Query: what is already provided and what not ...\n");
     $s->d("$se Foreach entry id (provider:object)\n");
-    foreach my $id ( $s->ids_cfg ) {    # id = provider:object
+    foreach my $id ( sort $s->ids_cfg ) {    # id = provider:object
         my ( $pr, $iv ) = $s->id($id);
         $s->d("$se pr [$pr] iv [$iv]");
         if ( not $s->check_provided($id) ) {
@@ -527,11 +527,11 @@ sub query_unprovided {
 }
 
 sub check_provided {
-    my ( $s, $id ) = @_;                # id=package:vim
+    my ( $s, $id ) = @_;                     # id=package:vim
 
     my $se = "Ningyou::check_provided";
     $s->d($se);
-    my ( $pr, $iv ) = $s->id($id);      # pr=package, iv=vim
+    my ( $pr, $iv ) = $s->id($id);           # pr=package, iv=vim
     my $prnt_pr = $s->c( 'file',   $pr );
     my $prnt_iv = $s->c( 'module', $iv );
     $s->d("$se pr [$pr] iv [$iv]");
