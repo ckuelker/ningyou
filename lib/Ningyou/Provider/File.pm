@@ -1,5 +1,6 @@
 package Ningyou::Provider::File;
 use Moose;
+use Data::Dumper;
 use Digest::MD5;
 use Ningyou::Util;
 use namespace::autoclean;
