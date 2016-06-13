@@ -71,11 +71,7 @@ has 'options' => (
 
 my $id = q{ } x 8;
 
-sub init {
-    my ( $s, $i ) = @_;
-
-    return $i;
-}
+sub init { my ( $s, $i ) = @_; return $i; }
 
 sub apply {
     my ( $s, $i ) = @_;
