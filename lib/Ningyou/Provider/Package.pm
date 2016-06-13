@@ -57,7 +57,7 @@ sub init {
     $s->d( "::Provider::Package::init package count: " . scalar @q );
     foreach my $q (@q) {
         chomp $q;
-        $s->d("::Provider::Package::init package [$q]");
+        #$s->d("::Provider::Package::init package [$q]");
 
         #         STATUS              PACKAGE          VERSION
         # DEBIAN: install ok applied; xsltproc;        1.1.26-6+squeeze3
