@@ -64,12 +64,11 @@ sub get_md5 {
     return $digest;
 }
 
-sub get_facts {
+sub use_sys_facter {    # OBSOLETE: try to get Sys::Facter into Debian
     my ( $s, $i ) = @_;
 
     my $f = {};
     my $x = {};
-
     eval {
         require Sys::Facter;
 
@@ -89,34 +88,40 @@ sub get_facts {
         chomp $f->{fqdn};
         1;
     } or do {
-
         my $error = $@;
-        if ( -e "/usr/bin/facter" ) {
-
-            use Ningyou::Cmd;
-            my $nc = Ningyou::Cmd->new;
-
-            my @out = qx(/usr/bin/facter);
-            foreach my $o (@out) {
-                chomp $o;
-                $s->d("facter [$o]\n");
-                my ( $key, $value ) = split /\s+=>\s+/, $o;
-                $x->{$key} = $value;
-            }
-            $f->{kernel} = exists $x->{kernel}   ? $x->{kernel}   : 'na';
-            $f->{host}   = exists $x->{hostname} ? $x->{hostname} : 'na';
-            $f->{dist}
-                = exists $x->{operatingsystem} ? $x->{operatingsystem} : 'na';
-            $f->{domain} = exists $x->{domain} ? $x->{domain} : 'na';
-            $f->{fqdn}   = "$f->{host}.$f->{domain}";
-            $f->{fqdn}   = qx(hostname --fqdn);
-            chomp $f->{fqdn};
-        }
-        else {
-            die "need Sys::Facter or facter\n";
-        }
-
     };
+}
+
+sub get_facts {
+    my ( $s, $i ) = @_;
+
+    my $f = {};
+    my $x = {};
+
+    if ( -e "/usr/bin/facter" ) {
+
+        use Ningyou::Cmd;
+        my $nc = Ningyou::Cmd->new;
+
+        my @out = qx(/usr/bin/facter);
+        foreach my $o (@out) {
+            chomp $o;
+            $s->d("facter [$o]\n");
+            my ( $key, $value ) = split /\s+=>\s+/, $o;
+            $x->{$key} = $value;
+        }
+        $f->{kernel} = exists $x->{kernel}   ? $x->{kernel}   : 'na';
+        $f->{host}   = exists $x->{hostname} ? $x->{hostname} : 'na';
+        $f->{dist}
+            = exists $x->{operatingsystem} ? $x->{operatingsystem} : 'na';
+        $f->{domain} = exists $x->{domain} ? $x->{domain} : 'na';
+        $f->{fqdn}   = "$f->{host}.$f->{domain}";
+        $f->{fqdn}   = qx(hostname --fqdn);
+        chomp $f->{fqdn};
+    }
+    else {
+        die "need facter\n";
+    }
 
     return $f;
 }
