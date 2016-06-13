@@ -228,7 +228,7 @@ sub run {
         @modules = @{$modules_ar};
     }
     else {
-        @modules = @{ $s->read_modules() };
+        @modules = @{ $s->read_all_modules() };
     }
     if ( $mode eq 'list' ) {
         $s->d("Ningyou::run list modules");
@@ -847,7 +847,7 @@ sub get_dependencies {
     return @dependencies;    # ( file:a/b, file:c/d, package:x, package:y )
 }
 
-sub read_modules {
+sub read_all_modules {
     my ( $s, $i ) = @_;
 
     my @m = ();
