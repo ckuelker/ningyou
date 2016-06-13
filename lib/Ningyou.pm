@@ -681,7 +681,7 @@ sub planning {
     my %queue = ();
 
     $s->v("Query: what dependencies need to be applied:\n");
-    foreach my $id ( $s->ids_cfg ) {
+    foreach my $id ( sort $s->ids_cfg ) {
         my ( $pr, $iv ) = $s->id($id);
 
         $s->v(    "- Q: Should object "
@@ -756,7 +756,7 @@ sub action {
                 . "\n" );
         $s->o("export MT=$mt\n");
         my $z = 0;
-        foreach my $cmd ( $s->all_commands ) {
+        foreach my $cmd ( $s->all_commands ) { # already sorted
             if ( not exists $o->{raw} ) {
                 $cmd =~ s/^\s+//gmx;
                 if ( $mode eq 'show' ) {
@@ -773,7 +773,7 @@ sub action {
         $s->o( $s->c( 'comment', "# EOS - end of script\n" ) );
     }
     if ( $mode eq 'apply' ) {
-        foreach my $cmd ( $s->all_commands ) {
+        foreach my $cmd ( $s->all_commands ) { # already sorted
             next if $cmd =~ m{^#};
             $s->o("$cmd\n");
             my $nilicm = Ningyou::Cmd->new();
@@ -803,14 +803,14 @@ sub get_dependencies {
     $s->d("test dependencies: [$dep_test]");
     my @dep_test = split /;/, $dep_test;    # package:x,y;file:a/b,c/d
     $s->d("Foreach dependency test id (package:zsh, ...)\n");
-    foreach my $tid (@dep_test) {           # package:zsh,vim
+    foreach my $tid (@dep_test) {    # package:zsh,vim (order given by admin)
         $s->v("  - Test dependency id [$tid]\n");
         my ( $pr, $str ) = $s->id($tid);
         $s->v( "    id has provider " . $s->c( 'file', $pr ) . "\n" );
         my @d = ();
         if ( $str =~ m{,}gmx ) {            # if comma
             my @d = split /,/, $str;        # zsh,vim
-            foreach my $iv (@d) {
+            foreach my $iv (@d) { # order given by admin
                 $s->v("     + add A dependency [$pr:$iv]\n");
                 push @dependencies, "$pr:$iv";
             }
