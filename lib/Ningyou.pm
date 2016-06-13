@@ -240,19 +240,17 @@ sub run {
         $s->o("\n");
         return;
     }
-
     foreach my $mo ( sort @modules ) {
         chomp $mo;
         $mo =~ s{^$mt/}{}gmx;        #/home/c/g/wt/modules/zsh -> zsh
         my $md = $mo . $dot;
         if ( $s->should_be_applied($mo) ) {
-            $s->read_module($mo);
+            $s->read_one_module($mo);
             $result->{$mo}->{considered} = 1;
         }
         else {
             $result->{$mo}->{considered} = 0;
         }
-
     }
 
     # make a query, print verbose query
@@ -617,6 +615,7 @@ sub check_provided {
             return 0;
         }
     }
+
     $s->v("- Q: do provider $prnt_pr provide object $prnt_iv?\n");
     $s->d("$se object [$iv]");
     my $is_provided = $p->applied(
@@ -743,7 +742,7 @@ sub planning {
 
 sub should_be_applied {
     my ( $s, $mo ) = @_;
-    my $sr = "should_be_applied: ";
+    my $sr = "Ningyou::should_be_applied: ";
     $s->d( $sr . "mo [$mo]" );
 
     return 1 if ( exists $pkg->{$mo} );
@@ -751,19 +750,23 @@ sub should_be_applied {
     $s->d( $sr . "pkg->{$mo} do not exists" );
 
     # if should be applied globally: [modules]
-    $pkg->{$mo}++
-        if ( exists $cfg->{modules}->{$mo}
-        and $cfg->{modules}->{$mo} );
+    if ( exists $cfg->{modules}->{$mo} and $cfg->{modules}->{$mo} ) {
+        $s->d( $sr . "should be applied globally: [modules]" );
+        $pkg->{$mo}++;
+    }
 
     # if should be applied for repository
-    $pkg->{$mo}++
-        if ( exists $cfg->{$repository}->{$mo}
-        and $cfg->{$repository}->{$mo} );
+    if ( exists $cfg->{$repository}->{$mo} and $cfg->{$repository}->{$mo} ) {
+        $s->d( $sr . "should be applied for repository" );
+        $pkg->{$mo}++;
+    }
 
     # if it should be applied for client
-    $pkg->{$mo}++
-        if exists $cfg->{ $f->{fqdn} }->{$mo}
-        and $cfg->{ $f->{fqdn} }->{$mo};
+    if ( exists $cfg->{ $f->{fqdn} }->{$mo} and $cfg->{ $f->{fqdn} }->{$mo} )
+    {
+        $s->d( $sr . "it should be applied for client" );
+        $pkg->{$mo}++;
+    }
     return $pkg->{$mo};
 }
 
@@ -862,7 +865,7 @@ sub read_all_modules {
 #           a part of a module, lets say an object.
 #           returning the cfg value for a module is not possible
 #           at the moment
-sub read_module {
+sub read_one_module {
     my ( $s, $mo ) = @_;    # mo = module
     my $sr = "Ningyou::read_one_module";
     $s->d($sr);
@@ -875,7 +878,7 @@ sub read_module {
     my $def = {};
     foreach my $rid ( sort keys %{$cfg} ) {    # default : file
         my ( $pr, $iv ) = $s->id($rid);
-        $s->d(    "Ningyou::read_module: pr "
+        $s->d(    "Ningyou::read_one_module: pr "
                 . $s->c( 'file',   $pr ) . " iv "
                 . $s->c( 'module', $iv )
                 . "\n" );                      # pr [default] iv [file]
@@ -888,10 +891,11 @@ sub read_module {
         my ( $pr, $iv ) = $s->id($rid);
         next if $pr eq 'default';
         my $id = "$pr:$iv";
-        $s->d("Ningyou::read_module: rid [$rid] -> id [$id] ($pr:$iv)\n");
+        $s->d("Ningyou::read_one_module: rid [$rid] -> id [$id] ($pr:$iv)\n");
         my $m = Ningyou::Type::Object->new;
         foreach my $k ( sort keys %{ $cfg->{$rid} } ) {
-            $s->d("Ningyou::read_module: k [$k] =>[$cfg->{$rid}->{$k}]\n");
+            $s->d(
+                "Ningyou::read_one_module: k [$k] =>[$cfg->{$rid}->{$k}]\n");
             $m->set_module( $k => $cfg->{$rid}->{$k} );    # 'owner' => 'c'
         }
 
@@ -903,18 +907,19 @@ sub read_module {
 
             # splice in default field values
             $s->d(
-                "Ningyou::read_module: Q: do we apply default value for field [$field]?\n"
+                "Ningyou::read_one_module: Q: do we apply default value for field [$field]?\n"
             );
             if ( not $m->is_module($field) ) {
                 $s->d(
-                    "Ningyou::read_module: A: YES ($def->{$pr}->{$field})\n");
+                    "Ningyou::read_one_module: A: YES ($def->{$pr}->{$field})\n"
+                );
                 $m->set_module( $field => $def->{$pr}->{$field} );
             }
             else {
-                $s->d("Ningyou::read_module: A: NO\n");
+                $s->d("Ningyou::read_one_module: A: NO\n");
             }
         }
-        $s->d("Ningyou::read_module: will set module to [$mo]");
+        $s->d("Ningyou::read_one_module: will set module to [$mo]");
         $m->set_module( 'module' => $mo );    # remember own module name
         $s->set_cfg( $id => $m );    # add to the global configuration
     }
