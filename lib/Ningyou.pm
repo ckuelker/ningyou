@@ -858,6 +858,12 @@ sub read_all_modules {
     return \@m;
 }
 
+sub get_all_mo_ini {
+    my ( $s, $mo ) = @_;
+    my @ini = qx(cd $mt/$mo/manifests && ls *.ini);
+    return @ini;
+}
+
 # read from $MODULE/manifests/i.ini
 # add it to ONE Ningyou::Type::Object
 # add it THE global configuration 'cfg'
@@ -869,59 +875,61 @@ sub read_one_module {
     my ( $s, $mo ) = @_;    # mo = module
     my $sr = "Ningyou::read_one_module";
     $s->d($sr);
-    my $fn = "$mt/$mo/manifests/i.ini";
+    my @ini = $s->get_all_mo_ini($mo);
+    foreach my $ini ( sort @ini ) {
+        chomp $ini;
+        $s->d("$sr process ini file [$ini]");
+        my $fn = "$mt/$mo/manifests/$ini";
 
-    #my $cfg = Config::INI::Reader->read_file($fn);
-    my $cfg = Config::Tiny->read( $fn, 'utf8' );
+        #my $cfg = Config::INI::Reader->read_file($fn);
+        my $cfg = Config::Tiny->read( $fn, 'utf8' );
 
-    # collect default values first
-    my $def = {};
-    foreach my $rid ( sort keys %{$cfg} ) {    # default : file
-        my ( $pr, $iv ) = $s->id($rid);
-        $s->d(    "Ningyou::read_one_module: pr "
-                . $s->c( 'file',   $pr ) . " iv "
-                . $s->c( 'module', $iv )
-                . "\n" );                      # pr [default] iv [file]
-        next if $pr ne 'default';
-        $def->{$iv} = $cfg->{$rid};    # def->{file} = cfg->{default:file}
-    }
-
-    # collect all but default values
-    foreach my $rid ( sort keys %{$cfg} ) {
-        my ( $pr, $iv ) = $s->id($rid);
-        next if $pr eq 'default';
-        my $id = "$pr:$iv";
-        $s->d("Ningyou::read_one_module: rid [$rid] -> id [$id] ($pr:$iv)\n");
-        my $m = Ningyou::Type::Object->new;
-        foreach my $k ( sort keys %{ $cfg->{$rid} } ) {
-            $s->d(
-                "Ningyou::read_one_module: k [$k] =>[$cfg->{$rid}->{$k}]\n");
-            $m->set_object( $k => $cfg->{$rid}->{$k} );    # 'owner' => 'c'
+        # collect default values first
+        my $def = {};
+        foreach my $rid ( sort keys %{$cfg} ) {    # default : file
+            my ( $pr, $iv ) = $s->id($rid);
+            $s->d(    "$sr: pr "
+                    . $s->c( 'file',   $pr ) . " iv "
+                    . $s->c( 'module', $iv )
+                    . "\n" );                      # pr [default] iv [file]
+            next if $pr ne 'default';
+            $def->{$iv} = $cfg->{$rid};    # def->{file} = cfg->{default:file}
         }
 
-        # add default values to the module
-        foreach my $field ( sort keys %{ $def->{$pr} } ) {
+        # collect all but default values
+        foreach my $rid ( sort keys %{$cfg} ) {
+            my ( $pr, $iv ) = $s->id($rid);
+            next if $pr eq 'default';
+            my $id = "$pr:$iv";
+            $s->d( "$sr: rid [$rid] -> id [$id] ($pr:$iv)\n" );
+            my $m = Ningyou::Type::Object->new;
+            foreach my $k ( sort keys %{ $cfg->{$rid} } ) {
+                $s->d( "$sr: k [$k] =>[$cfg->{$rid}->{$k}]\n" );
+                $m->set_object( $k => $cfg->{$rid}->{$k} );   # 'owner' => 'c'
+            }
 
-            # module is the same (no def for module)
-            next if $field eq 'module';
+            # add default values to the module
+            foreach my $field ( sort keys %{ $def->{$pr} } ) {
 
-            # splice in default field values
-            $s->d(
-                "Ningyou::read_one_module: Q: do we apply default value for field [$field]?\n"
-            );
-            if ( not $m->is_object($field) ) {
+                # module is the same (no def for module)
+                next if $field eq 'module';
+
+                # splice in default field values
                 $s->d(
-                    "Ningyou::read_one_module: A: YES ($def->{$pr}->{$field})\n"
+                    "$sr: Q: do we apply default value for field [$field]?\n"
                 );
-                $m->set_object( $field => $def->{$pr}->{$field} );
+                if ( not $m->is_object($field) ) {
+                    $s->d( "$sr: A: YES ($def->{$pr}->{$field})\n" );
+                    $m->set_object( $field => $def->{$pr}->{$field} );
+                }
+                else {
+                    $s->d("$sr: A: NO\n");
+                }
             }
-            else {
-                $s->d("Ningyou::read_one_module: A: NO\n");
-            }
+            $s->d("$sr: will set module to [$mo]");
+            $m->set_object( 'module' => $mo );    # remember own module name
+            $s->set_cfg( $id => $m );    # add to the global configuration
         }
-        $s->d("Ningyou::read_one_module: will set module to [$mo]");
-        $m->set_object( 'module' => $mo );    # remember own module name
-        $s->set_cfg( $id => $m );    # add to the global configuration
     }
     return;
 }
