@@ -13,6 +13,8 @@ clear reproducible system administration
     || software at your own risk! Please read also statements below.         ||
     \\=======================================================================//
 
+![https://img.shields.io/github/issues/ckuelker/ningyou.svg?style=popout-square](https://img.shields.io/github/issues/ckuelker/ningyou.svg?style=popout-square)
+
 ## INSTALLATION
 
 TODO
