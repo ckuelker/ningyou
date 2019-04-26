@@ -5,6 +5,6 @@ use diagnostics;
 use Test::More;
 
 BEGIN {
-    use_ok('Deploy::Ningyou');
+    use_ok('Deploy::Ningyou::Dependency');
 }
 done_testing()

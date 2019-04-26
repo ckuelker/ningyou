@@ -1,12 +1,189 @@
-#!/bin/bash
+#!/usr/bin/perl
+# PODNAME: Ningyou
+# ABSTRACT: Ningyou command line tool
+# +---------------------------------------------------------------------------+
+# | ningyou                                                                   |
+# |                                                                           |
+# | Ningyou command line tool                                                 |
+# |                                                                           |
+# | Version: 0.1.0                                                            |
+# |                                                                           |
+# | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.0 2019-04-18 Christian Kuelker <c@c8i.org>                            |
+# |     - initial release                                                     |
+# |                                                                           |
+# +---------------------------------------------------------------------------+
+###!/usr/bin/perl -CSDA
+use warnings;
+use strict;
 
-NINGYOU_START=`which ningyou-start`
+use FindBin qw($Bin);
+use lib "$Bin/../lib";
 
-if [ -z "$NINGYOU_START" ]; then
-   echo "Can not find ningyou-start, please add to PATH."
-   exit 1
-else
-    perl -CDSA $NINGYOU_START $@
-fi
+use Deploy::Ningyou;
 
-exit 0;
+my $n = Deploy::Ningyou->new();
+$n->begin( {} );
+
+1;
+__END__
+
+=pod
+
+=head1 NAME
+
+B<Ningyou>
+
+=head1 SYNOPSIS
+
+ningyou [OPTIONS] B<ARGUMENTS> [SCOPE]
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--help> : prints a brief message and exists
+
+=item B<--main-configuration-only> : see B<bootstrap> argument
+
+=item B<--man> : prints man page in a pager
+
+=item B<--verbose> : prints more information in regard to arguments
+
+=item B<--version> : prints the B<Ningyou> project version number and exits
+
+=back
+
+=head1 ARGUMENTS
+
+=over 4
+
+=item B<apply>
+
+Apply pending changes (if any) in conformance with the configuration to the
+file system. This will actually execute commands and can damage the system.
+Use the B<script> option - probably together with B<--verbose> to understand
+what will be done.
+
+=item B<bootstrap>
+
+Installs B<Ningyou> to the current directory and creates F<~/.ningyou.ini>.
+
+=over 4
+
+=item B< --main-configuration-only>
+
+This will recreate the main configuration under F<~/.ningyou.ini> without
+touching the working tree, in case F<~/.ningyou.ini> was lost or the
+I<worktree> is managed independently.
+
+=back
+
+=item B<help> (same as --help)
+
+Prints brief help message. For more information: B<--man> or action 'man'.
+
+=item B<list>
+
+Prints a list of all configured I<modules> and its version if the version
+I<provider> was added to the I<module> configuration. See 'status' for more
+information.
+
+=item B<man> (same as --man)
+
+Prints a longer man page. More information: C<man Deploy::Ningyou::Manual>.
+
+=item B<module> <NAME>
+
+Creates a new I<module> stub inside the directory F<NAME>. Should be used
+inside a F<modules> directory.
+
+=item B<script>
+
+Prints a shell script to C<STDOUT> what 'apply' would do. If used with
+B<--verbose> it will add explanations.
+
+=item B<status>
+
+Prints information about all B<Ningyou> I<modules>, if configured or not, and
+their state: applied (DONE) or not applied/pending (TODO). The B<--verbose>
+option will print more information about each I<section> of the configuration.
+
+=back
+
+=head1 SCOPE
+
+The scope can be a name of a I<module>, the keyword 'all' or it can be omitted.
+If omitted 'all' is the default value.
+
+=head1 ENVIRONMENT VARIABLES
+
+=over 4
+
+=item B<NINGYOU_DEBUG=FILENAME>
+
+Switches B<Ningyou> into debug mode and print many information to the filename
+provided.
+
+=back
+
+=head1 DESCRIPTION
+
+The B<Ningyou> command line tool B<ningyou> can be used to deploy software
+according to a simple configuration. The tool can be used to perform I<actions>
+described above in the C<ARGUMENTS> section. Possible I<actions> are: list,
+status, scrip, apply, bootstrap and module.
+
+More information can be obtained by the manual. The manual is provided:
+
+=item *
+
+As a man page C<man Deploy::Ningyou::Manual> after B<Ningyou> is
+installed,
+
+=item *
+
+As a Markdown F<README.md> in the source code,
+
+=item *
+
+On L<https://github.com/ckuelker/ningyou> inside the
+
+- master branch: L<https://github.com/ckuelker/ningyou/blob/master/README.md>,
+
+- staging branch: L<https://github.com/ckuelker/ningyou/blob/staging/README.md>,
+
+- develop branch: L<https://github.com/ckuelker/ningyou/blob/develop/README.md>
+
+=item *
+
+Or in the form of a PDF in the software's document directory: for example in
+F</usr/share/perl/5.24.1/auto/share/dist/Deploy-Ningyou/README.pdf>.
+
+=head1 EXAMPLES
+
+ ningyou --version                   : print Ningyou project version number
+
+ ningyou help                        : show brief help message (same as --help)
+ ningyou --help                      : show brief help message
+ ningyou man                         : show man page (same as --man)
+ ningyou --man                       : show man page
+
+ ningyou bootstrap                   : install in `cwd` and ~/.ningyou.ini
+
+ ningyou list                        : list enabled modules
+
+ ningyou status                      : print brief information about modules
+ ningyou --verbose status            : print information about all section
+ ningyou --verbose status global:zsh : print information about zsh module only
+
+ ningyou script                      : print bash script
+ ningyou --verbose script            : print bash script with explanations
+
+ ningyou apply                       : execute commands (see ningyou script)
+ ningyou --verbose apply             : execute commands with expanations
+
+=cut
+
+

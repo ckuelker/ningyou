@@ -1,0 +1,117 @@
+#!/usr/bin/perl
+# +---------------------------------------------------------------------------+
+# | task-queue-from-dependency-tree                                           |
+# |                                                                           |
+# | Example script to show the algorithm for assembling the task queue from   |
+# | an dependency tree                                                        |
+# |                                                                           |
+# | Version: 0.1.0                                                            |
+# |                                                                           |
+# | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.0 2019-04-07 Christian Kuelker <c@c8i.org>                            |
+# |     - initial release                                                     |
+# |                                                                           |
+# +---------------------------------------------------------------------------+
+use strict;
+use warnings;
+use diagnostics -verbose;
+use Graph::Directed;
+
+# create graph:
+#
+#  A    B     H
+# / \    \
+# C  D    E
+#   / \
+#  G   F
+#     /
+#    I
+my $g     = Graph::Directed->new();
+my @stack = qw([A] [B] [C] [D] [E] [F] [G] [H] [I]);
+$g->add_vertex("[H]");
+$g->add_edge( "[A]" => "[C]" );
+$g->add_edge( "[D]", "[G]" );
+$g->add_edge( "[A]", "[D]" );
+$g->add_edge( "[D]", "[F]" );
+$g->add_edge( "[F]", "[I]" );
+$g->add_edge( "[B]", "[E]" );
+
+print "graph: <$g>\n";
+
+my $n  = 0;
+my @q  = ();
+my %ok = ();
+while ( scalar @stack ) {
+    $n++;
+    my $stack0 = join q{|}, @stack;
+
+    # with [1] shift [2] push    ([1] remove first [2] add last)
+    # -> minimal iterations due to order of @stack
+    # with [1] pop   [2] unshift ([1] remove last  [2] add first)
+    my $v = pop @stack;    # [1] remove from end
+
+    # bootstrap @q: source(root) and isolated vertex dependency is always OK;
+    my $source = $g->is_source_vertex($v)   ? 1 : 0;
+    my $iso    = $g->is_isolated_vertex($v) ? 1 : 0;
+    if ($source) {
+        push @q, $v;
+        $ok{$v} = 1;
+        printf "%-25s =>", "+ $v is source (root)";
+    }
+    elsif ($iso) {
+        push @q, $v;
+        $ok{$v} = 1;
+        printf "%-25s =>", "+ $v is isolated";
+    }
+    else {
+        my @d  = $g->predecessors($v);    # down nodes
+        my $dc = scalar @d;               # down nodes counter
+        foreach my $d (@d) {              # all down nodes: A (for C or D)
+            if ( defined $ok{$d} and $ok{$d} ) {    # dependency met for $v
+                push @q, $v;                        # add to queue
+                $ok{$v} = 1;                        # mark as dependency OK
+                printf "%-15s =>", "+ $v dependency met     ";
+            }
+            else {                                  # dependency NOT met v
+                unshift @stack, $v;                 # [2] add to top of stack
+                $ok{$v} = 0;                        # mark as dependency NG
+                printf "%-15s =>", "+ $v dependency NOT met ";
+            }
+        }
+    }
+    my $queue  = join q{>}, @q;
+    my $stack1 = join q{|}, @stack;
+    $stack0 =~ s{(\]|\[)}{}gmx;
+    $stack1 =~ s{(\]|\[)}{}gmx;
+    $queue =~ s{(\]|\[)}{}gmx;
+    printf
+        " %02d %s root[%s] leaf[%s] stack0:%-18s stack1:%-18s queue:%-18s\n",
+        $n, $v, $source, $iso,
+        $stack0, $stack1, $queue;
+}
+# It should look like this:
+#
+#graph: <[A]-[C],[A]-[D],[B]-[E],[D]-[F],[D]-[G],[F]-[I],[H]>
+#+ [I] dependency NOT met  => 01 [I] root[0] leaf[0] stack0:A|B|C|D|E|F|G|H|I  stack1:I|A|B|C|D|E|F|G|H  queue:                  
+#+ [H] is isolated         => 02 [H] root[0] leaf[1] stack0:I|A|B|C|D|E|F|G|H  stack1:I|A|B|C|D|E|F|G    queue:H                 
+#+ [G] dependency NOT met  => 03 [G] root[0] leaf[0] stack0:I|A|B|C|D|E|F|G    stack1:G|I|A|B|C|D|E|F    queue:H                 
+#+ [F] dependency NOT met  => 04 [F] root[0] leaf[0] stack0:G|I|A|B|C|D|E|F    stack1:F|G|I|A|B|C|D|E    queue:H                 
+#+ [E] dependency NOT met  => 05 [E] root[0] leaf[0] stack0:F|G|I|A|B|C|D|E    stack1:E|F|G|I|A|B|C|D    queue:H                 
+#+ [D] dependency NOT met  => 06 [D] root[0] leaf[0] stack0:E|F|G|I|A|B|C|D    stack1:D|E|F|G|I|A|B|C    queue:H                 
+#+ [C] dependency NOT met  => 07 [C] root[0] leaf[0] stack0:D|E|F|G|I|A|B|C    stack1:C|D|E|F|G|I|A|B    queue:H                 
+#+ [B] is source (root)    => 08 [B] root[1] leaf[0] stack0:C|D|E|F|G|I|A|B    stack1:C|D|E|F|G|I|A      queue:H>B               
+#+ [A] is source (root)    => 09 [A] root[1] leaf[0] stack0:C|D|E|F|G|I|A      stack1:C|D|E|F|G|I        queue:H>B>A             
+#+ [I] dependency NOT met  => 10 [I] root[0] leaf[0] stack0:C|D|E|F|G|I        stack1:I|C|D|E|F|G        queue:H>B>A             
+#+ [G] dependency NOT met  => 11 [G] root[0] leaf[0] stack0:I|C|D|E|F|G        stack1:G|I|C|D|E|F        queue:H>B>A             
+#+ [F] dependency NOT met  => 12 [F] root[0] leaf[0] stack0:G|I|C|D|E|F        stack1:F|G|I|C|D|E        queue:H>B>A             
+#+ [E] dependency met      => 13 [E] root[0] leaf[0] stack0:F|G|I|C|D|E        stack1:F|G|I|C|D          queue:H>B>A>E           
+#+ [D] dependency met      => 14 [D] root[0] leaf[0] stack0:F|G|I|C|D          stack1:F|G|I|C            queue:H>B>A>E>D         
+#+ [C] dependency met      => 15 [C] root[0] leaf[0] stack0:F|G|I|C            stack1:F|G|I              queue:H>B>A>E>D>C       
+#+ [I] dependency NOT met  => 16 [I] root[0] leaf[0] stack0:F|G|I              stack1:I|F|G              queue:H>B>A>E>D>C       
+#+ [G] dependency met      => 17 [G] root[0] leaf[0] stack0:I|F|G              stack1:I|F                queue:H>B>A>E>D>C>G     
+#+ [F] dependency met      => 18 [F] root[0] leaf[0] stack0:I|F                stack1:I                  queue:H>B>A>E>D>C>G>F   
+#+ [I] dependency met      => 19 [I] root[0] leaf[0] stack0:I                  stack1:                   queue:H>B>A>E>D>C>G>F>I 
+
+
+
