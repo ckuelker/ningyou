@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Starting class for Ningyou deployment                                     |
 # |                                                                           |
-# | Version: 0.1.0 (change our $version inside)                               |
+# | Version: 0.1.1 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
+# |     - VERSION not longer handled by dzil                                  |
 # |                                                                           |
 # | 0.1.0 2019-04-18 Christian Kuelker <c@c8i.org>                            |
 # |     - initial release                                                     |
@@ -20,7 +23,7 @@ use Deploy::Ningyou::Action;
 use Deploy::Ningyou::Provider;
 use Data::Dumper;
 
-our $version = '0.1.0';
+our $VERSION = '0.1.1';
 
 with qw(
     Deploy::Ningyou::Env

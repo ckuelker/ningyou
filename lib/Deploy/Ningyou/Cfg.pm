@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Configuration space                                                       |
 # |                                                                           |
-# | Version: 0.1.0 (change our $version inside)                               |
+# | Version: 0.1.1 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
+# |     - VERSION not longer handled by dzil                                  |
 # |                                                                           |
 # | 0.1.0 2019-04-18 Christian Kuelker <c@c8i.org>                            |
 # |     - initial release                                                     |
@@ -102,7 +105,7 @@ with qw(Deploy::Ningyou::Util);
 
 requires(qw(get_fqhn read_ini new_ini));
 
-our $version = '0.1.0';
+our $VERSION = '0.1.1';
 
 no Moose::Role;
 

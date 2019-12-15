@@ -27,7 +27,7 @@ use Module::Pluggable
 with qw(Deploy::Ningyou::Util);
 
 our $API     = '0.1.0';    # Provider API version
-our $VERSION = '0.1.0';
+our $VERSION = '0.1.1';
 
 sub get_plugins {
     my ( $s, $i ) = @_;

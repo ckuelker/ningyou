@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Collect information from the system with facter                           |
 # |                                                                           |
-# | Version: 0.1.0 (change our $version inside)                               |
+# | Version: 0.1.1 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
+# |     - VERSION not longer handled by dzil                                  |
 # |                                                                           |
 # | 0.1.0 2019-03-28 Christian Külker <c@c8i.org>                             |
 # |     - initial release                                                     |
@@ -21,7 +24,7 @@ use v5.10;    # for state
 
 with "Deploy::Ningyou::Util";
 
-our $version = '0.1.0';
+our $VERSION = '0.1.1';
 
 has 'facter_distribution' => (
     isa     => 'Str',

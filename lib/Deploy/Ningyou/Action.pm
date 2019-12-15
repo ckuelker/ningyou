@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Action plugin aggregator (arguements from command line)                   |
 # |                                                                           |
-# | Version: 0.1.0 (change our $version inside)                               |
+# | Version: 0.1.1 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
+# |     - VERSION not longer handled by dzil                                  |
 # |                                                                           |
 # | 0.1.0 2019-04-26 Christian Kuelker <c@c8i.org>                            |
 # |     - initial release                                                     |
@@ -31,11 +34,11 @@ has 'ini' => (
 
 with qw(Deploy::Ningyou::Util);
 
-our $version = '0.1.0';
+our $VERSION = '0.1.1';
 
 sub get_plugins {
     my ( $s, $i ) = @_;
-    $s->d("Deploy::Ningyou::Action::begin $version");
+    $s->d("Deploy::Ningyou::Action::begin $VERSION");
     my $r = {};
     my @plugins = $s->plugins( ini => $s->get_ini );
     foreach my $class ( sort @plugins ) {

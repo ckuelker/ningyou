@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Calculate dependencies for status, apply and script                       |
 # |                                                                           |
-# | Version: 0.1.0 (change our $version inside)                               |
+# | Version: 0.1.1 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
+# |     - VERSION not longer handled by dzil                                  |
 # |                                                                           |
 # | 0.1.0 2019-03-04 Christian Külker <c@c8i.org>                             |
 # |     - initial release                                                     |
@@ -28,7 +31,7 @@ use namespace::autoclean;
 use Deploy::Ningyou::Class;
 use Test::Deep::NoTest qw(eq_deeply);
 
-our $version = '0.1.0';
+our $VERSION = '0.1.1';
 
 has 'ini' => (
     isa      => 'Config::Tiny',

@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Utilities                                                                 |
 # |                                                                           |
-# | Version: 0.1.0 (change our $version inside)                               |
+# | Version: 0.1.1 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
+# |     - VERSION not longer handled by dzil                                  |
 # |                                                                           |
 # | 0.1.0 2019-03-27 Christian Külker <c@c8i.org>                             |
 # |     - initial release                                                     |
@@ -33,7 +36,7 @@ use vars qw(%COLOR_THEMES %COLORS $COLOR $COLOR_THEME $COLOR_DEPTH);
 
 with qw(Deploy::Ningyou::Env Deploy::Ningyou::Cfg Deploy::Ningyou::Host);
 
-our $version = '0.1.0';
+our $VERSION = '0.1.1';
 our $L       = "=" x 80;
 %COLOR_THEMES = (
     default16 => {

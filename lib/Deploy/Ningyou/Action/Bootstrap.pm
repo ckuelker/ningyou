@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Provides bootstrap argument action                                        |
 # |                                                                           |
-# | Version: 0.1.0 (change our $version inside)                               |
+# | Version: 0.1.2 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.2 2019-12-15 Christian Kuelker <c@c8i.org>                            |
+# |     - VERSION not longer handled by dzil                                  |
 # |                                                                           |
 # | 0.1.1 2019-12-11 Christian Kuelker <c@c8i.org>                            |
 # |     - add creation of ~/.gitconfig                                        |
@@ -50,7 +53,7 @@ with qw(
     Deploy::Ningyou::Host
 );
 
-our $version = '0.1.0';
+our $VERSION = '0.1.2';
 
 # === [ main ] ================================================================
 sub register { return 'bootstrap'; }
