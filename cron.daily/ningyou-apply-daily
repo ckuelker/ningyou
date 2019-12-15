@@ -1,0 +1,24 @@
+#!/bin/sh
+# +---------------------------------------------------------------------------+
+# | ningyou-apply-daily                                                       |
+# |                                                                           |
+# | Apply ningyou daily                                                       |
+# |                                                                           |
+# | Version: 0.1.1 (change inline)                                            |
+# |                                                                           |
+# | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.1 2019-12-14 Christian Külker <c@c8i.org>                             |
+# |     - add date prefix to log output                                       |
+# |                                                                           |
+# | 0.1.0 2019-12-12 Christian Külker <c@c8i.org>                             |
+# |     - initial release                                                     |
+# |                                                                           |
+# +---------------------------------------------------------------------------+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+touch /var/log/ningyou-apply-daily.log
+chmod 600 /var/log/ningyou-apply-daily.log
+L==============================================================================
+echo $L >> /var/log/ningyou-apply-daily.log
+date +'%FT%T' >> /var/log/ningyou-apply-daily.log
+ningyou apply --verbose >> /var/log/ningyou-apply-daily.log 2>&1
