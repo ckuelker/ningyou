@@ -68,17 +68,20 @@ what will be done.
 
 =item B<bootstrap>
 
-Installs B<Ningyou> to the current directory and creates F<~/.ningyou.ini>.
+Set up B<Ningyou> and creates F<~/.ningyou.ini>, F<.gitconfig> (if not
+present) and a git repository F<deploy> in the current working directory. To
+specify a different place, name or use an existing repository specify the fully
+qualified path like so:
 
-=over 4
+    ningyou bootstrap /my/special/reporsitory
+
+In this case the git repository is B<not> created if present.
 
 =item B< --main-configuration-only>
 
 This will recreate the main configuration under F<~/.ningyou.ini> without
 touching the working tree, in case F<~/.ningyou.ini> was lost or the
-I<worktree> is managed independently.
-
-=back
+I<worktree> is managed independently or externally.
 
 =item B<help> (same as --help)
 
@@ -92,12 +95,12 @@ information.
 
 =item B<man> (same as --man)
 
-Prints a longer man page. More information: C<man Deploy::Ningyou::Manual>.
+Prints a longer man page. More information: F<MANUAL.md> or F<MANUAL.pdf>.
 
 =item B<module> <NAME>
 
 Creates a new I<module> stub inside the directory F<NAME>. Should be used
-inside a F<modules> directory.
+inside a F<modules> directory usually by a user and not by C<root>.
 
 =item B<script>
 
@@ -130,36 +133,26 @@ provided.
 
 =head1 DESCRIPTION
 
-The B<Ningyou> command line tool B<ningyou> can be used to deploy software
+The B<ningyou> command line tool can be used to deploy software
 according to a simple configuration. The tool can be used to perform I<actions>
-described above in the C<ARGUMENTS> section. Possible I<actions> are: list,
-status, scrip, apply, bootstrap and module.
+described in the C<ARGUMENTS> section. Possible I<actions> are: list,
+status, script, apply, bootstrap and module.
 
-More information can be obtained by the manual. The manual is provided:
+More information can be obtained by the provided documentation:
 
-=item *
+=over 4
 
-As a man page C<man Deploy::Ningyou::Manual> after B<Ningyou> is
-installed,
+=item * F<README.md> - start reading this
 
-=item *
+=item * F<INSTALL.md> - one simple install method
 
-As a Markdown F<README.md> in the source code,
+=item * F<USAGE.md> - one simple usage example
 
-=item *
+=item * F<MANUAL.md> - comprehensive information
 
-On L<https://github.com/ckuelker/ningyou> inside the
+=item * F<MANUAL.pdf> - same, but nicer
 
-- master branch: L<https://github.com/ckuelker/ningyou/blob/master/README.md>,
-
-- staging branch: L<https://github.com/ckuelker/ningyou/blob/staging/README.md>,
-
-- develop branch: L<https://github.com/ckuelker/ningyou/blob/develop/README.md>
-
-=item *
-
-Or in the form of a PDF in the software's document directory: for example in
-F</usr/share/perl/5.24.1/auto/share/dist/Deploy-Ningyou/README.pdf>.
+=back
 
 =head1 EXAMPLES
 
@@ -170,7 +163,12 @@ F</usr/share/perl/5.24.1/auto/share/dist/Deploy-Ningyou/README.pdf>.
  ningyou man                         : show man page (same as --man)
  ningyou --man                       : show man page
 
- ningyou bootstrap                   : install in `cwd` and ~/.ningyou.ini
+ ningyou bootstrap                   : creates ~/.ningyou.ini ~/.gitconfig (if
+                                       not present) and ./deploy git repository
+                                       in current working directory
+ ningyou bootstrap /src/dply         : creates ~/.ningyou.ini ~/.gitconfig (if
+                                       not present) and uses /srv/dply git
+                                       repository
 
  ningyou list                        : list enabled modules
 
