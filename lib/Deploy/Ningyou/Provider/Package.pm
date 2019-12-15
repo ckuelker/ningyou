@@ -140,13 +140,24 @@ sub cache {
     # rpm -qa --qf '%{INSTALLTIME};%{NAME};%{VERSION}-%{RELEASE}
     my @q = qx($cmd -W --showformat '\${Status};\${Package};\${Version}\\n');
     $s->d("init");
+    my $status_dsp = {
+        'install ok unpacked'       => 1,
+        'install ok installed'      => 1,
+        'deinstall ok config-files' => 1,   # TODO: does not work? vim package
+    };
     foreach my $q (@q) {
         chomp $q;
 
         # install ok applied;xsltproc;1.1.26-6+squeeze3
         my ( $status, $package, $version ) = split /;/, $q;
-        my $e = "unknown status - update Deploy::Ningyou::Provider::Package";
-        $s->e( $e, 'bug' ) if $status ne 'install ok installed';
+        my $e
+            = "unknown status - update Deploy::Ningyou::Provider::Package [$status]";
+        $s->e( $e, 'bug' ) if not exists $status_dsp->{$status};
+        $s->e( $e, 'bug' )
+            if ( $status ne 'install ok unpacked' )
+            and ( $status ne 'install ok installed' )
+            and ( $status ne 'deinstall ok config-files' );
+
         $r->{package}->{$package}->{version} = $version;
         $r->{package}->{$package}->{status}  = $status; # install ok installed
     }
@@ -217,7 +228,7 @@ sub applied {
     my @cmd    = @{ $s->get_cmd };    # set by applied_in
     my $return = 0;
     if ( $c->{source} and $c->{version} ) {
-        $s->e( 'Attribute [source] are [version] incompatibe', 'cfg' );
+        $s->e( 'Attribute [source] are [version] incompatible', 'cfg' );
     }
     elsif ( $c->{source} ) {
         $s->d("package $dst has source [$c->{source}]");
