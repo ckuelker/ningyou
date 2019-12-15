@@ -88,9 +88,8 @@ sub attribute_default {
 }
 
 # module configuration attributes
+# provided by Deploy::Ningyou::Attribute::*
 sub attribute_description {
-
-    # provided by Deploy::Ningyou::Attribute::*
     return {
         comment => 'test, not used the moment',
         ensure  => 'present|missing',
@@ -102,9 +101,14 @@ sub attribute_description {
     };
 }    # param => description
 
-sub apply { my ( $s, $i ) = @_; return $s->standard_apply($i); }
-sub init { return 1; }
+sub init   { return 1; }
 sub script { return 0; }
+
+sub apply {
+    my ( $s, $i ) = @_;
+    $s->d("use standard apply");
+    return $s->standard_apply($i);
+}
 
 sub applied {
     my ( $s, $i ) = @_;
@@ -142,7 +146,7 @@ sub applied {
     my $owner = ( defined $got_owner and $got_owner eq $c->{owner} ) ? 1 : 0;
     my $group = ( defined $got_group and $got_group eq $c->{group} ) ? 1 : 0;
     my $mode  = ( defined $got_mode and $got_mode eq $c->{mode} ) ? 1 : 0;
-    my @cmd    = $s->get_cmd;    # set by applied_in
+    my @cmd    = @{ $s->get_cmd };    # set by applied_in
     my $return = 1;
 
 # Best:
@@ -158,12 +162,44 @@ sub applied {
 # => https://unix.stackexchange.com/questions/155046/determine-if-git-working-directory-is-clean-from-a-script
     my $clean = 0;
     if ( -d $dst and -d "$dst/.git" ) {    # we have a git repo
-            # gives 255 on unclean and 0 on clean
+        $s->d("Section A - test clean");
+
+        # gives 255 on unclean and 0 on clean
         my $cmd
             = qq{output=\$(git -C $dst status --untracked-files=no --porcelain) && [ -z "\$output" ]};
         my ( $out, $err, $res ) = $s->execute($cmd);
         $clean = $res ? 0 : 1;
+        $s->d("$cmd: $out, $err, $res => $clean");
     }
+    $s->d("clean 1 [$clean]\n");
+
+    # test if remote origin has updated
+    # https://stackoverflow.com/questions/3258243/check-if-pull-needed-in-git
+    if ( -d $dst and -d "$dst/.git" and $clean ) {
+        $s->d("Section A - test clean - remote");
+        my $cmd0 = qq{git -C $dst remote update};
+        my ( $out0, $err0, $res0 ) = $s->execute_quite($cmd0);
+        chomp $out0;
+        $s->d(
+            "RESULT 0:\n\tcmd[$cmd0]\n\tout0[$out0]\n\terr0[$err0]\n\tres0[$res0] => $clean"
+        );
+        my $cmd1 = qq{git -C $dst status -uno};
+        my ( $out1, $err1, $res1 ) = $s->execute_quite($cmd1);
+        chomp $out1;
+        $out1 =~ s{\n}{ }gmx;
+        $out1 =~ s{\s+}{ }gmx;
+        $s->d(
+            "RESULT 1:\n\tcmd[$cmd1]\n\tout1[$out1]\n\terr1[$err1]\n\tres1[$res1] => $clean"
+        );
+
+        #                     Your branch is up to date
+        $clean
+            = ( $out1 =~ m/Your\s+branch\s+is\s+up\s+to\s+date/gmx ) ? 1 : 0;
+        $s->d(
+            "RESULT 2:\n\tcmd[$cmd1]\n\tout1[$out1]\n\terr1[$err1]\n\tres1[$res1] => $clean"
+        );
+    }
+    $s->d("clean 2 [$clean]\n");
 
     my $sec_c = $s->c( 'module', $sec );
     my $loc_c = $s->c( 'file',   $i->{loc} );
@@ -187,13 +223,21 @@ sub applied {
         or $c->{ensure} eq 'missing'
         or $c->{ensure} eq 'latest' );
 
+    $s->d("source [$c->{source}]");
+    my $verbose = $s->get_verbose($i);
+    $s->d("verbose [$verbose]\n");
     my $pfx       = "  => git";
-    my $git_clone = "git --no-pager clone $c->{source} $dst --quiet";
-    my $git_pull  = "git -C $dst --no-pager pull --quiet";
+    my $git_clone = "git --no-pager clone '$c->{source}' '$dst'";
+    $git_clone .= " --quiet" if not $verbose;
+    my $git_pull = "git -C '$dst' --no-pager pull";
+    $git_pull .= " --quiet" if not $verbose;
+
+    $s->d("section C");
 
     # C action
     # 1. If git directory exists and it should be removed:
     if ( -e $dst and $c->{ensure} eq 'missing' ) {
+        $s->d("section C 1");
         my $v   = "$pfx [$dst] exist and it should be removed";
         my $rem = "This should probably stay.";
         $s->e("Directory is [/]. $rem")   if $dst eq q{/};
@@ -206,8 +250,9 @@ sub applied {
 
     # 2. If git directory do not exists and source exists: clone it
     elsif ( not -e $dst and $c->{source} ) {
+        $s->d("section C 2");
         my $v   = "$pfx [$dst] do not exist: should be cloned";
-        my $cmd = "sudo -u $c->{owner} i $git_clone";
+        my $cmd = "sudo -u $c->{owner} -i $git_clone";
         push @cmd, { cmd => $cmd, verbose => $s->c( 'no', $v ) };
         push @cmd, { cmd => qq{chmod $c->{mode} $dst},     verbose => '' };
         push @cmd, { cmd => qq{chown -R $c->{owner} $dst}, verbose => '' };
@@ -217,6 +262,7 @@ sub applied {
 
     # 3. If git directory do exists and .git not: clone it
     elsif ( -d $dst and $c->{source} and not -d "$dst/.git" ) {
+        $s->d("section C 3");
         my $v = "$pfx [$dst] do exist and dst/.git missing: should be cloned";
         my $cmd = "sudo -u $c->{owner} $git_clone";
         push @cmd, { cmd => $cmd, verbose => $s->c( 'no', $v ) };
@@ -228,6 +274,7 @@ sub applied {
 
     # 4. If git dir exists and ensure = latest and not clean, then pull it
     elsif ( -d $dst and $c->{ensure} eq 'latest' and not $clean ) {
+        $s->d("section C 4");
         my $v = $s->c( 'no', "$pfx [$dst] do exist: should be pulled" );
         my $cmd = "sudo -u $c->{owner} $git_pull";
         push @cmd, { cmd => $cmd, verbose => $v };
@@ -236,14 +283,16 @@ sub applied {
 
     # 5. If we have mode and the mode is not correct
     elsif ( defined $got_mode and $got_mode ne $c->{mode} ) {
+        $s->d("section C 5");
         my $v   = "$pfx [$dst] has mode and mode is wrong: change it";
         my $cmd = qq{chmod $c->{mode} $dst};
         push @cmd, { cmd => $cmd, verbose => $s->c( 'no', $v ) };
         $return = 0;
     }
 
-    # 6. If we have owner rand the owner is not correct
+    # 6. If we have owner and the owner is not correct
     elsif ( defined $got_owner and $got_owner ne $c->{owner} ) {
+        $s->d("section C 6");
         my $v   = "$pfx [$dst] has owner and owner is wrong: change it";
         my $cmd = qq{chown -R $c->{owner} $dst};
         push @cmd, { cmd => $cmd, verbose => $s->c( 'no', $v ) };
@@ -252,6 +301,7 @@ sub applied {
 
     # 7. If we have group and the group is not correct
     elsif ( defined $got_group and $got_group ne $c->{group} ) {
+        $s->d("section C 7");
         my $v   = "$pfx [$dst] has group and group is wrong: change it";
         my $cmd = qq{chgrp -R $c->{group} $dst};
         push @cmd, { cmd => $cmd, verbose => $s->c( 'no', $v ) };
@@ -260,6 +310,7 @@ sub applied {
 
     # 8.else
     else {
+        $s->d("section C 8");
         my $v = $s->c( 'yes', "$pfx was already applied" );
         push @cmd, { cmd => '', verbose => $v };
         $return = 1;
