@@ -7,6 +7,9 @@
 # |                                                                           |
 # | Changes:                                                                  |
 # |                                                                           |
+# | 0.1.1 2019-12-11 Christian Kuelker <c@c8i.org>                            |
+# |     - add creation of ~/.gitconfig                                        |
+# |                                                                           |
 # | 0.1.0 2019-03-28 Christian Kuelker <c@c8i.org>                            |
 # |     - initial release                                                     |
 # |                                                                           |
@@ -32,8 +35,20 @@ has 'ini' => (
     #required=> 1, do not seem to work with Module::Pluggable
 );
 
-with
-    qw(Deploy::Ningyou::Util Deploy::Ningyou::Util::Action Deploy::Ningyou::Host);
+has 'rep_dir' => (
+    isa     => 'Str',
+    is      => 'rw',
+    reader  => 'get_rep_dir',
+    writer  => '_set_rep_dir',
+    default => 'deploy',
+);
+
+with qw(
+    Deploy::Ningyou::Env
+    Deploy::Ningyou::Util
+    Deploy::Ningyou::Util::Action
+    Deploy::Ningyou::Host
+);
 
 our $version = '0.1.0';
 
@@ -53,6 +68,7 @@ sub attribute_description { return {}; }
 sub apply {
     my ( $s, $i ) = @_;
     my $opt = exists $i->{opt} ? $i->{opt} : $s->e( "no [opt]", 'sp' );
+    my $rep = exists $i->{rep} ? $i->{rep} : $s->e( "no [rep]", 'sp' );
 
     # 1. check configuration is NOT present
     my $fn = "$ENV{HOME}/.ningyou.ini";
@@ -62,12 +78,16 @@ sub apply {
     # 2. create main configuration
     touch( ($fn) ) or $s->e( "$!! Can not create [$fn]", 'permission' );
     $s->e( "$!! Can not create [$fn]", 'permission' ) if not -f $fn;
+    $s->e( "No `facter`", 'facter' ) if not -f '/usr/bin/facter';
     my $fqhn = $s->get_facter_fqhn;              # fully qualified host name
     my $nf   = Deploy::Ningyou::Facter->new();
     my $dist = $nf->get_facter_distribution;
-    my $dir  = cwd
-        or $s->e( "Can not change to current directory", 'no_dir' );
-    $dir .= '/ningyou';
+
+    my $dir = cwd or $s->e( "Can not change to current directory", 'no_dir' );
+    $dir = ( defined $rep and $rep ne q{} ) ? $rep : "$dir/" . $s->get_rep_dir;
+    $dir=~s{//}{/}gmx; # in case / there will be //deploy
+    $s->d("worktree dir [$dir]");
+
     my %config = (
         VARIABLES => {
             PROJECT       => $s->get_project_version,
@@ -87,7 +107,30 @@ sub apply {
     my $sw = 'main-configuration-only';
     return 1 if exists $opt->{$sw} and $opt->{$sw};
 
-    # 3. check work tree is NOT present
+    # 3.0 check of git configuration is present, of not create
+    #     does not make sense to create worktree without git configuration
+    my $gcfn = "$ENV{HOME}/.gitconfig";
+    if ( -f $gcfn ) {
+        $s->p("git configuration [$gcfn] exists\n");
+
+    }
+    else {
+        touch( ($gcfn) )
+            or $s->e( "$!! Can not create [$gcfn]", 'permission' );
+        my $gct    = Template->new( \%config ) || die Template->error(), "\n";
+        my $gctpl  = $s->gitconfig_ini();
+        my $gcvars = {
+            VERSION => $Deploy::Ningyou::Action::Bootstrap::VERSION,
+            USER    => $ENV{USER},
+            FQHN    => $fqhn,
+        };
+        my $gcr = $gct->process( \$gctpl, $gcvars, $gcfn )
+            || die $s->e( $gct->error() );
+        $s->p("Created configuration file [$gcfn]\n") if $gcr;
+
+    }
+
+    # 3.1 check work tree is NOT present
     $s->e( "Work tree already present [$dir]", 'removing' ) if -d $dir;
     $s->p("Bootstrapping Ningyou to work tree [$dir]\n");
 
@@ -99,11 +142,11 @@ sub apply {
     $s->p("Created work tree [$dir]\n") if -d $dir;
 
     # 5. create distribution
-    my $rep = "$dir/$dist";
-    mkdir $rep;
-    chmod $s->e( "$!! Can not create [$rep]", 'permission' )
-        if not -d $rep;
-    $s->p("Created distribution [$rep]\n") if -d $rep;
+    my $repo = "$dir/$dist";
+    mkdir $repo;
+    chmod $s->e( "$!! Can not create [$repo]", 'permission' )
+        if not -d $repo;
+    $s->p("Created distribution [$repo]\n") if -d $repo;
 
     # 6. git init
     my $cmd = qq{cd $dir && git init};
@@ -131,18 +174,19 @@ sub apply {
     my @dir = ();
     push @dir, "$dir/global";
     push @dir, "$dir/global/modules";
-    push @dir, "$dir/global/modules/default";
-    push @dir, "$dir/global/modules/default/files";
-    push @dir, "$dir/global/modules/default/manifests";
-    push @dir, "$rep/modules";
-    push @dir, "$rep/modules/default";
-    push @dir, "$rep/modules/default/files";
-    push @dir, "$rep/modules/default/manifests";
-    push @dir, "$dir/$fqhn";
-    push @dir, "$dir/$fqhn/modules";
-    push @dir, "$dir/$fqhn/modules/default";
-    push @dir, "$dir/$fqhn/modules/default/files";
-    push @dir, "$dir/$fqhn/modules/default/manifests";
+    push @dir, "$dir/global/modules/ningyou";
+    push @dir, "$dir/global/modules/ningyou/files";
+    push @dir, "$dir/global/modules/ningyou/manifests";
+
+    #push @dir, "$repo/modules";
+    #push @dir, "$repo/modules/default";
+    #push @dir, "$repo/modules/default/files";
+    #push @dir, "$repo/modules/default/manifests";
+    #push @dir, "$dir/$fqhn";
+    #push @dir, "$dir/$fqhn/modules";
+    #push @dir, "$dir/$fqhn/modules/default";
+    #push @dir, "$dir/$fqhn/modules/default/files";
+    #push @dir, "$dir/$fqhn/modules/default/manifests";
     foreach my $d (@dir) {
         $s->p("Crate directory [$d]\n");
         mkdir $d;
@@ -152,10 +196,11 @@ sub apply {
     # 9. create default module at 3 locations
     my @default = (
         "$dir/global/modules/default/manifests/default.ini",
-        "$rep/modules/default/manifests/default.ini",
+        "$repo/modules/default/manifests/default.ini",
         "$dir/$fqhn/modules/default/manifests/default.ini",
     );
     foreach my $dfn (@default) {
+        next;    # disbaled for the moment
         $s->p("Using default manifest file name [$dfn]\n");
         my $dt = Template->new( \%config ) || die Template->error(), "\n";
         my $dtpl = $s->default_ini();
@@ -166,6 +211,27 @@ sub apply {
         $s->p("Created manifest file [$dfn]\n") if $dr;
         my $dcmd
             = qq{cd $dir&&git add $dfn;git commit -m "+ module manifest $dfn" $dfn};
+        $s->d($dcmd);
+        my $do = qx($dcmd);
+        $s->p($do);
+    }
+
+    # 10. create ningyou module at 1 location
+    my @ningyou = ( "$dir/global/modules/ningyou/manifests/ningyou.ini", );
+    foreach my $dfn (@ningyou) {
+        $s->p("Using ningyou manifest file name [$dfn]\n");
+        my $dt    = Template->new( \%config ) || die Template->error(), "\n";
+        my $dtpl  = $s->ningyou_module_ini();
+        my $dvars = {
+            VERSION  => $Deploy::Ningyou::Action::Bootstrap::VERSION,
+            FILENAME => $dfn
+        };
+        my $dr = $dt->process( \$dtpl, $dvars, $dfn )
+            || die $s->e( $dt->error() );
+        $s->e( "Problem found when creating $dfn", 'permission' ) if not $dr;
+        $s->p("Created manifest file [$dfn]\n") if $dr;
+        my $cstr = "+ module manifest $dfn";
+        my $dcmd = qq{cd $dir&&git add $dfn;git commit -m "$cstr" $dfn};
         $s->d($dcmd);
         my $do = qx($dcmd);
         $s->p($do);
@@ -248,18 +314,13 @@ file=0.1.0
 ; distribution independent modules
 ; active modules = 1
 ; inactive modules = 0
-; dummy default module present
-default=1
+ningyou=1
 
 [[% DISTRIBUTION %]]
 ; distribution [% DISTRIBUTION %] dependent modules
-; dummy default module present
-default=1
 
 [[% FQHN %]]
 ; host [% FQHN %] dependent modules
-; dummy default module present
-default=1
 
 END_HOST_INI
 
@@ -290,13 +351,82 @@ configuration=[% CONFIGURATION %]
 ; version of this file - change this when you update the file
 file=0.1.0
 
-[nop:default]
+;[nop:default]
 ; the 'nop' provider provides a 'no operation' - nothing
 ; can be used to check (via debug) if configuration section is actually used
-debug=NOP default [% FILENAME %]
+;debug=NOP default [% FILENAME %]
 
 DEFAULT_INI
 
+}
+
+sub ningyou_module_ini {
+
+    return <<'NINGYOU_MODULE_INI';
+; +---------------------------------------------------------------------------+
+; | modules/ningyou/manifests/ningyou.ini                                     |
+; |                                                                           |
+; | Configuration for a Ningyou module. The aim is not to install Ningyou,    |
+; | but to keep its dependencies up to date.                                  |
+; |                                                                           |
+; | Version: 0.1.0 (Change also inline: [version] file=)                      |
+; |                                                                           |
+; | Changes:                                                                  |
+; |                                                                           |
+; | 0.1.0 2019-07-24 Christian Kuelker <c@c8i.org>                            |
+; |     - initial release                                                     |
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+;
+; --- [ 1st dependencies ] ----------------------------------------------------
+[package:aptitude]
+ensure=latest
+[package:libmoose-perl]
+ensure=latest
+[package:libmodule-pluggable-perl]
+ensure=latest
+[package:libconfig-tiny-perl]
+ensure=latest
+[package:libfile-dircompare-perl]
+ensure=latest
+[package:liblist-compare-perl]
+ensure=latest
+[package:libnamespace-autoclean-perl]
+ensure=latest
+[package:libtemplate-perl]
+ensure=latest
+[package:libcapture-tiny-perl]
+ensure=latest
+[package:libapt-pkg-perl]
+ensure=latest
+[package:libconfig-ini-perl]
+ensure=latest
+[package:libfile-touch-perl]
+ensure=latest
+[package:libgraph-perl ]
+ensure=latest
+[package:libtest-deep-perl]
+ensure=latest
+[package:facter]
+ensure=latest
+
+; --- [ 2nd dependencies ] ----------------------------------------------------
+; need for ::Provider::
+[package:git]
+ensure=latest
+[package:rsync]
+ensure=latest
+NINGYOU_MODULE_INI
+}
+
+sub gitconfig_ini {
+    return <<"GITCONFIG";
+# This is Git's per-user configuration file. Created by ningyou bootstrap.
+[user]
+# Please adapt the following lines:
+        name = [% USER %] ([% FQHN %])
+        email =[% USER %]@[% FQHN %]
+GITCONFIG
 }
 
 __PACKAGE__->meta->make_immutable;
