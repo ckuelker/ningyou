@@ -1,0 +1,116 @@
+#!/bin/bash
+# PODNAME:  ningyou-install
+# ABSTRACT: install Ningyou
+# +---------------------------------------------------------------------------+
+# | ningyou-install                                                           |
+# |                                                                           |
+# | Description.                                                              |
+# |                                                                           |
+# | Version: 0.1.0 (change inline)                                            |
+# |                                                                           |
+# | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.0 2019-12-10 Christian Külker <c@c8i.org>                             |
+# |     - initial release                                                     |
+# |                                                                           |
+# +---------------------------------------------------------------------------+
+#
+# USAGE:
+#   [DEBUG=1] ningyou-install /path/to/git/repository
+
+L==============================================================================
+function usage() {
+    echo -e "$L\nUSAGE:\n\tningyou-install /path/to/git/repository"
+    echo -e "\tDEBUG=1 ningyou-install /path/to/git/repository"
+    echo
+    echo -e "* if path to git repository do not exist, it will be created"
+    if [ -n "$1" ]; then
+        echo -e "\nERR: $1"
+    fi
+    echo "$L"
+    exit 2;
+}
+function error() {
+    echo -e "$L\nERROR:\n\t$1\n$L\n"
+    exit 3
+}
+function warning() {
+    echo -e "$L\nWARNING:\n\t$1\n$L\n"
+}
+function debug() {
+    if [ "$DEBUG" = "1" ]; then
+        echo -e "[DEBUG] $1"
+    fi
+}
+
+# figure out the ningyou tar ball directory
+# https://stackoverflow.com/questions/59895/get-the-source-directory-of-a-bash-script-from-within-the-script-itself
+function get_dir() {
+    SOURCE="${BASH_SOURCE[0]}"
+    debug "SOURCE [$SOURCE]"
+    # resolve $SOURCE until the file is no longer a symlink
+    while [ -h "$SOURCE" ]; do
+        DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+        debug "DIR [$DIR]"
+        SOURCE="$(readlink "$SOURCE")"
+        debug "SOURCE [$SOURCE]"
+        # if $SOURCE was a relative symlink, we need to resolve it relative to
+        # the path where the symlink file was located
+        [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+    done
+    DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+    debug "DIR [$DIR]"
+    BUILD_DIR=`echo "$DIR"|sed -e "s%/bin$%%g"`
+    debug "BUILD_DIR [$BUILD_DIR]"
+}
+
+SUPPORTED="Debian"
+debug "SUPPORTED [$SUPPORTED]"
+DIST=`lsb_release -is`
+echo "* distribution: [$DIST]"
+
+# distribution specific
+if [ "$DIST" = "Debian" ]; then
+    echo "* try $DIST installation"
+    if [ -e /usr/bin/aptitude ]; then
+        APT="/usr/bin/aptitude"
+    else
+        APT="/usr/bin/apt-get"
+    fi
+    debug "APT [$APT]"
+    echo "* using [$APT] for installation"
+    CMD="$APT -y install git make ruby libmoose-perl libmodule-pluggable-perl \
+    libconfig-tiny-perl libfile-dircompare-perl liblist-compare-perl \
+    libnamespace-autoclean-perl libtemplate-perl libcapture-tiny-perl \
+    libapt-pkg-perl libconfig-ini-perl libfile-touch-perl libgraph-perl \
+    libtest-deep-perl facter";
+    DZIL="$APT -y install libdist-zilla-perl \
+    libdist-zilla-plugin-git-perl libdist-zilla-plugin-podweaver-perl \
+    libdist-zilla-plugin-run-perl ";
+    DEP=`echo $CMD|sed -e "s%\s\+% %g" `
+    echo "* command: [$DEP]"
+    # $DZIL # skip this for now - do not work on fresh installed Debian Buster
+    $DEP
+
+else
+    error "Unknown distribution: $DIST\nSupported are: $SUPPORTED"
+fi
+
+# install
+BIN="/usr/local/bin/ningyou"
+if [ -f $BIN ];then
+    echo "* ningyou is already installed at [$BIN], skip"
+else
+   get_dir
+   echo "* building, testing and installing ningyou from [$BUILD_DIR]"
+   #cd $BUILD_DIR && /usr/bin/dzil nop
+   #cd $BUILD_DIR && /usr/bin/dzil clean
+   #cd $BUILD_DIR && /usr/bin/dzil build &&
+   #cd $BUILD_DIR && /usr/bin/dzil test &&
+   #cd $BUILD_DIR && /usr/bin/dzil install
+   cd $BUILD_DIR && perl Makefile.PL
+   cd $BUILD_DIR && make test
+   cd $BUILD_DIR && make install
+fi
+echo -e "* excute:\n$L\n\tningyou bootstrap\n$L\nto set up ningyou for the first"
+exit 0
