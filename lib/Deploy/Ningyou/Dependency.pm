@@ -215,7 +215,7 @@ sub add_sections_to_vertices {
                 $s->w($msg);
             }
             else {
-                $s->e( "found duplicate $location", 'dublicate' );
+                $s->e( "found duplicate $location ".Dumper($i->{r}->{$fsec}).Dumper($mcfg->{$sec}) , 'dublicate' );
             }
         }
         else {

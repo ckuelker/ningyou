@@ -21,6 +21,7 @@ package Deploy::Ningyou::Execute;
 use Capture::Tiny qw(tee capture);
 use Moose::Role;
 use namespace::autoclean;
+use Data::Dumper;
 
 our $version = '0.1.0';
 
@@ -82,6 +83,16 @@ sub execute {
 #  3: os - output stack:                    [ STDOUT, .. ]
 #  4: es - error stack:                     [ msg, .. ]
 #  5: rs - resut stack:                     [ 0|1, .. ]
+#
+# EXAMPLE:
+#    $s->execute_stack( {
+#                         cmd => [
+#                                  {              verbose => 'hello world },
+#                                  { cmd => 'ls', verbose => 'list stuff' },
+#                                ],
+#                         verbose => 0
+#                       } );
+# TODO: rename '2ns verbose to something else like 'print'
 sub execute_stack {
     my ( $s, $i ) = @_;
     my $cmd = exists $i->{cmd} ? $i->{cmd} : $s->e( 'no [cmd]', 'sp' );
@@ -95,7 +106,14 @@ sub execute_stack {
     my @os = ();    # output stack
     my @es = ();    # error stack
     my @rs = ();    # resut stack
+
+    # [ {verbose=>'hello world'},{cmd=>'ls',verbose=>'list stuff'}, ... ]
+    # it is OK if 'cmd' do not exists
     foreach my $hr ( @{$cmd} ) {
+        if ( ref($hr) ne 'HASH' ) {
+            $s->w("BUG. Expect hr to be a hash reference" . Dumper($cmd));
+            next;
+        }
         my $c = exists $hr->{cmd}     ? $hr->{cmd}     : undef;
         my $v = exists $hr->{verbose} ? $hr->{verbose} : undef;
         chomp $v if defined $v;
@@ -109,14 +127,12 @@ sub execute_stack {
             $gr = 0 if $err;
             $gr = 0 if $res;    # shell result 0=PASS,1=FAIL
             if ($verbose) {
-
+                my $fmt = "  %-71s [%s]\n";
                 if ( not $res ) {    # PASS
-                    $s->p( sprintf "  %-71s [%s]\n",
-                        $c, $s->c( 'yes', 'PASS' ) );
+                    $s->p( sprintf $fmt, $c, $s->c( 'yes', 'PASS' ) );
                 }
                 else {               # FAIL
-                    $s->p( sprintf "  %-71s [%s]\n",
-                        $c, $s->c( 'no', 'FAIL' ) );
+                    $s->p( sprintf $fmt, $c, $s->c( 'no', 'FAIL' ) );
                     $s->p("$err\n");
                 }
             }

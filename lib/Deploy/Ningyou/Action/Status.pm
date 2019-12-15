@@ -60,8 +60,9 @@ sub apply {
     $i = $s->validate_parameter( { ini => 1, mod => 1, opt => 1 }, $i, {} );
     my $verbose = $s->get_verbose($i);    # opt
 
-    # 1. print
-    my $str0    = "# Ningyou %s for %s with configuraton %s\n";
+    # 1. print: 
+    # Ningyou v0.1.0 at w2.c8i.org with /srv/deploy/w2.c8i.org.ini
+    my $str0    = "# Ningyou %s at %s with %s\n";
     my $version = $s->get_project_version;                        # version
     my $fqhn    = $s->get_fqhn( { ini => $i->{ini} } );           # host name
     my $wt      = $s->get_worktree;
@@ -71,7 +72,8 @@ sub apply {
     my $fnc     = $s->c( 'file', $hcfg_fn );
     $s->p( sprintf $str0, $vc, $hnc, $fnc );
 
-    # 2. print
+    # 2. print:
+    # Status modules(s) all in /srv/deploy
     my $str1   = "# %s modules(s) %s in %s\n";
     my $action = $s->register;                    # action
     my $scope  = $s->parse_scope( $i->{mod} );    # all | <MODULE> [<MODULE>]
@@ -81,12 +83,16 @@ sub apply {
     $s->p( sprintf $str1, $ac, $sc, $wtc );
 
     # 3. verbose print
+    # class:module                                                      enabled status
+    # ================================================================================
+    # * testing all components of global:ningyou:
+    #   - global:package:aptitude                                               [DONE]
     my $dl = 73;
     my $dx = $dl - 9;
     my $dy = $dl + 3;
     if ($verbose) {
         my $str2 = "%-$dx.${dx}s  %s %s\n";
-        $s->p( sprintf $str2, 'class:module', 'enabled', 'status' );
+        $s->p( sprintf $str2, 'class:module', '       ', 'status' );
         $s->p( $s->get_line_nl );
     }
 
@@ -108,15 +114,14 @@ sub apply {
 
         # sort foreach vim, zsh, ...
         foreach my $module ( sort keys %{ $hcfg->{$class} } ) {
-            $s->d("module [$module]");
+            $s->d("module [$module]\n");
             my $fmodule = "$class:$module";
 
             # if fullmodule ($class:$module) from CLI, we skip the rest
-            next
-                if $scope ne 'all'
-                and not( grep { $_ eq $fmodule } @{ $i->{mod} } );
+            next if $scope ne 'all' and not( grep { $_ eq $fmodule } @{ $i->{mod} } );
             my $fmodulec = $s->c( 'module', $fmodule );
-            $s->p("* testing if $fmodulec was applied ...\n") if $verbose;
+            $s->p("* testing all components of $fmodulec:\n") if $verbose;
+            $s->d("$fmodulec:\n") ;
 
             if ( $hcfg->{$class}->{$module} ) {
                 $enabled->{$fmodule} = 1;
@@ -143,20 +148,24 @@ sub apply {
     #
     # [ /tmp/ningyou/global/modules/default,
     #   /tmp/ningyou/w1.c8i.org/modules/default, ... ]
+    print "\n" if $verbose;
+    my $str3 = "%-$dx.${dx}s  %s %s\n";
+    $s->p( sprintf $str3, 'class:module', 'enabled', 'status' );
+    $s->p( $s->get_line_nl );
+    $s->d("worktree [$wt]\n");
     my $mpath = $s->find_module_paths( { wt => $wt } );
     foreach my $mp ( sort @{$mpath} ) {
+        $s->d("mp [$mp]\n");
         my ( $class, $module )
             = $s->module_path_to_class_module( { mp => $mp } );
         my $fmodule = "$class:$module";
+        $s->d("fmpodule [$fmodule]\n");
 
         # 5. continue only if one or more named modules are present
-        next
-            if $scope ne 'all'
-            and not( grep { $_ eq $fmodule } @{ $i->{mod} } );
+        next if $scope ne 'all' and not( grep { $_ eq $fmodule } @{ $i->{mod} } );
 
         # 6.
         # 7.
-        my $str2 = "%-${dy}.${dy}s [%s] [%s]\n";
         my $fmodulec = $s->c( 'module', $fmodule );
         my $considered
             = $enabled->{$fmodule}
@@ -166,6 +175,7 @@ sub apply {
             = $applied->{$fmodule}
             ? $s->c( 'yes', 'DONE' )
             : $s->c( 'no',  'TODO' );
+        my $str2 = "%-${dy}.${dy}s    [%s]   [%s]\n";
         $s->p( sprintf $str2, $fmodulec, $considered, $status );
     }
 

@@ -85,7 +85,7 @@ sub apply {
 
     my $version = $s->get_project_version;
     my $cfg_fn  = "$wt/$fqhn.ini";
-    my $nstr    = "# Ningyou %s for %s with configuraton %s\n";
+    my $nstr    = "# Ningyou %s for %s with %s\n";
     my $v       = $s->c( 'version', "v$version" );
     my $h       = $s->c( 'host', $fqhn );
     my $f       = $s->c( 'file', $cfg_fn );
