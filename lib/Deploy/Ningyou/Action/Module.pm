@@ -196,12 +196,14 @@ configuration=[% CONFIGURATION %]
 ; version of this file - change this when you update the file
 file=0.1.0
 
-[nop:$module]
+; uncomment the following lines for special debug purposes
+;[nop:$module]
 ; the 'nop' provider provides a 'no operation' - nothing
 ; can be used to check (via debug) if configuration section is actually used
 ; it should be disabled by commenting out, because it will be always pending
-debug=Message for module [$module] debug
+;debug=Message for module [$module] debug
 
+; edit and uncomment the following lines to match your plan
 ;[package:$module]
 ;ensure=latest
 
