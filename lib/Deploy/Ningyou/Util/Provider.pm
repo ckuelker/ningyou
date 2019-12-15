@@ -18,6 +18,8 @@ package Deploy::Ningyou::Util::Provider;
 use warnings;
 use strict;
 use Moose::Role;
+use File::Basename qw(basename dirname);
+use Data::Dumper;
 
 requires qw(
     register
@@ -247,6 +249,7 @@ sub prv_info {
 sub url {
     my ( $s, $wt, $url ) = @_;
     $s->d("input url [$url]");
+    return $url if $url =~m{http}gmx;
     $url =~ s{ningyou://}{$wt/}gmx;
     $s->d("fully qualified file nane [$url]");
     $url =~ s{//}{/}gmx;
