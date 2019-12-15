@@ -37,9 +37,12 @@ has 'classes' => (
     default => sub {
         my ( $s, $i ) = @_;
         my $ini  = $s->get_ini;
-        my $fqhn = $s->get_fqhn( { ini => $ini } );
-        my $dist = $s->get_distribution( { ini => $ini } );
-        return [ 'global', $dist, $fqhn ];
+        my $class = [ 'global' ];
+        push @{$class}, $s->get_fqhn( { ini => $ini } );
+        push @{$class}, $s->get_distribution( { ini => $ini } );
+        push @{$class}, $s->get_class( { ini => $ini });
+        # TODO: remove classes which are double (example [global] and [class]global=1)
+        return $class;
     },
 );
 

@@ -76,6 +76,9 @@ our $L       = "=" x 80;
     default256 => {
         color_depth => 256,
         colors      => {
+            yes => 10,
+            no  => 1  ,
+            #
             version => 135,
             undef   => 124,
             host    => 27,
@@ -141,7 +144,10 @@ sub p {    # manual \n
 sub c {    # manual \n
     my ( $s, $c, $m ) = @_;
     my $col       = defined $c ? $c : 'undef';
-    my $colval    = $COLORS{$col};
+    $s->d("col [$col]");
+    my $colval    = defined $COLORS{$col} ? $COLORS{$col} : 'white';
+    $s->d("colval [$colval]");
+    #$s->d(Dumper(\%COLORS));
     my $_colreset = color('reset');
     if ( $COLOR // $ENV{COLOR} // ( -t STDOUT ) ) {
         if ( $COLOR_DEPTH >= 256 && $colval =~ /^\d+$/ ) {
@@ -160,7 +166,17 @@ sub c {    # manual \n
 sub w {
     my ( $s, $m ) = @_;
     chomp $m;
-    $s->p( "$L\n" . $s->c( 'warning', "WARNING" ) . ": $m\n$L\n" );
+    my $str = q{};
+    foreach my $n ( 0 .. 10 ) {
+        my ( $p, $f, $l, $s ) = caller($n);
+        $str .= "$p $l\n"
+            if defined $l
+            and defined $p
+            and $l ne q{}
+            and $p ne q{};
+    }
+    $s->p( "$L\n" . $s->c( 'warning', "WARNING" ) . ": $m\n$str\n$L\n" );
+    # TODO if debug exit 1;
 }
 
 our $chkc = "\nPlease check the configuration";
@@ -170,12 +186,13 @@ our $pfsc = "\nThis is a bug, please fix the source code ...";
 our $hint = {
     action     => 'Try --help or --man',
     attribute  => "A mandatory attribute is missing in the configuration",
-    bootstrap  => 'Consider executing ningyou bootstrap',
+    bootstrap  => 'Consider executing `ningyou bootstrap`',
     bug        => $pfsc,
     cfg        => "Wrong configuration? $chkc",
     dir_exists => "Check the name, configuration or remove it. $chkc. $pta",
     dublicate  => "Attributes differ in duplicate sections. $chkc",
     file       => 'File do not exist. Check the file name',
+    facter     => '/usr/bin/facter is missing. Install it?',
     no_dir     => 'You tried invoking ningyou from a non existing directory?',
     permission => 'Do you have the right permissions?',
     removing   => "Consider removing it first. $pta",
@@ -190,19 +207,19 @@ our $hint = {
 sub e {
     my ( $s, $msg, $k ) = @_;
     $s->e( "ERROR: k not defined", "bug" ) if not defined $k;
-    my $h = exists $hint->{$k} ? "HINT: $hint->{$k}\n" : q{};
+    my $h = exists $hint->{$k} ? "HINT: $hint->{$k}" : q{};
 
-    my $str = q{};
-
+    my $str = q{}; # debug information
+    my $di  = q{Debug information:};
     foreach my $n ( 0 .. 10 ) {
         my ( $p, $f, $l, $s ) = caller($n);
-        $str .= "$p $l\n"
+        $str .= "\t$p $l\n"
             if defined $l
             and defined $p
             and $l ne q{}
             and $p ne q{};
     }
-    die "\n$L\n" . $s->c( 'error', "ERROR" ) . ": $msg\n$h\n$str$L\n";
+    die "\n$L\n" . $s->c( 'error', "ERROR" ) . ": $msg\n$h\n$L\n$di\n$str\n";
 }
 
 # get provider configuration and subroutines
@@ -216,7 +233,7 @@ sub get_providers {
     return $providers;
 }
 
-sub get_distribution {
+sub get_distribution { # [os]
     my ( $s, $i ) = @_;
     my $ini = exists $i->{ini} ? $i->{ini} : $s->e( 'no [ini]', 'sp' );
     my $os
@@ -230,7 +247,7 @@ sub get_distribution {
     return $distribution;
 }
 
-sub get_fqhn {
+sub get_fqhn { # [system]
     my ( $s, $i ) = @_;
     my $ini = exists $i->{ini} ? $i->{ini} : $s->e( 'no [ini]', 'sp' );
     my $sys
@@ -242,6 +259,21 @@ sub get_fqhn {
         ? $sys->{fqhn}
         : $s->e( "no [fqhn] under [system] at [~/.ningyou.ini]", 'cfg' );
     return $fqhn;
+}
+sub get_class { # [class]
+    my ( $s, $i ) = @_;
+    my $ini = exists $i->{ini} ? $i->{ini} : $s->e( 'no [ini]', 'sp' );
+    my $class
+        = exists $ini->{class}
+        ? $ini->{class}
+        : $s->e( "no [class] section at [~/.ningyou.ini]", 'cfg' );
+    my @class = ();
+    foreach my $c (sort keys %{$class}){ # name = [0|1]
+        $s->d("consider class [$c]");
+        push @class, $c if $class->{$c};
+        $s->d("add class [$c]") if  $class->{$c};
+    }
+    return @class;
 }
 
 # get package manager cache time to live
@@ -380,24 +412,22 @@ sub validate_parameter {
     my $sub = ( caller(1) )[3];
     foreach my $p ( sort keys %{$parameter} ) {
         if ( $parameter->{$p} ) {    # mandatory
+            $s->d("* mandatory parameter [$p]");
             my $e = "no [$p] at $sub\n" . Dumper($i);
             $i->{$p} = exists $i->{$p} ? $i->{$p} : $s->e( $e, 'sp' );
-            $i->{$p}
-                = ( exists $i->{$p} and defined $i->{$p} )
-                ? $i->{$p}
-                : $s->e( $e, 'sp' );
-            $s->d("$sub");
-            $s->d("$p");
-            $s->d("$i->{$p}]");
-            $s->d("$sub: [$p] = [$i->{$p}]");
+            $i->{$p} = ( exists $i->{$p} and defined $i->{$p} ) ? $i->{$p} : $s->e( $e, 'sp' );
+            $s->d("  subroutine [$sub]");
+            $s->d("  value [$i->{$p}]");
         }
         else {                       # optional
+            $s->d("* optional parameter [$p]");
+            $s->d("  subroutine [$sub]");
             $i->{$p}
                 = exists $i->{$p}       ? $i->{$p}
                 : exists $default->{$p} ? $default->{$p}
                 :                         undef;
-            $s->d("$sub: [$p] = [$i->{$p}]") if defined $i->{$p};
-            $s->d("$sub: [$p] = undef") if not defined $i->{$p};
+            $s->d("  value [$i->{$p}]") if defined $i->{$p};
+            $s->d("  value [undef]") if not defined $i->{$p};
         }
     }
     return $i;
