@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Interface to the environment                                              |
 # |                                                                           |
-# | Version: 0.1.0 (change our $version inside)                               |
+# | Version: 0.1.1 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
+# |     - make Ningyou version explicit                                       |
 # |                                                                           |
 # | 0.1.0 2019-04-21 Christian Kuelker <c@c8i.org>                            |
 # |     - initial release                                                     |
@@ -23,7 +26,8 @@ use namespace::autoclean;
 use Getopt::Long qw(:config gnu_getopt permute);
 use Pod::Usage;
 
-our $version = '0.1.0';
+our $NINGYOU = '0.1.0'; # Ningyou version
+our $VERSION = '0.1.1'; # Module version
 
 has 'action_list' => (
     isa     => 'HashRef',
@@ -130,8 +134,8 @@ sub process_env_options {
         $s->d( "=" x 80 );
         $s->d("BEGIN");
         $s->d("Ningyou invoked with --version option");
-        if (defined $Deploy::Ningyou::Env::VERSION){
-            print "Ningyou $Deploy::Ningyou::Env::VERSION\n";
+        if (defined $Deploy::Ningyou::Env::NINGYOU){
+            print "Ningyou $Deploy::Ningyou::Env::NINGYOU\n";
         }else{
             print "Ningyou is not installed properly - no version available\n";
             print "See INSTALL.md\n";
