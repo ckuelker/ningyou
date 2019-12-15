@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Provider plugin aggregator                                                |
 # |                                                                           |
-# | Version: 0.1.0 (change our $version inside)                               |
+# | Version: 0.1.1 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
+# |     - make API version explicit                                           |
 # |                                                                           |
 # | 0.1.0 2019-04-26 Christian Kuelker <c@c8i.org>                            |
 # |     - initial release                                                     |
@@ -23,21 +26,21 @@ use Module::Pluggable
 
 with qw(Deploy::Ningyou::Util);
 
-our $version = '0.1.0';
-our $VERSION = '0.1.0'; # Provider API version
+our $API     = '0.1.0';    # Provider API version
+our $VERSION = '0.1.0';
 
 sub get_plugins {
     my ( $s, $i ) = @_;
-    $s->d(
-        "Deploy::Ningyou::Provider::begin $Deploy::Ningyou::Provider::VERSION"
-    );
+    my $myself = 'Deploy::Ningyou::Provider::begin';
+    $s->d( "$myself VERSION $Deploy::Ningyou::Provider::VERSION");
+    $s->d( "$myself API $Deploy::Ningyou::Provider::API");
     my $r       = {};
     my @plugins = $s->plugins;
     foreach my $class ( sort @plugins ) {
         $s->d("found plugin class [$class]");
         my $cmd = $class->register();
         $r->{$cmd} = {
-            plugin_version        => $Deploy::Ningyou::Provider::VERSION,
+            plugin_version        => $Deploy::Ningyou::Provider::API,
             init                  => sub { $class->init(@_) },
             apply                 => sub { $class->apply(@_) },
             applied               => sub { $class->applied(@_) },
