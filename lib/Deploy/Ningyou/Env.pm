@@ -84,6 +84,14 @@ has 'env_modules' => (
     isa     => 'ArrayRef',
     default => sub { [] },
 );
+has 'env_bootstrap_repository' => (
+    is      => 'rw',
+    isa     => 'Str',
+    reader  => 'get_env_bootstrap_repository',
+    writer  => 'set_env_bootstrap_repository',
+    default => q{},
+);
+
 with qw(Deploy::Ningyou::Util);
 
 sub process_env_options {
@@ -96,7 +104,7 @@ sub process_env_options {
     # FEATURE: configuration
     # FEATURE: quite
     # FEATURE: update
-
+    my @ARGVC = @ARGV;
     GetOptions(
         \%opt,
         'configuration|c=s',
@@ -122,7 +130,12 @@ sub process_env_options {
         $s->d( "=" x 80 );
         $s->d("BEGIN");
         $s->d("Ningyou invoked with --version option");
-        print "Ningyou $Deploy::Ningyou::Env::VERSION\n";
+        if (defined $Deploy::Ningyou::Env::VERSION){
+            print "Ningyou $Deploy::Ningyou::Env::VERSION\n";
+        }else{
+            print "Ningyou is not installed properly - no version available\n";
+            print "See INSTALL.md\n";
+        }
         $s->d("END");
         exit 0;
     }
@@ -151,11 +164,17 @@ sub process_env_actions {
     my @actions = sort keys %{ $s->get_action_list };
 
     #if ( $x ~~ @x ) {
-    if ( grep { $_ eq $x } (@actions) ) {
+    if ( grep { $_ eq $x } (@actions) ) {    # bootstrap, ...
         $s->set_env_action($x);
     }
-    else {
-        push @{ $s->env_modules }, $x;
+    else {    # CONSIDER: is there a smarter way?
+        my $last_action = $s->get_env_action;
+        if ( $last_action eq 'bootstrap' ) {
+            $s->set_env_bootstrap_repository($x);
+        }
+        else {
+            push @{ $s->env_modules }, $x;
+        }
     }
     if ( $x eq 'help' ) {
         pod2usage(1);

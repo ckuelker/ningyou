@@ -110,8 +110,13 @@ sub begin {
 
     # 7. process commands
     if ( $action eq 'bootstrap' ) {    # bootstrap can not read cfg
-        $s->p("About to bootstrap Ningyou\n");
-        if ( $apply->( { opt => $opt } ) ) {
+        my $rep = $s->get_env_bootstrap_repository;
+        if(defined $rep and $rep ne q{}){
+            $s->p("About to bootstrap Ningyou to [$rep]\n");
+        }else{ # happens for --main-configuration-only
+            $s->p("About to bootstrap Ningyou main configuration only\n");
+        }
+        if ( $apply->( { opt => $opt, rep => $rep } ) ) {
             $s->p("Applied bootstrap\n");
         }
         else {
