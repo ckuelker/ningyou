@@ -43,12 +43,14 @@ my $methods = [
         env_modules
         exists_color
         get_action_list
+        get_class
         get_configuration_version
         get_date
         get_debug
         get_debug_filename
         get_distribution
         get_env_action
+        get_env_bootstrap_repository
         get_env_options
         get_facter_fqhn
         get_fqhn
@@ -76,6 +78,7 @@ my $methods = [
         section_to_full_section
         set_action_list
         set_env_action
+        set_env_bootstrap_repository
         set_env_options
         set_facter_fqhn
         set_ini
