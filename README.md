@@ -2,7 +2,7 @@
 title: Ningyou README
 author: Christian Külker
 date: 2019-12-22
-readme-version: 0.1.1
+readme-version: 0.1.2
 ningyou-version: 0.1.0
 ---
 
@@ -15,7 +15,7 @@ deterministic way.  On request it can produce scripts for update tasks.
 ![Github issues](https://img.shields.io/github/issues/ckuelker/ningyou.svg?style=popout-square)
 ![Github code size in bytes](https://img.shields.io/github/languages/code-size/ckuelker/ningyou.svg)
 ![Git repo size](https://img.shields.io/github/repo-size/ckuelker/ningyou.svg)
-![Last commit](https://img.shields.io//github/last-commit/ckuelker/ningyou.svg)
+![Last commit](https://img.shields.io/github/last-commit/ckuelker/ningyou.svg)
 
 # Features
 
