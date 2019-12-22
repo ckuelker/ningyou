@@ -21,9 +21,9 @@ deterministic way.  On request it can produce scripts for update tasks.
 
 * Debian package deployment
 * Git repository deploy support
-* `CPAN` module deploy support
+* [`CPAN`] module deploy support
 * Simple configuration files
-* `Template::Toolkit` language support in configuration files
+* [`Template::Toolkit`] language support in configuration files
 * Deployment of directories, files, links
 * Deployment of directory content via `rsync`
 
@@ -91,3 +91,6 @@ This is free software, licensed under:
 
     The GNU General Public License, Version 2, June 1991
 
+
+[`CPAN`]:  https://www.cpan.org/
+[`Template::Toolkit`]: https://metacpan.org/pod/Template::Toolkit
