@@ -1,7 +1,9 @@
 ---
 title: Ningyou Manual
 author: Christian Külker
-date: 2019-12-12
+date: 2019-12-22
+manual-version: 0.1.1
+ningyou-version: 0.1.0
 ---
 
 # Abstract
@@ -15,7 +17,12 @@ didactically reasons and can be found in [INSTALL.md](INSTALL.md) and
 
 Version Date       Author           Notes
 ------- ---------- ---------------- -------------------------------------------
+0.1.1   2019-12-22 Christian Külker add versions in YAML front matter
 0.1.0   2019-12-12 Christian Külker initial release
+
+### 0.1.1
+
+* add versions in YAML front matter
 
 ### 0.1.0
 
