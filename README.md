@@ -11,7 +11,11 @@ ningyou-version: 0.1.0
 __Ningyou__ handles software, directory, link and file deployment in a
 deterministic way.  On request it can produce scripts for update tasks.
 
-![https://img.shields.io/github/issues/ckuelker/ningyou.svg?style=popout-square](https://img.shields.io/github/issues/ckuelker/ningyou.svg?style=popout-square)
+![Github license](https://img.shields.io/github/license/ckuelker/ningyou.svg)
+![Github issues](https://img.shields.io/github/issues/ckuelker/ningyou.svg?style=popout-square)
+![Github code size in bytes](https://img.shields.io/github/languages/code-size/ckuelker/ningyou.svg)
+![Git repo size](https://img.shields.io/github/repo-size/ckuelker/ningyou.svg)
+![Last commit](https://img.shields.io//github/last-commit/ckuelker/ningyou.svg)
 
 # Features
 
