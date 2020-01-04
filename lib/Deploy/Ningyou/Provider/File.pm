@@ -7,6 +7,9 @@
 # |                                                                           |
 # | Changes:                                                                  |
 # |                                                                           |
+# | 0.1.2 2020-01-04 Christian Kuelker <c@c8i.org>                            |
+# |     - fix missing parameter in some error routines                        |
+# |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
 # |                                                                           |
@@ -161,23 +164,29 @@ sub applied {
         if $c->{source} and not -f $c->{source};
 
     # b.3. Warn about ensure missing
-    $s->e( "Ensure is missing. Set automatically ensure=present in [$sec_c]\n"
+    $s->e(
+        "Ensure is missing. Set automatically ensure=present in [$sec_c]\n"
             . "at [$loc_c].\n"
-            . "Please add ensure=latest or other value to 'ensure'" )
-        if not exists $c->{ensure};
+            . "Please add ensure=latest or other value to 'ensure'",
+        'attribute'
+    ) if not exists $c->{ensure};
 
     # b.4. Warn about ensure=latest without checksum
-    $s->e(    "Found ensure=latest without checksum in [$sec_c]\n"
+    $s->e(
+        "Found ensure=latest without checksum in [$sec_c]\n"
             . "at [$loc_c]\n"
-            . "Please change to ensure=present or add checksum" )
-        if not $c->{checksum} and $c->{ensure} eq 'latest';
+            . "Please change to ensure=present or add checksum",
+        'attribute'
+    ) if not $c->{checksum} and $c->{ensure} eq 'latest';
 
     # b.5. Warn about ensure=present with checksum
-    $s->e(    "Found ensure=present with checksum in [$sec_c]\n"
+    $s->e(
+        "Found ensure=present with checksum in [$sec_c]\n"
             . "at [$loc_c]\n"
             . $s->c( 'no', "Checksum will be ignored.\n" )
-            . "Please change to ensure=latest or remove checksum" )
-        if $c->{checksum} and $c->{ensure} eq 'present';
+            . "Please change to ensure=latest or remove checksum",
+        'attrvalue'
+    ) if $c->{checksum} and $c->{ensure} eq 'present';
 
     # b.6. Warn about checksum without source
     $s->e(
@@ -186,7 +195,7 @@ sub applied {
             . $s->c( 'no', "Checksum will be ignored.\n" )
             . "Please add source or remove checksum"
             . Dumper($c),
-        'cfg'
+        'attribute'
     ) if $c->{checksum} and not $c->{source};
 
     # B.7. Warn about wrong source checksum
@@ -195,7 +204,8 @@ sub applied {
         my $scs = $s->get_md5( $CACHE, $c->{source} );
         $s->d("scs [$scs] checksum [$c->{checksum}]");
         if ( $scs ne $c->{checksum} ) {
-            $s->e(    "Found non matching checksum in [$sec_c]\n"
+            $s->e(
+                "Found non matching checksum in [$sec_c]\n"
                     . "at [$loc_c]\n"
                     . "Checksum should be ["
                     . $s->c( 'action', $c->{checksum} ) . "],\n"
@@ -205,7 +215,9 @@ sub applied {
                     . "The source file is newer than the configuration\n"
                     . "Did you update the source file, but forget to update"
                     . " the configuration?\n"
-                    . "Please add correct checksum or remove checksum" );
+                    . "Please add correct checksum or remove checksum",
+                'cfg'
+            );
             $c->{checksum} = 0;
         }
     }
