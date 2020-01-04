@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Utilities                                                                 |
 # |                                                                           |
-# | Version: 0.1.1 (change our $VERSION inside)                               |
+# | Version: 0.1.2 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.2 2020-01-04 Christian Kuelker <c@c8i.org>                            |
+# |     - add attrvalue hint                                                  |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -36,7 +39,7 @@ use vars qw(%COLOR_THEMES %COLORS $COLOR $COLOR_THEME $COLOR_DEPTH);
 
 with qw(Deploy::Ningyou::Env Deploy::Ningyou::Cfg Deploy::Ningyou::Host);
 
-our $VERSION = '0.1.1';
+our $VERSION = '0.1.2';
 our $L       = "=" x 80;
 %COLOR_THEMES = (
     default16 => {
@@ -80,7 +83,7 @@ our $L       = "=" x 80;
         color_depth => 256,
         colors      => {
             yes => 10,
-            no  => 1  ,
+            no  => 1,
             #
             version => 135,
             undef   => 124,
@@ -99,7 +102,7 @@ our $L       = "=" x 80;
 );
 $COLOR_THEME = ( $ENV{TERM} // "" ) =~ /256/ ? 'default256' : 'default16';
 $COLOR_DEPTH = $COLOR_THEMES{$COLOR_THEME}{color_depth} // 16;
-%COLORS = %{ $COLOR_THEMES{$COLOR_THEME}{colors} };
+%COLORS      = %{ $COLOR_THEMES{$COLOR_THEME}{colors} };
 
 sub exists_color {
     my ( $s, $k ) = @_;
@@ -146,10 +149,11 @@ sub p {    # manual \n
 # color
 sub c {    # manual \n
     my ( $s, $c, $m ) = @_;
-    my $col       = defined $c ? $c : 'undef';
+    my $col = defined $c ? $c : 'undef';
     $s->d("col [$col]");
-    my $colval    = defined $COLORS{$col} ? $COLORS{$col} : 'white';
+    my $colval = defined $COLORS{$col} ? $COLORS{$col} : 'white';
     $s->d("colval [$colval]");
+
     #$s->d(Dumper(\%COLORS));
     my $_colreset = color('reset');
     if ( $COLOR // $ENV{COLOR} // ( -t STDOUT ) ) {
@@ -179,6 +183,7 @@ sub w {
             and $p ne q{};
     }
     $s->p( "$L\n" . $s->c( 'warning', "WARNING" ) . ": $m\n$str\n$L\n" );
+
     # TODO if debug exit 1;
 }
 
@@ -189,6 +194,7 @@ our $pfsc = "\nThis is a bug, please fix the source code ...";
 our $hint = {
     action     => 'Try --help or --man',
     attribute  => "A mandatory attribute is missing in the configuration",
+    attrvalue  => "A attribute value is wrong in the configuration",
     bootstrap  => 'Consider executing `ningyou bootstrap`',
     bug        => $pfsc,
     cfg        => "Wrong configuration? $chkc",
@@ -212,7 +218,7 @@ sub e {
     $s->e( "ERROR: k not defined", "bug" ) if not defined $k;
     my $h = exists $hint->{$k} ? "HINT: $hint->{$k}" : q{};
 
-    my $str = q{}; # debug information
+    my $str = q{};                     # debug information
     my $di  = q{Debug information:};
     foreach my $n ( 0 .. 10 ) {
         my ( $p, $f, $l, $s ) = caller($n);
@@ -236,7 +242,7 @@ sub get_providers {
     return $providers;
 }
 
-sub get_distribution { # [os]
+sub get_distribution {    # [os]
     my ( $s, $i ) = @_;
     my $ini = exists $i->{ini} ? $i->{ini} : $s->e( 'no [ini]', 'sp' );
     my $os
@@ -250,7 +256,7 @@ sub get_distribution { # [os]
     return $distribution;
 }
 
-sub get_fqhn { # [system]
+sub get_fqhn {    # [system]
     my ( $s, $i ) = @_;
     my $ini = exists $i->{ini} ? $i->{ini} : $s->e( 'no [ini]', 'sp' );
     my $sys
@@ -263,7 +269,8 @@ sub get_fqhn { # [system]
         : $s->e( "no [fqhn] under [system] at [~/.ningyou.ini]", 'cfg' );
     return $fqhn;
 }
-sub get_class { # [class]
+
+sub get_class {    # [class]
     my ( $s, $i ) = @_;
     my $ini = exists $i->{ini} ? $i->{ini} : $s->e( 'no [ini]', 'sp' );
     my $class
@@ -271,10 +278,10 @@ sub get_class { # [class]
         ? $ini->{class}
         : $s->e( "no [class] section at [~/.ningyou.ini]", 'cfg' );
     my @class = ();
-    foreach my $c (sort keys %{$class}){ # name = [0|1]
+    foreach my $c ( sort keys %{$class} ) {    # name = [0|1]
         $s->d("consider class [$c]");
         push @class, $c if $class->{$c};
-        $s->d("add class [$c]") if  $class->{$c};
+        $s->d("add class [$c]") if $class->{$c};
     }
     return @class;
 }
@@ -418,7 +425,10 @@ sub validate_parameter {
             $s->d("* mandatory parameter [$p]");
             my $e = "no [$p] at $sub\n" . Dumper($i);
             $i->{$p} = exists $i->{$p} ? $i->{$p} : $s->e( $e, 'sp' );
-            $i->{$p} = ( exists $i->{$p} and defined $i->{$p} ) ? $i->{$p} : $s->e( $e, 'sp' );
+            $i->{$p}
+                = ( exists $i->{$p} and defined $i->{$p} )
+                ? $i->{$p}
+                : $s->e( $e, 'sp' );
             $s->d("  subroutine [$sub]");
             $s->d("  value [$i->{$p}]");
         }
