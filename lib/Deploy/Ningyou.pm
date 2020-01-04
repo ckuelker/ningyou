@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Starting class for Ningyou deployment                                     |
 # |                                                                           |
-# | Version: 0.1.1 (change our $VERSION inside)                               |
+# | Version: 0.1.2 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.2 2020-01-04 Christian Kuelker <c@c8i.org>                            |
+# |     - print version and date time on startup                              |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -23,7 +26,7 @@ use Deploy::Ningyou::Action;
 use Deploy::Ningyou::Provider;
 use Data::Dumper;
 
-our $VERSION = '0.1.1';
+our $VERSION = '0.1.2';
 
 with qw(
     Deploy::Ningyou::Env
@@ -78,7 +81,9 @@ sub begin {
     my $fn = $s->get_debug_filename;
     $s->d( "=" x 80 );
     my $project = $s->get_project_version;
-    $s->d("Ningyou $project");
+    my $dt = qx(date +'%FT%T');
+    chomp $dt;
+    $s->d("# Ningyou $project $dt\n");
     $s->d("NINGYOU_DEBUG [$fn]\n");
 
     # 2. init plugins
@@ -92,6 +97,7 @@ sub begin {
     my $action = $s->get_env_action();                  # bootstrap, ...
     $s->e( "unknown action", 'action' ) if $action eq q{};
     $s->d("action [$action]");
+    $s->p("# Ningyou $project $dt\n") if $action ne 'script';
 
     # 5. get aux modules from commandline
     my $mod = $s->env_modules();                        # [ zsh, default, ...]
