@@ -6,9 +6,12 @@
 # |                                                                           |
 # | Description.                                                              |
 # |                                                                           |
-# | Version: 0.1.0 (change inline)                                            |
+# | Version: 0.1.1 (change inline)                                            |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.1 2020-01-04 Christian Külker <c@c8i.org>                             |
+# |     - add dependency libconfig-inifiles-perl (checksum action)            |
 # |                                                                           |
 # | 0.1.0 2019-12-10 Christian Külker <c@c8i.org>                             |
 # |     - initial release                                                     |
@@ -83,7 +86,7 @@ if [ "$DIST" = "Debian" ]; then
     libconfig-tiny-perl libfile-dircompare-perl liblist-compare-perl \
     libnamespace-autoclean-perl libtemplate-perl libcapture-tiny-perl \
     libapt-pkg-perl libconfig-ini-perl libfile-touch-perl libgraph-perl \
-    libtest-deep-perl facter";
+    libtest-deep-perl libconfig-inifiles-perl facter";
     DZIL="$APT -y install libdist-zilla-perl \
     libdist-zilla-plugin-git-perl libdist-zilla-plugin-podweaver-perl \
     libdist-zilla-plugin-run-perl ";
