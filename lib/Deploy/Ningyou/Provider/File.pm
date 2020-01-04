@@ -3,7 +3,7 @@
 # |                                                                           |
 # | Provides file deployment                                                  |
 # |                                                                           |
-# | Version: 0.1.1 (change our $VERSION inside)                               |
+# | Version: 0.1.2 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
 # |                                                                           |
@@ -48,7 +48,7 @@ with qw(
     Deploy::Ningyou::Util::Provider
 );
 
-our $VERSION = '0.1.1';
+our $VERSION = '0.1.2';
 our $CACHE   = {};
 
 sub register { return 'file'; }
