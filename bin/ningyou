@@ -6,9 +6,12 @@
 # |                                                                           |
 # | Ningyou command line tool                                                 |
 # |                                                                           |
-# | Version: 0.1.0                                                            |
+# | Version: 0.1.1                                                            |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.1 2020-01-05 Christian Kuelker <c@c8i.org>                            |
+# |     - checksum action                                                     |
 # |                                                                           |
 # | 0.1.0 2019-04-18 Christian Kuelker <c@c8i.org>                            |
 # |     - initial release                                                     |
@@ -38,6 +41,10 @@ B<Ningyou>
 =head1 SYNOPSIS
 
 ningyou [OPTIONS] B<ARGUMENTS> [SCOPE]
+
+ningyou [OPTIONS] B<checksum> <FILE>
+
+ningyou [OPTIONS] B<module> <NAME>
 
 =head1 OPTIONS
 
@@ -83,6 +90,26 @@ This will recreate the main configuration under F<~/.ningyou.ini> without
 touching the working tree, in case F<~/.ningyou.ini> was lost or the
 I<worktree> is managed independently or externally.
 
+=item B<checksum FILE>
+
+This will calculate the checksum for the given file and update the manifest
+
+Example:
+
+    cd /srv/deploy/client/modules/default/files/
+    ningyou checksum vimrc
+
+Will update the checksum attribute in the corresponding I<file> section in the
+manifest F</srv/deploy/client/modules/default/manifests/vim.ini>:
+
+    [file:/root/.vimrc]
+    source=/srv/deploy/client/modules/default/files/vimrc
+    checksum=36613c87b1add62e21e24a8cb3188924
+    owner=root
+    group=root
+    mode=640
+    ensure=latest
+
 =item B<help> (same as --help)
 
 Prints brief help message. For more information: B<--man> or action 'man'.
@@ -119,6 +146,11 @@ option will print more information about each I<section> of the configuration.
 
 The scope can be a name of a I<module>, the keyword 'all' or it can be omitted.
 If omitted 'all' is the default value.
+
+=head1 FILE
+
+The file can be a name of a I<file> in the I<files> section of a module. It
+should be a single name, not absolute or relative.
 
 =head1 ENVIRONMENT VARIABLES
 
@@ -181,6 +213,8 @@ More information can be obtained by the provided documentation:
 
  ningyou apply                       : execute commands (see ningyou script)
  ningyou --verbose apply             : execute commands with expanations
+
+ ningyou checksum vimrc              : updates checksum attribut of manifest
 
 =cut
 

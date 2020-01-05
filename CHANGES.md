@@ -1,10 +1,19 @@
 ---
 title: CHANGES
 author: Christian Külker
-date: 2019-12-22
+date: 2020-01-04
 ---
 
 # Changes
+
+## 0.1.1
+
+* for some actions print version and date on startup (Deploy::Ningyou)
+* VERSION not longer handled by dzil (all)
+* new error hint 'attrvalue' (Deploy::Ningyou::Util)
+* fix some error messages (Deploy::Ningyou::Provider::File)
+* + dependency libconfig-inifiles-perl (checksum action) (bin/ningyou-install)
+* checksum explanation (ningyou, MANUAL.md, MANUAL.pdf, USAGE.md)
 
 ## 0.1.0
 
