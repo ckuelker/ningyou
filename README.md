@@ -3,7 +3,7 @@ title: Ningyou README
 author: Christian Külker
 date: 2020-01-05
 readme-version: 0.1.3
-ningyou-version: 0.1.0
+ningyou-version: 0.1.1
 ---
 
 # Abstract
