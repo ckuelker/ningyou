@@ -1,8 +1,8 @@
 ---
 title: Ningyou Usage
 author: Christian Külker
-date: 2019-12-11
-version: 0.1.0
+date: 2020-01-05
+version: 0.1.1
 ---
 
 # Abstract
@@ -142,9 +142,9 @@ Writing extended state information...
 Selecting previously unselected package vim-runtime.
 (Reading database ... 313256 files and directories currently installed.)
 Preparing to unpack .../vim-runtime_2%3a8.1.0875-5_all.deb ...
-Adding 'diversion of /usr/share/vim/vim81/doc/help.txt to 
+Adding 'diversion of /usr/share/vim/vim81/doc/help.txt to
 /usr/share/vim/vim81/doc/help.txt.vim-tiny by vim-runtime'
-Adding 'diversion of /usr/share/vim/vim81/doc/tags to 
+Adding 'diversion of /usr/share/vim/vim81/doc/tags to
 /usr/share/vim/vim81/doc/tags.vim-tiny by vim-runtime'
 Unpacking vim-runtime (2:8.1.0875-5) ...
 Setting up vim-runtime (2:8.1.0875-5) ...
@@ -209,6 +209,47 @@ similar like:
   file         : 0.1.0
   project      : 0.1.0
 # nothing to apply
+~~~
+
+## Update A Checksum
+
+Given the file `/srv/deploy/client/modules/default/manifest/default.ini` with
+the content:
+
+~~~
+[file:/root/.screenrc]
+source=/srv/deploy/client/modules/default/files/screenrc
+checksum=0658744c8cee2b7ba6728dc7696abcdd
+owner=root
+group=root
+mode=640
+ensure=latest
+~~~
+
+Then execute:
+
+~~~
+cd /srv/deploy/client/modules/default/files
+ningyou checksum screenrc
+~~~
+
+This will update the checksum of the corresponding section of the manifest
+
+~~~
+# Ningyou 0.1.0 2020-01-05T13:04:52
+WARNING: this command changes the configuration. It depends on
+         Config::IniFiles to write the configuration back.
+         While this module is quite smart and preserves order
+         and comments, it is not bullet prove. It might
+         produce invalid configuration. For example it will
+         merge attributes of duplicated sections. Make a backup
+         or commit to git before using this experimental
+         command.
+found the following section(s):
+- section [file:/root/.screenrc]
+  before [0658744c8cee2b7ba6728dc7696abcdd]
+  after [0658744c8cee2b7ba6728dc7696abcdb]
+updated [1] attribute(s)
 ~~~
 
 # DISCLAIMER OF WARRANTY
