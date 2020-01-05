@@ -1,9 +1,9 @@
 ---
 title: Ningyou Manual
 author: Christian Külker
-date: 2019-12-22
-manual-version: 0.1.1
-ningyou-version: 0.1.0
+date: 2020-01-05
+manual-version: 0.1.2
+ningyou-version: 0.1.1
 ---
 
 # Abstract
@@ -17,8 +17,13 @@ didactically reasons and can be found in [INSTALL.md](INSTALL.md) and
 
 Version Date       Author           Notes
 ------- ---------- ---------------- -------------------------------------------
+0.1.2   2020-01-05 Christian Külker new checksum action
 0.1.1   2019-12-22 Christian Külker add versions in YAML front matter
 0.1.0   2019-12-12 Christian Külker initial release
+
+### 0.1.2
+
+* description of checksum action
 
 ### 0.1.1
 
@@ -527,6 +532,7 @@ OPTIONS:
   ningyou [--main-configuration-only] bootstrap [PATH_WORKTREE]
   ningyou [--help|--man|--version]
   ningyou [--verbose] list|show|script|apply [<SCOPE>]
+  ningyou [--verbose] checksum <FILE>
   ningyou module <NAME>
 
 SCOPE:
@@ -557,6 +563,8 @@ ningyou --verbose script            : print bash script with explanations
 
 ningyou apply                       : execute commands (see ningyou script)
 ningyou --verbose apply             : execute commands with expanations
+
+ningyou checksum vimrc              : updates checksum attribute of manifest
 ~~~
 
 # Configuration Explained
