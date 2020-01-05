@@ -1,8 +1,8 @@
 ---
 title: Ningyou README
 author: Christian Külker
-date: 2019-12-22
-readme-version: 0.1.2
+date: 2020-01-05
+readme-version: 0.1.3
 ningyou-version: 0.1.0
 ---
 
@@ -85,7 +85,7 @@ Christian Külker <c@c8i.org>
 
 # Copyright And License
 
-This software is Copyright (c) 2013, 2014, 2019 by Christian Külker.
+This software is Copyright (c) 2013, 2014, 2019, 2020 by Christian Külker.
 
 This is free software, licensed under:
 
