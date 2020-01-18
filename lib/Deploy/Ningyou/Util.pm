@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Utilities                                                                 |
 # |                                                                           |
-# | Version: 0.1.2 (change our $VERSION inside)                               |
+# | Version: 0.1.3 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.3 2020-01-18 Christian Kuelker <c@c8i.org>                            |
+# |     - get_homedir                                                         |
 # |                                                                           |
 # | 0.1.2 2020-01-04 Christian Kuelker <c@c8i.org>                            |
 # |     - add attrvalue hint                                                  |
@@ -229,6 +232,14 @@ sub e {
             and $p ne q{};
     }
     die "\n$L\n" . $s->c( 'error', "ERROR" ) . ": $msg\n$h\n$L\n$di\n$str\n";
+}
+
+# system, user
+sub get_homedir {    # get the home dir for user from /etc/passwd
+    my ( $s, $user ) = @_;
+    my $homedir = qx( getent passwd "$user" | cut -d: -f6 );
+    chomp $homedir;
+    return $homedir;
 }
 
 # get provider configuration and subroutines
