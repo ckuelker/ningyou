@@ -9,6 +9,7 @@
 # |                                                                           |
 # | 0.1.2 2020-01-18 Christian Kuelker <c@c8i.org>                            |
 # |     - scripts now prints configuration version                            |
+# |     - add date and time to script boiler plate                            |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -299,6 +300,12 @@ sub get_boiler_plate {
     my $fqhn = $s->get_fqhn( { ini => $i->{ini} } );
     my $fn = "$i->{wt}/$fqhn.ini";
 
+    my $date = qx(date +'%F');
+    chomp $date;
+
+    my $time = qx(date +'%T');
+    chomp $time;
+
     return <<"END_OF_BOILER_PLATE";
 # +---------------------------------------------------------------------------+
 # | Ningyou script                                                            |
@@ -315,6 +322,8 @@ sub get_boiler_plate {
 # Worktree:                $i->{wt}
 # Configuration:           $fn
 # Command Line (approx):   $0 $options $action $scope
+# Date:                    $date
+# Time:                    $time
 #
 END_OF_BOILER_PLATE
 
