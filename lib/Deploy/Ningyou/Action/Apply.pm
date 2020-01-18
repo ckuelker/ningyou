@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Provides apply argument action                                            |
 # |                                                                           |
-# | Version: 0.1.1  (change our $VERSION inside)                              |
+# | Version: 0.1.2  (change our $VERSION inside)                              |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.2 2020-01-18 Christian Kuelker <c@c8i.org>                            |
+# |     - scripts now prints configuration version                            |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -36,8 +39,10 @@ has 'ini' => (
     #required=> 1, # do not seem to work with Module::Pluggable
 );
 
-with
-    qw(Deploy::Ningyou::Util Deploy::Ningyou::Util::Action Deploy::Ningyou::Modules);
+with qw(Deploy::Ningyou::Util
+    Deploy::Ningyou::Util::Action
+    Deploy::Ningyou::Modules
+    Deploy::Ningyou::Cfg);
 
 our $VERSION = '0.1.1';
 
@@ -304,7 +309,8 @@ sub get_boiler_plate {
 # |                                                                           |
 # +---------------------------------------------------------------------------+
 #
-# Ningyou project version: $i->{version}
+# Ningyou version:         $i->{version}
+# Ningyou configuration:   $Deploy::Ningyou::Cfg::VERSION
 # Ningyou script version:  $Deploy::Ningyou::Action::Apply::VERSION
 # Worktree:                $i->{wt}
 # Configuration:           $fn
