@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Provides file deployment                                                  |
 # |                                                                           |
-# | Version: 0.1.2 (change our $VERSION inside)                               |
+# | Version: 0.1.3 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.3 2020-01-18 Christian Kuelker <c@c8i.org>                            |
+# |     - remove unused variabled                                             |
 # |                                                                           |
 # | 0.1.2 2020-01-04 Christian Kuelker <c@c8i.org>                            |
 # |     - fix missing parameter in some error routines                        |
@@ -48,7 +51,7 @@ with qw(
     Deploy::Ningyou::Util::Provider
 );
 
-our $VERSION = '0.1.2';
+our $VERSION = '0.1.3';
 our $CACHE   = {};
 
 sub register { return 'file'; }
@@ -148,9 +151,6 @@ sub applied {
     my $got_owner = $s->get_owner_of_file($dst);
     my $got_group = $s->get_group_of_file($dst);
     my $got_mode  = $s->get_mode_of_file($dst);
-    my $owner  = ( defined $got_owner and $got_owner eq $c->{owner} ) ? 1 : 0;
-    my $group  = ( defined $got_group and $got_group eq $c->{group} ) ? 1 : 0;
-    my $mode   = ( defined $got_mode and $got_mode eq $c->{mode} ) ? 1 : 0;
     my @cmd    = @{ $s->get_cmd };
     my $return = 1;
     my $sec_c  = $s->c( 'module', $sec );
