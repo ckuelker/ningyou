@@ -1,9 +1,9 @@
 ---
 title: Ningyou README
 author: Christian Külker
-date: 2020-01-05
-readme-version: 0.1.3
-ningyou-version: 0.1.1
+date: 2020-01-16
+readme-version: 0.1.4
+ningyou-version: 0.1.2
 ---
 
 # Abstract
@@ -26,6 +26,7 @@ deterministic way.  On request it can produce scripts for update tasks.
 * [`Template::Toolkit`] language support in configuration files
 * Deployment of directories, files, links
 * Deployment of directory content via `rsync`
+* Font deployment
 
 # WARNING
 
@@ -90,7 +91,6 @@ This software is Copyright (c) 2013, 2014, 2019, 2020 by Christian Külker.
 This is free software, licensed under:
 
     The GNU General Public License, Version 2, June 1991
-
 
 [`CPAN`]:  https://www.cpan.org/
 [`Template::Toolkit`]: https://metacpan.org/pod/Template::Toolkit

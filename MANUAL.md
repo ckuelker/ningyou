@@ -1,9 +1,9 @@
 ---
 title: Ningyou Manual
 author: Christian Külker
-date: 2020-01-05
-manual-version: 0.1.2
-ningyou-version: 0.1.1
+date: 2020-01-16
+manual-version: 0.1.3
+ningyou-version: 0.1.2
 ---
 
 # Abstract
@@ -17,9 +17,14 @@ didactically reasons and can be found in [INSTALL.md](INSTALL.md) and
 
 Version Date       Author           Notes
 ------- ---------- ---------------- -------------------------------------------
+0.1.3   2020-01-16 Christian Külker font deployment
 0.1.2   2020-01-05 Christian Külker new checksum action
 0.1.1   2019-12-22 Christian Külker add versions in YAML front matter
 0.1.0   2019-12-12 Christian Külker initial release
+
+### 0.1.3
+
+* font deployment
 
 ### 0.1.2
 
@@ -975,6 +980,30 @@ recursively. You have been warned.
         require=CLASS:PROVIDER:DESTINATION
         checksum=md5                     REM:for checksum source and latest
                                                is mandatory
+
+## Font
+
+Installs one ore more fonts locally to `~/.local/share/fonts` or globally to
+`/usr/share/fonts`. The exact location is taken from the `global` value.  The
+Attribute `local` and `global` are mutually exclusive. The `global` mode checks
+the `FONT_NAME`. It checks if the font is known via `fc-list`. The attributes
+`owner`, `group` and `mode` are only used in `global` mode. The owner and group
+for the `local` mode are taken from the `local` values. In this case default
+mode 644 is used.
+
+    SECTION
+        [font:FONT_NAME]              REM:FONT_NAME checked only in global
+
+    MANDATORY ATTRIBUTES
+        source=path/to/file           REM:/path/to/*.ext possible
+        ensure=present|missing        REM:default present
+
+    OPTIONALLY ATTRIBUTES
+        local=USER0:GROUP0,USER1:GROUP0, ...
+        owner=USER                    REM:default root (only for global)
+        group=GROUP                   REM:default root (only for global)
+        mode=0644|644                 REM:default 0644 (only for global)
+        require=CLASS:PROVIDER:DESTINATION
 
 ## Git
 

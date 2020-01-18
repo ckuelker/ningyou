@@ -1,10 +1,17 @@
 ---
 title: CHANGES
 author: Christian Külker
-date: 2020-01-04
+date: 2020-01-16
 ---
 
 # Changes
+
+## 0.1.2
+
+* new font deployment support
+* new script version 0.1.2: print now more information in the header: script
+  version, date, time
+* source as new DEVELOMENT.md document
 
 ## 0.1.1
 

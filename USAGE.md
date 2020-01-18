@@ -252,6 +252,74 @@ found the following section(s):
 updated [1] attribute(s)
 ~~~
 
+# Ningyou 0.1.2 Installing Fonts
+
+The `font` provider can install a font familiy in one go (one or more files)
+and can check globally installed fonts. The `font` provider can not update
+fonts. The `file` provider works on only one font file. It can therfore update
+the font. If you want to install a font fast, use the `font` provider. If the
+installed fonts are updateing a lot, use the `file` provider.
+
+The following example installs a `local` font family with the `font` provider
+to /root/.local/share/fonts:
+
+    [font:MyFont]
+    source=/srv/deploy/client/modules/font/files/MyFont-0.1/*.otf
+    local=root:root
+    ensure=present
+
+The following example installs a `global` font family with the `font` provider
+to /usr/share/fonts/opentype/myfont:
+
+    [font:MyFont]
+    source=/srv/deploy/client/modules/font/files/MyFont-0.1/*.otf
+    global=/usr/share/fonts/opentype/myfont
+    ensure=present
+    owner=root
+    group=root
+    mode=0644
+
+The following example installs the same font with  `file` provider:
+
+    [font:/usr/share/fonts/opentype/myfont/myfont-a.otf]
+    source=/srv/deploy/client/modules/font/files/MyFont-0.1/myfont-a.otf
+    ensure=present
+    owner=root
+    group=root
+    mode=0644
+
+    [font:/usr/share/fonts/opentype/myfont/myfont-b.otf]
+    source=/srv/deploy/client/modules/font/files/MyFont-0.1/myfont-b.otf
+    ensure=present
+    owner=root
+    group=root
+    mode=0644
+
+| provider: | file | font  | font   |
+|           |      | local | global |
+| attribute |      |       |        |
+| --------- | ---- | ----- |--------|
+| latest    | yes  | no    | no     |
+| check     | no   | no    | yes    |
+| owner     | yes  | no 1  | yes    |
+| group     | yes  | no 1  | yes    |
+| mode      | yes  | no 2  | yes    |
+| checksum  | yes  | no    | no     |
+| source    | yes  | yes   | yes    |
+| require   | yes  | yes   | yes    |
+| ensure    | yes  | yes   | yes    |
+
+1: taken from `local` attribute
+2; default 0644
+
+| provider: | file | font  | font   |
+|           |      | local | global |
+| feature   |      |       |        |
+| --------- | ---- | ----- |--------|
+| 1 file    | yes  | yes   | yes    |
+| n files   | no   | yes   | yes    |
+
+
 # DISCLAIMER OF WARRANTY
 
     BECAUSE THIS SOFTWARE IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY FOR
