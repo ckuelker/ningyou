@@ -44,7 +44,7 @@ with qw(Deploy::Ningyou::Util
     Deploy::Ningyou::Modules
     Deploy::Ningyou::Cfg);
 
-our $VERSION = '0.1.1';
+our $VERSION = '0.1.2';
 
 # === [ main ] ================================================================
 sub register { return 'apply'; }
