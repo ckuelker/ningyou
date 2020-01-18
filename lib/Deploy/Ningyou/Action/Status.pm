@@ -63,7 +63,7 @@ sub apply {
     $i = $s->validate_parameter( { ini => 1, mod => 1, opt => 1 }, $i, {} );
     my $verbose = $s->get_verbose($i);    # opt
 
-    # 1. print: 
+    # 1. print:
     # Ningyou v0.1.0 at w2.c8i.org with /srv/deploy/w2.c8i.org.ini
     my $str0    = "# Ningyou %s at %s with %s\n";
     my $version = $s->get_project_version;                        # version
