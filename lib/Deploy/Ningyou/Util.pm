@@ -117,7 +117,7 @@ sub exists_color {
 }
 
 # === [ fixed ] ===============================================================
-sub get_project_version       { return '0.1.0'; }
+sub get_project_version       { return '0.1.2'; }
 sub get_configuration_version { return '0.1.0'; }
 sub get_date { my $date = qx(date +'%F'); chomp $date; return $date; }
 
