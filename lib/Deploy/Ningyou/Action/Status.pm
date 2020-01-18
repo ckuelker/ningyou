@@ -66,10 +66,10 @@ sub apply {
     # 1. print:
     # Ningyou v0.1.0 at w2.c8i.org with /srv/deploy/w2.c8i.org.ini
     my $str0    = "# Ningyou %s at %s with %s\n";
-    my $version = $s->get_project_version;                        # version
-    my $fqhn    = $s->get_fqhn( { ini => $i->{ini} } );           # host name
+    my $version = $s->get_project_version;                 # version
+    my $fqhn    = $s->get_fqhn( { ini => $i->{ini} } );    # host name
     my $wt      = $s->get_worktree;
-    my $hcfg_fn = "$wt/$fqhn.ini";                                # file name
+    my $hcfg_fn = "$wt/$fqhn.ini";                         # file name
     my $vc      = $s->c( 'version', "v$version" );
     my $hnc     = $s->c( 'host', $fqhn );
     my $fnc     = $s->c( 'file', $hcfg_fn );
@@ -85,11 +85,11 @@ sub apply {
     my $wtc = $s->c( 'file', $wt );
     $s->p( sprintf $str1, $ac, $sc, $wtc );
 
-    # 3. verbose print
-    # class:module                                                      enabled status
-    # ================================================================================
-    # * testing all components of global:ningyou:
-    #   - global:package:aptitude                                               [DONE]
+# 3. verbose print
+# class:module                                                      enabled status
+# ================================================================================
+# * testing all components of global:ningyou:
+#   - global:package:aptitude                                               [DONE]
     my $dl = 73;
     my $dx = $dl - 9;
     my $dy = $dl + 3;
@@ -121,10 +121,12 @@ sub apply {
             my $fmodule = "$class:$module";
 
             # if fullmodule ($class:$module) from CLI, we skip the rest
-            next if $scope ne 'all' and not( grep { $_ eq $fmodule } @{ $i->{mod} } );
+            next
+                if $scope ne 'all'
+                and not( grep { $_ eq $fmodule } @{ $i->{mod} } );
             my $fmodulec = $s->c( 'module', $fmodule );
             $s->p("* testing all components of $fmodulec:\n") if $verbose;
-            $s->d("$fmodulec:\n") ;
+            $s->d("$fmodulec:\n");
 
             if ( $hcfg->{$class}->{$module} ) {
                 $enabled->{$fmodule} = 1;
@@ -165,7 +167,9 @@ sub apply {
         $s->d("fmpodule [$fmodule]\n");
 
         # 5. continue only if one or more named modules are present
-        next if $scope ne 'all' and not( grep { $_ eq $fmodule } @{ $i->{mod} } );
+        next
+            if $scope ne 'all'
+            and not( grep { $_ eq $fmodule } @{ $i->{mod} } );
 
         # 6.
         # 7.
