@@ -1,15 +1,17 @@
 ---
 title: Ningyou DEVELOPMENT
 author: Christian Külker
-date: 2020-01-16
+date: 2020-01-19
 ---
 
 # Change Ningyou Version (ningyou_project_version)
 
+  * change `our $NINGYOU = 'x.y.z'; # Ningyou version` in file
+    `lib/Deploy/Ningyou/Env.pm`
   * changes `"VERSION" => "x.y.z"` in file `Makefile.PL`
   * chanage return value in sub `get_project_version` in file
     `lib/Deploy/Ningyou/Util.pm` like so:
-    `sub get_project_version { return '0.1.2'; }`
+    `sub get_project_version { return 'x.y.z'; }`
 
 # Use Ningyou Version (ningyou_project_version)
 
