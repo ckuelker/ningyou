@@ -26,7 +26,7 @@ use namespace::autoclean;
 use Getopt::Long qw(:config gnu_getopt permute);
 use Pod::Usage;
 
-our $NINGYOU = '0.1.0'; # Ningyou version
+our $NINGYOU = '0.1.2'; # Ningyou version
 our $VERSION = '0.1.1'; # Module version
 
 has 'action_list' => (
