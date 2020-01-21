@@ -1069,6 +1069,7 @@ purpose: adding files to non managed git repositories is possible.
     OPTIONALLY ATTRIBUTES
         comment=some text about rsync
         dry=1
+        exclude=PATTERN
         group=GROUP                   REM:default Ningyou group
         itemize=1
         mode=0755|755                 REM:default from system

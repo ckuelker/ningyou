@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Utilities for Provider                                                    |
 # |                                                                           |
-# | Version: 0.1.1 (change our $VERSION inside)                               |
+# | Version: 0.1.2 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.2 2020-01-21 Christian Kuelker <c@c8i.org>                            |
+# |     - - support rsync --exclude option                                    |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -37,7 +40,7 @@ requires qw(
 );
 with qw(Deploy::Ningyou::Util);
 
-our $VERSION = '0.1.1';
+our $VERSION = '0.1.2';
 
 # IN:
 #   cfg:
@@ -252,7 +255,7 @@ sub prv_info {
 sub url {
     my ( $s, $wt, $url ) = @_;
     $s->d("input url [$url]");
-    return $url if $url =~m{http}gmx;
+    return $url if $url =~ m{http}gmx;
     $url =~ s{ningyou://}{$wt/}gmx;
     $s->d("fully qualified file nane [$url]");
     $url =~ s{//}{/}gmx;
@@ -343,7 +346,7 @@ sub get_md5 {
 # --- [ dir helpers ] ---------------------------------------------------------
 # Deploy::Ningyou::Provider::Rsync
 sub compare_dirs {
-    my ( $s, $d1, $d2 ) = @_;
+    my ( $s, $d1, $d2, $exclude ) = @_;
     my @rem = ();
 
     use Carp;
@@ -356,6 +359,16 @@ sub compare_dirs {
         $d1, $d2,
         sub {
             my ( $a, $b ) = @_;
+
+            # assume equal unless tested exclude
+            if ( defined $exclude ) {
+                if ( defined $a and basename($a) eq $exclude ) {
+                    return ( 1, \@rem );
+                }
+                if ( defined $b and basename($b) eq $exclude ) {
+                    return ( 1, \@rem );
+                }
+            }
 
             # if the callback was called even once, the dirs are not equal
             $equal = 0;

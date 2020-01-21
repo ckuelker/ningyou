@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Provides recursive directory deplyment                                    |
 # |                                                                           |
-# | Version: 0.1.2 (change our $VERSION inside)                               |
+# | Version: 0.1.3 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.3 2020-01-21 Christian Kuelker <c@c8i.org>                            |
+# |     - support rsync --exclude option                                      |
 # |                                                                           |
 # | 0.1.2 2020-01-21 Christian Kuelker <c@c8i.org>                            |
 # |     - fix rsync --group option                                            |
@@ -48,7 +51,7 @@ with qw(
     Deploy::Ningyou::Util::Provider
 );
 
-our $VERSION = '0.1.1';
+our $VERSION = '0.1.3';
 
 sub register { return 'rsync'; }    # name of provider type: file, rsync, ...
 
@@ -73,6 +76,7 @@ sub attribute {
     return {
         comment => 0,
         dry     => 0,
+        exclude => 0,
         group   => 0,
         itemize => 0,
         mode    => 0,
@@ -87,6 +91,7 @@ sub attribute_default {
     return {
         comment => 0,
         dry     => 1,
+        exclude => 0,
         group   => 'root',
         itemize => 0,
         mode    => '0750',
@@ -104,6 +109,7 @@ sub attribute_description {
     return {
         comment => 'test, not used the moment',
         dry     => 'make dry-run',
+        exclude => 'exclude PATTERN',
         ensure  => 'latest|present|missing',
         group   => 'group name of the file: chgrp',
         itemize => 'output a change-summary for all updates',
@@ -161,7 +167,11 @@ sub applied {
 
     # construct command
     my $chmod = '--chmod=' . $c->{mode};
-    my $opt   = qq{$itemize $dryrun $purge $chmod};
+    my $exclude
+        = ( exists $c->{exclude} and $c->{exclude} )
+        ? qq{--exclude '$c->{exclude}'}
+        : q{};
+    my $opt = qq{$itemize $dryrun $purge $chmod $exclude};
     $c->{source} = $c->{source} . "/";
     $c->{source} =~ s{//$}{/}gmx;    # bar -> bar/  | bar/ -> bar/
     my $command = "$rsync $opt $c->{source} $dst";
@@ -200,7 +210,8 @@ sub applied {
 
     # 2. If do exists , then sync it (again)
     elsif ( -d $dst and $c->{source} and -d $dst ) {
-        my ( $equal, $rem ) = $s->compare_dirs( $dst, $c->{source} );
+        my ( $equal, $rem )
+            = $s->compare_dirs( $dst, $c->{source}, $c->{exclude} );
         if ( not $equal ) {
             my $v = "$pfx [$dst] do exist: should be synchronized again";
             foreach my $r ( @{$rem} ) {
