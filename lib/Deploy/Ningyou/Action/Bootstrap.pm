@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Provides bootstrap argument action                                        |
 # |                                                                           |
-# | Version: 0.1.2 (change our $VERSION inside)                               |
+# | Version: 0.1.3 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.3 2020-01-21 Christian Kuelker <c@c8i.org>                            |
+# |     - [class] section now in bootstrapped configuration                   |
 # |                                                                           |
 # | 0.1.2 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -53,7 +56,7 @@ with qw(
     Deploy::Ningyou::Host
 );
 
-our $VERSION = '0.1.2';
+our $VERSION = '0.1.3';
 
 # === [ main ] ================================================================
 sub register { return 'bootstrap'; }
@@ -87,8 +90,9 @@ sub apply {
     my $dist = $nf->get_facter_distribution;
 
     my $dir = cwd or $s->e( "Can not change to current directory", 'no_dir' );
-    $dir = ( defined $rep and $rep ne q{} ) ? $rep : "$dir/" . $s->get_rep_dir;
-    $dir=~s{//}{/}gmx; # in case / there will be //deploy
+    $dir
+        = ( defined $rep and $rep ne q{} ) ? $rep : "$dir/" . $s->get_rep_dir;
+    $dir =~ s{//}{/}gmx;    # in case / there will be //deploy
     $s->d("worktree dir [$dir]");
 
     my %config = (
@@ -205,9 +209,12 @@ sub apply {
     foreach my $dfn (@default) {
         next;    # disbaled for the moment
         $s->p("Using default manifest file name [$dfn]\n");
-        my $dt = Template->new( \%config ) || die Template->error(), "\n";
-        my $dtpl = $s->default_ini();
-        my $dvars = { VERSION => $Deploy::Ningyou::Action::Bootstrap::VERSION, FILENAME => $dfn };
+        my $dt    = Template->new( \%config ) || die Template->error(), "\n";
+        my $dtpl  = $s->default_ini();
+        my $dvars = {
+            VERSION  => $Deploy::Ningyou::Action::Bootstrap::VERSION,
+            FILENAME => $dfn
+        };
         my $dr = $dt->process( \$dtpl, $dvars, $dfn )
             || die $s->e( $dt->error() );
         $s->e( "Problem found when creating $dfn", 'permission' ) if not $dr;
@@ -273,6 +280,11 @@ project=[% PROJECT %]
 configuration=[% CONFIGURATION %]
 ; version of this file - change this when you update the file
 file=0.1.0
+
+[class]
+server=0
+client=0
+x11=0
 
 [global]
 worktree=[% WORKTREE %]
