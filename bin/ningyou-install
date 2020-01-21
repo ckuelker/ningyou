@@ -6,9 +6,12 @@
 # |                                                                           |
 # | Description.                                                              |
 # |                                                                           |
-# | Version: 0.1.2 (change inline)                                            |
+# | Version: 0.1.3 (change inline)                                            |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.3 2020-01-21 Christian Külker <c@c8i.org>                             |
+# |     - libfile-sharedir-install-perl                                       |
 # |                                                                           |
 # | 0.1.2 2020-01-21 Christian Külker <c@c8i.org>                             |
 # |     - libfile-sharedir-perl                                               |
@@ -89,7 +92,8 @@ if [ "$DIST" = "Debian" ]; then
     libconfig-tiny-perl libfile-dircompare-perl liblist-compare-perl \
     libnamespace-autoclean-perl libtemplate-perl libcapture-tiny-perl \
     libapt-pkg-perl libconfig-ini-perl libfile-touch-perl libgraph-perl \
-    libtest-deep-perl libconfig-inifiles-perl libfile-sharedir-perl facter";
+    libtest-deep-perl libconfig-inifiles-perl libfile-sharedir-perl \
+    libfile-sharedir-install-perl facter";
     DZIL="$APT -y install libdist-zilla-perl \
     libdist-zilla-plugin-git-perl libdist-zilla-plugin-podweaver-perl \
     libdist-zilla-plugin-run-perl ";

@@ -1,10 +1,14 @@
 ---
 title: CHANGES
 author: Christian Külker
-date: 2020-01-16
+date: 2020-01-21 
 ---
 
 # Changes
+
+## 0.1.3
+
+* add dependency libfile-sharedir-install-perl to bin/ningyou-install
 
 ## 0.1.2
 
