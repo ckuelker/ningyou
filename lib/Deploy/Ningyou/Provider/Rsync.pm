@@ -3,9 +3,13 @@
 # |                                                                           |
 # | Provides recursive directory deplyment                                    |
 # |                                                                           |
-# | Version: 0.1.1 (change our $VERSION inside)                               |
+# | Version: 0.1.2 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.2 2020-01-21 Christian Kuelker <c@c8i.org>                            |
+# |     - fix rsync --group option                                            |
+# |     - fix rsync --owner option                                            |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -157,9 +161,7 @@ sub applied {
 
     # construct command
     my $chmod = '--chmod=' . $c->{mode};
-    my $owner = '--owner=' . $c->{owner};
-    my $group = '--group=' . $c->{group};
-    my $opt   = qq{$itemize $dryrun $purge $chmod $owner $group};
+    my $opt   = qq{$itemize $dryrun $purge $chmod};
     $c->{source} = $c->{source} . "/";
     $c->{source} =~ s{//$}{/}gmx;    # bar -> bar/  | bar/ -> bar/
     my $command = "$rsync $opt $c->{source} $dst";
@@ -181,6 +183,18 @@ sub applied {
         my $v
             = "$pfx [$dst] do NOT exist: should be created and synchronized";
         push @cmd, { cmd => $command, verbose => $v };
+
+        # owner
+        if ( exists $c->{owner} and $c->{owner} ) {
+            $v = "$pfx [$dst] change owner to [$c->{owner}]";
+            push @cmd, { cmd => "chown -R $c->{owner} $dst", verbose => $v };
+        }
+
+        # group
+        if ( exists $c->{group} and $c->{group} ) {
+            $v = "$pfx [$dst] change group to [$c->{group}]";
+            push @cmd, { cmd => "chown -R $c->{group} $dst", verbose => $v };
+        }
         $return = 0;
     }
 
@@ -193,6 +207,20 @@ sub applied {
                 push @cmd, { verbose => $s->c( 'no', $r ) };
             }
             push @cmd, { cmd => $command, verbose => $v };
+
+            # owner
+            if ( exists $c->{owner} and $c->{owner} ) {
+                $v = "$pfx [$dst] change owner to [$c->{owner}]";
+                push @cmd,
+                    { cmd => "chown -R $c->{owner} $dst", verbose => $v };
+            }
+
+            # group
+            if ( exists $c->{group} and $c->{group} ) {
+                $v = "$pfx [$dst] change group to [$c->{group}]";
+                push @cmd,
+                    { cmd => "chown -R $c->{group} $dst", verbose => $v };
+            }
             $return = 0;
         }
     }
