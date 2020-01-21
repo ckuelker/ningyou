@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Provides directory deployment                                             |
 # |                                                                           |
-# | Version: 0.1.1 (change our $VERSION inside)                               |
+# | Version: 0.1.2 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.2 2020-01-21 Christian Kuelker <c@c8i.org>                            |
+# |     - fix error message                                                   |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -150,16 +153,17 @@ sub applied {
         if $c->{source} and not -f $c->{source};
 
     # b.3. Warn about ensure missing
-    $s->e( "Ensure is missing. Set automatically ensure=present in [$sec_c]\n"
+    $s->e( "No attribute 'ensure'. \nAdd ensure=present to [$sec_c]\n"
             . "at [$loc_c].\n"
-            . "Please add ensure=present or other value to 'ensure'" )
+            . "Please add ensure=present or other value to 'ensure'",'cfg' )
         if not exists $i->{cfg}->{ensure};
 
     $s->e(
               "Wrong value for ensure: "
             . $s->c( 'error', $c->{ensure} )
             . "\nin [$sec_c]\n"
-            . "at [$loc_c].", 'cfg'
+            . "at [$loc_c]. \n"
+            . "Make sure 'ensure=present' or 'ensure=missing'.", 'cfg'
     ) if not( $c->{ensure} eq 'present' or $c->{ensure} eq 'missing' );
 
     my $pfx  = "  => directory";
