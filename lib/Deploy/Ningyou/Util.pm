@@ -3,9 +3,13 @@
 # |                                                                           |
 # | Utilities                                                                 |
 # |                                                                           |
-# | Version: 0.1.3 (change our $VERSION inside)                               |
+# | Version: 0.1.4 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.4 2020-01-21 Christian Kuelker <c@c8i.org>                            |
+# |     - fix error subroutine                                                |
+# |     - fix error when processing a command                                 |
 # |                                                                           |
 # | 0.1.3 2020-01-18 Christian Kuelker <c@c8i.org>                            |
 # |     - get_homedir                                                         |
@@ -42,7 +46,7 @@ use vars qw(%COLOR_THEMES %COLORS $COLOR $COLOR_THEME $COLOR_DEPTH);
 
 with qw(Deploy::Ningyou::Env Deploy::Ningyou::Cfg Deploy::Ningyou::Host);
 
-our $VERSION = '0.1.2';
+our $VERSION = '0.1.4';
 our $L       = "=" x 80;
 %COLOR_THEMES = (
     default16 => {
@@ -203,6 +207,7 @@ our $hint = {
     cfg        => "Wrong configuration? $chkc",
     dir_exists => "Check the name, configuration or remove it. $chkc. $pta",
     dublicate  => "Attributes differ in duplicate sections. $chkc",
+    exe        => "Execution of command failed $chkc",
     file       => 'File do not exist. Check the file name',
     facter     => '/usr/bin/facter is missing. Install it?',
     no_dir     => 'You tried invoking ningyou from a non existing directory?',
@@ -217,9 +222,10 @@ our $hint = {
 
 # error: print and debug
 sub e {
-    my ( $s, $msg, $k ) = @_;
+    my ( $s, $msg, $k, $a ) = @_;    # self,msg,hint key word,aux info
     $s->e( "ERROR: k not defined", "bug" ) if not defined $k;
     my $h = exists $hint->{$k} ? "HINT: $hint->{$k}" : q{};
+    $h .= "\nAUX INFO: $a" if defined $a;
 
     my $str = q{};                     # debug information
     my $di  = q{Debug information:};
@@ -390,7 +396,9 @@ sub read_template_ini {
     my $t = Template->new( \%config ) || die Template->error(), "\n";
     my $var = { VERSION => $Deploy::Ningyou::Util::VERSION, };
     my $tpl = q{};
-    my $r = $t->process( $i->{fn}, $var, \$tpl ) || die $s->e( $t->error() );
+
+    my $r = $t->process( $i->{fn}, $var, \$tpl )
+        || die $s->e( $t->error(), 'exe', $i->{fn} );
     $s->d($tpl);
     my $cfg = Config::Tiny->read_string( $tpl, 'utf8' );
     return $cfg;
