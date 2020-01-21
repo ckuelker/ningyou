@@ -12,6 +12,7 @@ date: 2020-01-16
 * new script version 0.1.2: print now more information in the header: script
   version, date, time
 * source as new DEVELOMENT.md document
+* fixes some error messages
 
 ## 0.1.1
 
