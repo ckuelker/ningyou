@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Interface to the environment                                              |
 # |                                                                           |
-# | Version: 0.1.1 (change our $VERSION inside)                               |
+# | Version: 0.1.2 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.2 2020-01-21 Christian Kuelker <c@c8i.org>                            |
+# |     - bump Ningyou version                                                |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - make Ningyou version explicit                                       |
@@ -26,7 +29,7 @@ use namespace::autoclean;
 use Getopt::Long qw(:config gnu_getopt permute);
 use Pod::Usage;
 
-our $NINGYOU = '0.1.2'; # Ningyou version
+our $NINGYOU = '0.1.3'; # Ningyou version
 our $VERSION = '0.1.1'; # Module version
 
 has 'action_list' => (
