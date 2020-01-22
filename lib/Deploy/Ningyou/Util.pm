@@ -11,6 +11,7 @@
 # |     - bump ningyou version                                                |
 # |     - improve error hints                                                 |
 # |     - add section color                                                   |
+# |     - add attribute color                                                 |
 # |                                                                           |
 # | 0.1.4 2020-01-21 Christian Kuelker <c@c8i.org>                            |
 # |     - fix error subroutine                                                |
@@ -94,20 +95,22 @@ our $L       = "=" x 80;
     default256 => {
         color_depth => 256,
         colors      => {
-            yes => 10,
-            no  => 1,
+            attribute => 202,
+            file      => 51,
+            no        => 1,
+            section   => 11,
+            yes       => 10,
+
             #
             version => 135,
             undef   => 124,
             host    => 27,
-            file    => 51,
             string  => 226,
             object  => 10,
             module  => 10,
             key     => 202,
             comment => 34,
             keyword => 21,
-            section => 11,
             symbol  => 51,
             linum   => 10,
         },
@@ -206,12 +209,12 @@ our $pta  = "\nPlease try again";
 our $pfsc = "\nThis is a bug, please fix the source code ...";
 our $pce  = "\nPlease consider executing";
 our $hint = {
-    action     => 'Try --help or --man',
-    attribute  => "A mandatory attribute is missing in the configuration",
-    attrvalue  => "A attribute value is wrong in the configuration",
-    bootstrap  => "$pce `ningyou bootstrap` (or check, remove ~/.ningyou.ini)",
-    bug        => $pfsc,
-    cfg        => "Wrong configuration? $chkc",
+    action    => 'Try --help or --man',
+    attribute => "A mandatory attribute is missing in the configuration",
+    attrvalue => "A attribute value is wrong in the configuration",
+    bootstrap => "$pce `ningyou bootstrap` (or check, remove ~/.ningyou.ini)",
+    bug       => $pfsc,
+    cfg       => "Wrong configuration? $chkc",
     dir_exists => "Check the name, configuration or remove it. $chkc. $pta",
     dublicate  => "Attributes differ in duplicate sections. $chkc",
     exe        => "Execution of command failed $chkc. $pce command directly.",
