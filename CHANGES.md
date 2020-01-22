@@ -1,7 +1,7 @@
 ---
 title: CHANGES
 author: Christian Külker
-date: 2020-01-21 
+date: 2020-01-21
 ---
 
 # Changes
@@ -9,6 +9,13 @@ date: 2020-01-21
 ## 0.1.3
 
 * add dependency libfile-sharedir-install-perl to bin/ningyou-install
+* [class] section now in bootstrapped configuration
+* fix rsync usage of --group --owner
+* support rsync --exclude option
+* add bootstrap info to INSTALL.md
+* improve error message for pakage provider
+* bootrap --with-main-configuration will now add host.ini and .gitconfig
+* host.ini will have correct owner/group set
 
 ## 0.1.2
 
