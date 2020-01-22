@@ -176,7 +176,7 @@ sub apply {
     $s->e( "Problem found when creating $hfn", 'permission' ) if not $hr;
     $s->p("Created host file [$hfn]\n") if $hr;
     my $cm   = "+ host configuration $fqhn";
-    my $hcmd = qq{cd $dir&&git add $hfn;git commit -m $cm $hfn};
+    my $hcmd = qq{cd $dir&&git add $hfn;git commit -m '$cm' $hfn};
     $s->d($hcmd);
     my $ho = qx($hcmd);
     $s->p($ho);
