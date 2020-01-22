@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Provides package deployment                                               |
 # |                                                                           |
-# | Version: 0.1.1 (change our $VERSION inside)                               |
+# | Version: 0.1.2 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.2 2019-12-15 Christian Kuelker <c@c8i.org>                            |
+# |     - improve error message for incompatible attributes: source, version  |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -25,7 +28,7 @@ use Data::Dumper;
 use Moose;
 use namespace::autoclean;
 
-our $VERSION = '0.1.1';
+our $VERSION = '0.1.2';
 our $CACHE   = {};
 
 has 'cmd' => (
@@ -231,7 +234,7 @@ sub applied {
     my @cmd    = @{ $s->get_cmd };    # set by applied_in
     my $return = 0;
     if ( $c->{source} and $c->{version} ) {
-        $s->e( 'Attribute [source] are [version] incompatible', 'cfg' );
+        $s->e( 'Attribute [source] and [version] are incompatible', 'cfg' );
     }
     elsif ( $c->{source} ) {
         $s->d("package $dst has source [$c->{source}]");
