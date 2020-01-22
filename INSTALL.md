@@ -1,8 +1,8 @@
 ---
 title: Ningyou INSTALL
 author: Christian Külker
-date: 2019-12-10
-version: 0.1.0
+date: 2020-01-22
+version: 0.1.3
 ---
 
 There are different types of installation methods. This document describes only
@@ -14,14 +14,14 @@ See the `WARNING` message in [README.md](README.md) if you have data to loose.
 
 ## Download The Ningyou Release
 
-    wget https://github.com/ckuelker/ningyou/archive/v0.1.0.tar.gz
-    tar xvzf v0.1.0.tar.gz
+    wget https://github.com/ckuelker/ningyou/archive/v0.1.3.tar.gz
+    tar xvzf v0.1.3.tar.gz
 
 ## Installing Dependencies And Ningyou
 
 Use the system administrator account, usually `root`, for the following.
 
-    ningyou-0.1.0/bin/ningyou-install
+    ningyou-0.1.3/bin/ningyou-install
 
 Depending on the local Perl configuration it will install in `/usr/local`.
 
@@ -37,6 +37,39 @@ a git repository `/root/deploy`, if not already there. Or specify the
 repository, if you do not like the default name `deploy`:
 
     ningyou bootstrap /path/to/git/repository
+
+The same applies if the directory should be at a different location
+
+    cd
+    ningyou bootstrap /srv/deploy
+
+The recommended method is to use a dedicated git repository for the deploy
+configuration managed by a USER:
+
+    cd
+    mkdir -p /srv/deploy
+    chown USER.GROUP /srv/deploy
+    su - USER
+    cd /srv
+    git clone user@server:deploy.git
+    exit
+    ningyou --main-configuration-only bootstrap /srv/deploy
+
+This will print
+
+~~~
+About to bootstrap Ningyou to [/srv/deploy]
+Using configuration file name [/root/.ningyou.ini]
+Created configuration file [/root/.ningyou.ini]
+Applied bootstrap
+~~~
+
+Consider swapping the ningyou configuration for the USER (so that booth are
+using the same ningyou configuration/ worktree):
+
+    mv /root/.ningyou.ini /home/USER
+    ln -s /home/USER/.ningyou.ini /root
+
 
 To understand other options on how to install __Ningyou__, please refer
 to [MANUAL.md](MANUAL.md). On how to go from here, see [USAGE.md](USAGE.md)
