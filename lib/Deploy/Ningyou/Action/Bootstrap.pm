@@ -11,6 +11,7 @@
 # |     - [class] section now in bootstrapped configuration                   |
 # |     - create host.ini with --main-configuration-only                      |
 # |     - create .gitconfig with --main-configuration-only                    |
+# |     - add class sections in host.ini                                      |
 # |                                                                           |
 # | 0.1.2 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -339,6 +340,15 @@ file=0.1.0
 ; active modules = 1
 ; inactive modules = 0
 ningyou=1
+
+[client]
+; base software, similar to global
+
+[server]
+; headless client
+
+[x11]
+; desktop, laptop
 
 [[% DISTRIBUTION %]]
 ; distribution [% DISTRIBUTION %] dependent modules
