@@ -13,6 +13,7 @@
 # |     - create .gitconfig with --main-configuration-only                    |
 # |     - add class sections in host.ini                                      |
 # |     - change owner/group of host.ini to repository owner/group            |
+# |     - cleanup host.ini host file name                                     |
 # |                                                                           |
 # | 0.1.2 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -173,6 +174,7 @@ sub apply {
 
     # 7. create host configuration with main and without
     my $hfn = "$dir/$fqhn.ini";
+    $hfn =~ s{//}{/}gmx;    # clean up
     $s->p("Using host file name [$hfn]\n");
     my $ht    = Template->new( \%config ) || die Template->error(), "\n";
     my $htpl  = $s->host_ini();
