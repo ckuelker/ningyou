@@ -9,6 +9,8 @@
 # |                                                                           |
 # | 0.1.3 2020-01-21 Christian Kuelker <c@c8i.org>                            |
 # |     - [class] section now in bootstrapped configuration                   |
+# |     - create host.ini with --main-configuration-only                      |
+# |     - create .gitconfig with --main-configuration-only                    |
 # |                                                                           |
 # | 0.1.2 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -112,14 +114,13 @@ sub apply {
     $s->p("Created configuration file [$fn]\n") if $mr;
 
     my $sw = 'main-configuration-only';
-    return 1 if exists $opt->{$sw} and $opt->{$sw};
+    my $main = ( exists $opt->{$sw} and $opt->{$sw} ) ? 1 : 0;
 
     # 3.0 check of git configuration is present, of not create
     #     does not make sense to create worktree without git configuration
     my $gcfn = "$ENV{HOME}/.gitconfig";
     if ( -f $gcfn ) {
         $s->p("git configuration [$gcfn] exists\n");
-
     }
     else {
         touch( ($gcfn) )
@@ -134,34 +135,37 @@ sub apply {
         my $gcr = $gct->process( \$gctpl, $gcvars, $gcfn )
             || die $s->e( $gct->error() );
         $s->p("Created configuration file [$gcfn]\n") if $gcr;
-
     }
 
-    # 3.1 check work tree is NOT present
-    $s->e( "Work tree already present [$dir]", 'removing' ) if -d $dir;
-    $s->p("Bootstrapping Ningyou to work tree [$dir]\n");
-
-    # 4. create work tree
-    mkdir $dir;
-    my $mode = 0750;
-    chmod $mode, $dir;
-    $s->e( "$!! Can not create [$dir]", 'permission' ) if not -d $dir;
-    $s->p("Created work tree [$dir]\n") if -d $dir;
-
-    # 5. create distribution
     my $repo = "$dir/$dist";
-    mkdir $repo;
-    chmod $s->e( "$!! Can not create [$repo]", 'permission' )
-        if not -d $repo;
-    $s->p("Created distribution [$repo]\n") if -d $repo;
+    my $mode = 0750;
+    if ( not $main ) {
 
-    # 6. git init
-    my $cmd = qq{cd $dir && git init};
-    my @o   = qx($cmd)
-        or die $s->e( "$!! Can not initialize git repository", 'permission' );
-    foreach my $o (@o) { $s->p($o); }
+        # 3.1 check work tree is NOT present
+        $s->e( "Work tree already present [$dir]", 'removing' ) if -d $dir;
+        $s->p("Bootstrapping Ningyou to work tree [$dir]\n");
 
-    # 7. create host configuration
+        # 4. create work tree
+        mkdir $dir;
+        chmod $mode, $dir;
+        $s->e( "$!! Can not create [$dir]", 'permission' ) if not -d $dir;
+        $s->p("Created work tree [$dir]\n") if -d $dir;
+
+        # 5. create distribution
+        mkdir $repo;
+        chmod $s->e( "$!! Can not create [$repo]", 'permission' )
+            if not -d $repo;
+        $s->p("Created distribution [$repo]\n") if -d $repo;
+
+        # 6. git init
+        my $cmd = qq{cd $dir && git init};
+        my @o   = qx($cmd)
+            or die $s->e( "$!! Can not initialize git repository",
+            'permission' );
+        foreach my $o (@o) { $s->p($o); }
+    }    # not main
+
+    # 7. create host configuration with main and without
     my $hfn = "$dir/$fqhn.ini";
     $s->p("Using host file name [$hfn]\n");
     my $ht    = Template->new( \%config ) || die Template->error(), "\n";
@@ -171,82 +175,87 @@ sub apply {
         || die $s->e( $ht->error() );
     $s->e( "Problem found when creating $hfn", 'permission' ) if not $hr;
     $s->p("Created host file [$hfn]\n") if $hr;
-    my $hcmd
-        = qq{cd $dir&&git add $hfn;git commit -m "+ host configuration $fqhn" $hfn};
+    my $cm   = "+ host configuration $fqhn";
+    my $hcmd = qq{cd $dir&&git add $hfn;git commit -m $cm $hfn};
     $s->d($hcmd);
     my $ho = qx($hcmd);
     $s->p($ho);
 
-    # 8. create more directories
     my @dir = ();
-    push @dir, "$dir/global";
-    push @dir, "$dir/global/modules";
-    push @dir, "$dir/global/modules/ningyou";
-    push @dir, "$dir/global/modules/ningyou/files";
-    push @dir, "$dir/global/modules/ningyou/manifests";
+    if ( not $main ) {
 
-    #push @dir, "$repo/modules";
-    #push @dir, "$repo/modules/default";
-    #push @dir, "$repo/modules/default/files";
-    #push @dir, "$repo/modules/default/manifests";
-    #push @dir, "$dir/$fqhn";
-    #push @dir, "$dir/$fqhn/modules";
-    #push @dir, "$dir/$fqhn/modules/default";
-    #push @dir, "$dir/$fqhn/modules/default/files";
-    #push @dir, "$dir/$fqhn/modules/default/manifests";
-    foreach my $d (@dir) {
-        $s->p("Crate directory [$d]\n");
-        mkdir $d;
-        $s->e( "$!! Can not create [$d]", 'permission' ) if not -d $d;
-    }
+        # 8. create more directories
+        push @dir, "$dir/global";
+        push @dir, "$dir/global/modules";
+        push @dir, "$dir/global/modules/ningyou";
+        push @dir, "$dir/global/modules/ningyou/files";
+        push @dir, "$dir/global/modules/ningyou/manifests";
 
-    # 9. create default module at 3 locations
-    my @default = (
-        "$dir/global/modules/default/manifests/default.ini",
-        "$repo/modules/default/manifests/default.ini",
-        "$dir/$fqhn/modules/default/manifests/default.ini",
-    );
-    foreach my $dfn (@default) {
-        next;    # disbaled for the moment
-        $s->p("Using default manifest file name [$dfn]\n");
-        my $dt    = Template->new( \%config ) || die Template->error(), "\n";
-        my $dtpl  = $s->default_ini();
-        my $dvars = {
-            VERSION  => $Deploy::Ningyou::Action::Bootstrap::VERSION,
-            FILENAME => $dfn
-        };
-        my $dr = $dt->process( \$dtpl, $dvars, $dfn )
-            || die $s->e( $dt->error() );
-        $s->e( "Problem found when creating $dfn", 'permission' ) if not $dr;
-        $s->p("Created manifest file [$dfn]\n") if $dr;
-        my $dcmd
-            = qq{cd $dir&&git add $dfn;git commit -m "+ module manifest $dfn" $dfn};
-        $s->d($dcmd);
-        my $do = qx($dcmd);
-        $s->p($do);
-    }
+        #push @dir, "$repo/modules";
+        #push @dir, "$repo/modules/default";
+        #push @dir, "$repo/modules/default/files";
+        #push @dir, "$repo/modules/default/manifests";
+        #push @dir, "$dir/$fqhn";
+        #push @dir, "$dir/$fqhn/modules";
+        #push @dir, "$dir/$fqhn/modules/default";
+        #push @dir, "$dir/$fqhn/modules/default/files";
+        #push @dir, "$dir/$fqhn/modules/default/manifests";
+        foreach my $d (@dir) {
+            $s->p("Crate directory [$d]\n");
+            mkdir $d;
+            $s->e( "$!! Can not create [$d]", 'permission' ) if not -d $d;
+        }
 
-    # 10. create ningyou module at 1 location
-    my @ningyou = ( "$dir/global/modules/ningyou/manifests/ningyou.ini", );
-    foreach my $dfn (@ningyou) {
-        $s->p("Using ningyou manifest file name [$dfn]\n");
-        my $dt    = Template->new( \%config ) || die Template->error(), "\n";
-        my $dtpl  = $s->ningyou_module_ini();
-        my $dvars = {
-            VERSION  => $Deploy::Ningyou::Action::Bootstrap::VERSION,
-            FILENAME => $dfn
-        };
-        my $dr = $dt->process( \$dtpl, $dvars, $dfn )
-            || die $s->e( $dt->error() );
-        $s->e( "Problem found when creating $dfn", 'permission' ) if not $dr;
-        $s->p("Created manifest file [$dfn]\n") if $dr;
-        my $cstr = "+ module manifest $dfn";
-        my $dcmd = qq{cd $dir&&git add $dfn;git commit -m "$cstr" $dfn};
-        $s->d($dcmd);
-        my $do = qx($dcmd);
-        $s->p($do);
-    }
+        # 9. create default module at 3 locations
+        my @default = (
+            "$dir/global/modules/default/manifests/default.ini",
+            "$repo/modules/default/manifests/default.ini",
+            "$dir/$fqhn/modules/default/manifests/default.ini",
+        );
+        foreach my $dfn (@default) {
+            next;    # disbaled for the moment
+            $s->p("Using default manifest file name [$dfn]\n");
+            my $dt = Template->new( \%config ) || die Template->error(), "\n";
+            my $dtpl  = $s->default_ini();
+            my $dvars = {
+                VERSION  => $Deploy::Ningyou::Action::Bootstrap::VERSION,
+                FILENAME => $dfn
+            };
+            my $dr = $dt->process( \$dtpl, $dvars, $dfn )
+                || die $s->e( $dt->error() );
+            $s->e( "Problem found when creating $dfn", 'permission' )
+                if not $dr;
+            $s->p("Created manifest file [$dfn]\n") if $dr;
+            my $dcmd
+                = qq{cd $dir&&git add $dfn;git commit -m "+ module manifest $dfn" $dfn};
+            $s->d($dcmd);
+            my $do = qx($dcmd);
+            $s->p($do);
+        }
 
+        # 10. create ningyou module at 1 location
+        my @ningyou
+            = ( "$dir/global/modules/ningyou/manifests/ningyou.ini", );
+        foreach my $dfn (@ningyou) {
+            $s->p("Using ningyou manifest file name [$dfn]\n");
+            my $dt = Template->new( \%config ) || die Template->error(), "\n";
+            my $dtpl  = $s->ningyou_module_ini();
+            my $dvars = {
+                VERSION  => $Deploy::Ningyou::Action::Bootstrap::VERSION,
+                FILENAME => $dfn
+            };
+            my $dr = $dt->process( \$dtpl, $dvars, $dfn )
+                || die $s->e( $dt->error() );
+            $s->e( "Problem found when creating $dfn", 'permission' )
+                if not $dr;
+            $s->p("Created manifest file [$dfn]\n") if $dr;
+            my $cstr = "+ module manifest $dfn";
+            my $dcmd = qq{cd $dir&&git add $dfn;git commit -m "$cstr" $dfn};
+            $s->d($dcmd);
+            my $do = qx($dcmd);
+            $s->p($do);
+        }
+    }    # not main
     return 1;
 }
 
