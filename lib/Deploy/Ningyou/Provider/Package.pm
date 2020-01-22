@@ -9,6 +9,7 @@
 # |                                                                           |
 # | 0.1.2 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - improve error message for incompatible attributes: source, version  |
+# |     - add section and file info to error messages                         |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -201,6 +202,12 @@ sub script { return 0; }
 
 sub apply { my ( $s, $i ) = @_; return $s->standard_apply($i); }
 
+sub a {
+    my ( $s, $attr ) = @_;
+    my $kw = $s->c( 'attribute', $attr );
+    return "Attribute [$kw] contradicts ";
+}
+
 # applied
 # IN:
 # OUT:
@@ -212,7 +219,15 @@ sub applied {
     # verbose section class provider destination
     my ( $v, $sec, $cls, $prv, $dst, $cfg, $c, $loc, $ok )
         = $s->applied_in( { i => $i } );
-    $s->e( 'section is not OK', 'cfg' ) if not $ok;
+
+    #print "( $v, $sec, $cls, $prv, $dst, $cfg, $c, $loc, $ok )\n";
+
+    # error msg helper
+    my $sc = $s->c( 'section', $sec );
+    my $lc = $s->c( 'file',    $loc );
+    my $at = "\nin file [$lc]\nat section [$sc]";
+
+    $s->e( "section is not OK$at", 'cfg' ) if not $ok;
 
     # package version helpers
     $_config->init;
@@ -234,12 +249,14 @@ sub applied {
     my @cmd    = @{ $s->get_cmd };    # set by applied_in
     my $return = 0;
     if ( $c->{source} and $c->{version} ) {
-        $s->e( 'Attribute [source] and [version] are incompatible', 'cfg' );
+        my $sc = $s->c( 'attribute', 'source' );
+        my $vc = $s->c( 'attribute', 'version' );
+        $s->e( "Incompatible attribute [$sc] and [$vc]$at", 'cfg' );
     }
     elsif ( $c->{source} ) {
         $s->d("package $dst has source [$c->{source}]");
         if ( $c->{ensure} eq 'latest' ) {
-            $s->e( 'Attribute [source] contradicts ensure=latest', 'cfg' );
+            $s->e( $s->a('source') . "ensure=latest$at", 'cfg' );
         }
         elsif ( $c->{ensure} eq 'present' ) {
             if ($cv) {
@@ -252,16 +269,16 @@ sub applied {
             }
         }
         elsif ( $c->{ensure} eq 'missing' ) {
-            $s->e( 'Attribute [source] contradicts ensure=missing', 'cfg' );
+            $s->e( $s->a('source') . "ensure=missing$at", 'cfg' );
         }
         else {
-            $s->e( "Unknown value ensure=$c->{ensure}", 'cfg' );
+            $s->e( "Unknown value ensure=$c->{ensure}$at", 'cfg' );
         }
     }
     elsif ( $c->{version} ) {
         $s->d("package $dst has version [$c->{version}]");
         if ( $c->{ensure} eq 'latest' ) {
-            $s->e( 'Attribute [version] contradicts ensure=latest', 'cfg' );
+            $s->e( $s->a('version') . "ensure=latest$at", 'cfg' );
         }
         elsif ( $c->{ensure} eq 'present' ) {
             if ($cv) {
@@ -289,10 +306,10 @@ sub applied {
             }
         }
         elsif ( $c->{ensure} eq 'missing' ) {
-            $s->e( 'Attribute [version] contradicts ensure=missing', 'cfg' );
+            $s->e( $s->a('version') . "ensure=missing$at", 'cfg' );
         }
         else {
-            $s->e( "Unknown value ensure=$c->{ensure}", 'cfg' );
+            $s->e( "Unknown value ensure=$c->{ensure}$at", 'cfg' );
         }
     }
     elsif ( not $c->{version} and not $s->{source} ) {
@@ -346,11 +363,11 @@ sub applied {
             }
         }
         else {
-            $s->e( "Unknown value ensure=$c->{ensure}", 'cfg' );
+            $s->e( "Unknown value ensure=$c->{ensure}$at", 'cfg' );
         }
     }
     else {
-        $s->e( 'Unknown condition in provider [package]', 'bug' );
+        $s->e( "Unknown condition in provider [package]$at", 'bug' );
     }
     $s->set_cmd( \@cmd );
     return $return;
