@@ -10,6 +10,7 @@
 # | 0.1.5 2020-01-21 Christian Kuelker <c@c8i.org>                            |
 # |     - bump ningyou version                                                |
 # |     - improve error hints                                                 |
+# |     - add section color                                                   |
 # |                                                                           |
 # | 0.1.4 2020-01-21 Christian Kuelker <c@c8i.org>                            |
 # |     - fix error subroutine                                                |
@@ -106,6 +107,7 @@ our $L       = "=" x 80;
             key     => 202,
             comment => 34,
             keyword => 21,
+            section => 11,
             symbol  => 51,
             linum   => 10,
         },
