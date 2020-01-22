@@ -9,6 +9,7 @@
 # |                                                                           |
 # | 0.1.5 2020-01-21 Christian Kuelker <c@c8i.org>                            |
 # |     - bump ningyou version                                                |
+# |     - improve error hints                                                 |
 # |                                                                           |
 # | 0.1.4 2020-01-21 Christian Kuelker <c@c8i.org>                            |
 # |     - fix error subroutine                                                |
@@ -201,16 +202,17 @@ our $chkc = "\nPlease check the configuration";
 our $chkl = "\nPlease check the loation or configuration";
 our $pta  = "\nPlease try again";
 our $pfsc = "\nThis is a bug, please fix the source code ...";
+our $pce  = "\nPlease consider executing";
 our $hint = {
     action     => 'Try --help or --man',
     attribute  => "A mandatory attribute is missing in the configuration",
     attrvalue  => "A attribute value is wrong in the configuration",
-    bootstrap  => 'Consider executing `ningyou bootstrap`',
+    bootstrap  => "$pce `ningyou bootstrap` (or check, remove ~/.ningyou.ini)",
     bug        => $pfsc,
     cfg        => "Wrong configuration? $chkc",
     dir_exists => "Check the name, configuration or remove it. $chkc. $pta",
     dublicate  => "Attributes differ in duplicate sections. $chkc",
-    exe        => "Execution of command failed $chkc",
+    exe        => "Execution of command failed $chkc. $pce command directly.",
     file       => 'File do not exist. Check the file name',
     facter     => '/usr/bin/facter is missing. Install it?',
     no_dir     => 'You tried invoking ningyou from a non existing directory?',
@@ -220,7 +222,7 @@ our $hint = {
     sp         => "Parameter was not given to the subroutine. $pfsc",
     usage      => 'Wrong usage, see --help or --man',
     worktree   => $chkl,
-    wrong_dir  => 'Executing ningyou from the wrong directory?',
+    wrong_dir  => 'Executed ningyou from the wrong directory?',
 };
 
 # error: print and debug
