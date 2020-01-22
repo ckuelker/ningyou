@@ -12,6 +12,7 @@
 # |     - create host.ini with --main-configuration-only                      |
 # |     - create .gitconfig with --main-configuration-only                    |
 # |     - add class sections in host.ini                                      |
+# |     - change owner/group of host.ini to repository owner/group            |
 # |                                                                           |
 # | 0.1.2 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -97,6 +98,10 @@ sub apply {
         = ( defined $rep and $rep ne q{} ) ? $rep : "$dir/" . $s->get_rep_dir;
     $dir =~ s{//}{/}gmx;    # in case / there will be //deploy
     $s->d("worktree dir [$dir]");
+    my $uid   = ( lstat($dir) )[4];    # in case not root
+    my $gid   = ( lstat($dir) )[5];    # in case not root
+    my $owner = getpwuid($uid);        # in case not root
+    my $group = getgrgid($gid);        # in case not root
 
     my %config = (
         VARIABLES => {
@@ -175,12 +180,21 @@ sub apply {
     my $hr    = $mt->process( \$htpl, $hvars, $hfn )
         || die $s->e( $ht->error() );
     $s->e( "Problem found when creating $hfn", 'permission' ) if not $hr;
-    $s->p("Created host file [$hfn]\n") if $hr;
-    my $cm   = "+ host configuration $fqhn";
-    my $hcmd = qq{cd $dir&&git add $hfn;git commit -m '$cm' $hfn};
-    $s->d($hcmd);
-    my $ho = qx($hcmd);
-    $s->p($ho);
+
+    if ($hr) {
+        $s->p("Created host file [$hfn]\n");
+        my $chowno = qx(chown $owner $hfn);
+        $s->p($chowno);
+        $s->p("Changed owner of [$hfn] to [$owner]\n");
+        my $chgrpo = qx(chgrp $group $hfn);
+        $s->p($chgrpo);
+        $s->p("Changed group of [$hfn] to [$group]\n");
+        my $cm   = "+ host configuration $fqhn";
+        my $hcmd = qq{cd $dir&&git add $hfn;git commit -m '$cm' $hfn};
+        $s->d($hcmd);
+        my $ho = qx($hcmd);
+        $s->p($ho);
+    }
 
     my @dir = ();
     if ( not $main ) {
