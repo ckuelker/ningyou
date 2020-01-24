@@ -106,7 +106,7 @@ Christian Külker <c@c8i.org>
 
 # Copyright and License
 
-This software is Copyright (c) 2013, 2014, 2019 by Christian Külker.
+This software is Copyright (c) 2013, 2014, 2019, 2020 by Christian Külker.
 
 This is free software, licensed under:
 
