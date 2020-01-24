@@ -5,8 +5,11 @@ date: 2020-01-22
 version: 0.1.3
 ---
 
+# Abstract
+
 There are different types of installation methods. This document describes only
-__one__ simple method. For other methods, please refer to [MANUAL.md](MANUAL.md).
+__one__ simple method. For other methods, please refer to
+[MANUAL.md](MANUAL.md).
 
 # Installing A Ningyou Release On A Fresh Installed OS
 
@@ -29,11 +32,11 @@ Depending on the local Perl configuration it will install in `/usr/local`.
 
 Use the system administrator account, usually `root`, for the following.
 
-    cd
+    cd /srv
     ningyou bootstrap
 
 This will create the file `~/.ningyou.ini`, `~/.gitconfig` (if not present) and
-a git repository `/root/deploy`, if not already there. Or specify the
+a git repository `/srv/deploy`, if not already there. Or specify the
 repository, if you do not like the default name `deploy`:
 
     ningyou bootstrap /path/to/git/repository
@@ -43,8 +46,8 @@ The same applies if the directory should be at a different location
     cd
     ningyou bootstrap /srv/deploy
 
-The recommended method is to use a dedicated git repository for the deploy
-configuration managed by a USER:
+The recommended method is to use a __dedicated__ git repository for the deploy
+configuration managed by a USER and not by root:
 
     cd
     mkdir -p /srv/deploy
