@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Provides status argument action                                           |
 # |                                                                           |
-# | Version: 0.1.1 (change our $VERSION inside)                               |
+# | Version: 0.1.2 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.2 2020-01-24 Christian Kuelker <c@c8i.org>                            |
+# |     - add date and time to status                                         |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -62,6 +65,8 @@ sub apply {
     my ( $s, $i ) = @_;
     $i = $s->validate_parameter( { ini => 1, mod => 1, opt => 1 }, $i, {} );
     my $verbose = $s->get_verbose($i);    # opt
+    my $dt      = qx(date +'%FT%T');
+    chomp $dt;
 
     # 1. print:
     # Ningyou v0.1.0 at w2.c8i.org with /srv/deploy/w2.c8i.org.ini
@@ -76,14 +81,14 @@ sub apply {
     $s->p( sprintf $str0, $vc, $hnc, $fnc );
 
     # 2. print:
-    # Status modules(s) all in /srv/deploy
-    my $str1   = "# %s modules(s) %s in %s\n";
+    # Status modules(s) all in /srv/deploy at 2020-01-24T18:07:16
+    my $str1   = "# %s modules(s) %s in %s at %s\n";
     my $action = $s->register;                    # action
     my $scope  = $s->parse_scope( $i->{mod} );    # all | <MODULE> [<MODULE>]
     my $ac  = $s->c( 'action', ucfirst($action) );
     my $sc  = $s->c( 'scope', $scope );
     my $wtc = $s->c( 'file', $wt );
-    $s->p( sprintf $str1, $ac, $sc, $wtc );
+    $s->p( sprintf $str1, $ac, $sc, $wtc, $dt );
 
 # 3. verbose print
 # class:module                                                      enabled status
