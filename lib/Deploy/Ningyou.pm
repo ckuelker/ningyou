@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Starting class for Ningyou deployment                                     |
 # |                                                                           |
-# | Version: 0.1.2 (change our $VERSION inside)                               |
+# | Version: 0.1.3 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.3 2020-01-24 Christian Kuelker <c@c8i.org>                            |
+# |     - do not print version and date time on startup                       |
 # |                                                                           |
 # | 0.1.2 2020-01-04 Christian Kuelker <c@c8i.org>                            |
 # |     - print version and date time on startup                              |
@@ -97,7 +100,7 @@ sub begin {
     my $action = $s->get_env_action();                  # bootstrap, ...
     $s->e( "unknown action", 'action' ) if $action eq q{};
     $s->d("action [$action]");
-    $s->p("# Ningyou $project $dt\n") if $action ne 'script';
+    $s->d("# Ningyou $project $dt\n") if $action ne 'script';
 
     # 5. get aux modules from commandline
     my $mod = $s->env_modules();                        # [ zsh, default, ...]
