@@ -1,17 +1,22 @@
 ---
 title: Ningyou DEVELOPMENT
 author: Christian Külker
-date: 2020-01-19
+date: 2020-01-24
 ---
 
 # Change Ningyou Version (ningyou_project_version)
 
-  * change `our $NINGYOU = 'x.y.z'; # Ningyou version` in file
-    `lib/Deploy/Ningyou/Env.pm`
-  * changes `"VERSION" => "x.y.z"` in file `Makefile.PL`
-  * chanage return value in sub `get_project_version` in file
-    `lib/Deploy/Ningyou/Util.pm` like so:
-    `sub get_project_version { return 'x.y.z'; }`
+  * `lib/Deploy/Ningyou/Env.pm`:
+    change `our $NINGYOU = 'x.y.z'; # Ningyou version`
+
+  * `Makefile.PL`: change `"VERSION" => "x.y.z"`
+
+  * `lib/Deploy/Ningyou/Util.pm`: change return value in the subroutine
+     `sub get_project_version { return 'x.y.z'; }`
+
+  * `README.md`: change version in meta data
+
+  * `INSTALL.md`: change version at multiple places
 
 # Use Ningyou Version (ningyou_project_version)
 
