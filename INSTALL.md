@@ -1,8 +1,8 @@
 ---
 title: Ningyou INSTALL
 author: Christian Külker
-date: 2020-01-22
-version: 0.1.3
+date: 2020-01-23
+version: 0.1.4
 ---
 
 # Abstract
@@ -17,14 +17,14 @@ See the `WARNING` message in [README.md](README.md) if you have data to loose.
 
 ## Download The Ningyou Release
 
-    wget https://github.com/ckuelker/ningyou/archive/v0.1.3.tar.gz
-    tar xvzf v0.1.3.tar.gz
+    wget https://github.com/ckuelker/ningyou/archive/v0.1.4.tar.gz
+    tar xvzf v0.1.4.tar.gz
 
 ## Installing Dependencies And Ningyou
 
 Use the system administrator account, usually `root`, for the following.
 
-    ningyou-0.1.3/bin/ningyou-install
+    ningyou-0.1.4/bin/ningyou-install
 
 Depending on the local Perl configuration it will install in `/usr/local`.
 
