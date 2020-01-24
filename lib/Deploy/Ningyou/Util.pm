@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Utilities                                                                 |
 # |                                                                           |
-# | Version: 0.1.5 (change our $VERSION inside)                               |
+# | Version: 0.1.6 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.6 2020-01-24 Christian Kuelker <c@c8i.org>                            |
+# |     - bump ningyou version                                                |
 # |                                                                           |
 # | 0.1.5 2020-01-21 Christian Kuelker <c@c8i.org>                            |
 # |     - bump ningyou version                                                |
@@ -130,7 +133,7 @@ sub exists_color {
 }
 
 # === [ fixed ] ===============================================================
-sub get_project_version       { return '0.1.3'; }
+sub get_project_version       { return '0.1.4'; }
 sub get_configuration_version { return '0.1.0'; }
 sub get_date { my $date = qx(date +'%F'); chomp $date; return $date; }
 
