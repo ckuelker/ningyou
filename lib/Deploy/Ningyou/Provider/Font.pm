@@ -1,4 +1,3 @@
-## Please see file perltidy.ERR
 # +---------------------------------------------------------------------------+
 # | Deploy::Ningyou::Provider::Font                                           |
 # |                                                                           |
