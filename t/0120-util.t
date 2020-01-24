@@ -54,6 +54,7 @@ my $methods = [
         get_env_options
         get_facter_fqhn
         get_fqhn
+        get_homedir
         get_ini
         get_ini_filename
         get_last_change_of_file
@@ -113,7 +114,7 @@ is(
     "... Deploy::Ningyou::Util got the [$s] method"
 );
 ok( $class->has_method($s), "... Deploy::Ningyou::Util has the [$s] method" );
-my $exp_p2 = "0.1.0";
+my $exp_p2 = "0.1.4";
 my $got_p2 = $tc->get_project_version($exp_p2);
 is( $got_p2, $exp_p2, "... Deploy::Ningyou::Util::$s [$exp_p2]" );
 
