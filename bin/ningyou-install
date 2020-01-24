@@ -6,9 +6,12 @@
 # |                                                                           |
 # | Description.                                                              |
 # |                                                                           |
-# | Version: 0.1.3 (change inline)                                            |
+# | Version: 0.1.4 (change inline)                                            |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.4 2020-01-24 Christian Külker <c@c8i.org>                             |
+# |     - libconfig-crontab-perl                                              |
 # |                                                                           |
 # | 0.1.3 2020-01-21 Christian Külker <c@c8i.org>                             |
 # |     - libfile-sharedir-install-perl                                       |
@@ -93,7 +96,7 @@ if [ "$DIST" = "Debian" ]; then
     libnamespace-autoclean-perl libtemplate-perl libcapture-tiny-perl \
     libapt-pkg-perl libconfig-ini-perl libfile-touch-perl libgraph-perl \
     libtest-deep-perl libconfig-inifiles-perl libfile-sharedir-perl \
-    libfile-sharedir-install-perl facter";
+    libfile-sharedir-install-perl libconfig-crontab-perl facter";
     DZIL="$APT -y install libdist-zilla-perl \
     libdist-zilla-plugin-git-perl libdist-zilla-plugin-podweaver-perl \
     libdist-zilla-plugin-run-perl ";
