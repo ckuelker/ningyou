@@ -162,7 +162,7 @@ sub applied {
     my $ct = Config::Crontab->new();
     $ct->owner($o);
     $ct->read;
-    my ($event) = $ct->select( -command_re => "$cmd" );
+    my ($event) = $ct->select( -command => "$cmd" );
     $s->d( Dumper( \$event ) );
 
     # D check for changes
