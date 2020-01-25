@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Provides apply argument action                                            |
 # |                                                                           |
-# | Version: 0.1.2  (change our $VERSION inside)                              |
+# | Version: 0.1.3  (change our $VERSION inside)                              |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.3 2020-01-25 Christian Kuelker <c@c8i.org>                            |
+# |     - add date and time to apply verbose                                  |
 # |                                                                           |
 # | 0.1.2 2020-01-18 Christian Kuelker <c@c8i.org>                            |
 # |     - scripts now prints configuration version                            |
@@ -45,7 +48,7 @@ with qw(Deploy::Ningyou::Util
     Deploy::Ningyou::Modules
     Deploy::Ningyou::Cfg);
 
-our $VERSION = '0.1.2';
+our $VERSION = '0.1.3';
 
 # === [ main ] ================================================================
 sub register { return 'apply'; }
@@ -86,6 +89,32 @@ sub apply {
     my $verbose = $s->get_verbose($i);    # opt
 
     my $action = $s->register;
+    if ($verbose and not $i->{dry}) { # verbose but not a script
+
+        # 1. print:
+        # Ningyou v0.1.0 at w2.c8i.org with /srv/deploy/w2.c8i.org.ini
+        my $str0    = "# Ningyou %s at %s with %s\n";
+        my $version = $s->get_project_version;                 # version
+        my $fqhn    = $s->get_fqhn( { ini => $i->{ini} } );    # host name
+        my $wt      = $s->get_worktree;
+        my $hcfg_fn = "$wt/$fqhn.ini";                         # file name
+        my $vc      = $s->c( 'version', "v$version" );
+        my $hnc     = $s->c( 'host', $fqhn );
+        my $fnc     = $s->c( 'file', $hcfg_fn );
+        $s->p( sprintf $str0, $vc, $hnc, $fnc );
+
+        # 2. print:
+        # Status modules(s) all in /srv/deploy at 2020-01-24T18:07:16
+        my $str1   = "# %s modules(s) %s in %s at %s\n";
+        my $action = $s->register;                         # action
+        my $scope = $s->parse_scope( $i->{mod} );  # all | <MODULE> [<MODULE>]
+        my $ac  = $s->c( 'action', ucfirst($action) );
+        my $sc  = $s->c( 'scope', $scope );
+        my $wtc = $s->c( 'file', $wt );
+        my $dt  = qx(date +'%FT%T');
+        chomp $dt;
+        $s->p( sprintf $str1, $ac, $sc, $wtc, $dt );
+    }
 
     # all | zsh vim default ...
     # 1. scope is all if nothing is specified on command line
