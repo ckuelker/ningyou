@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Provides git deployment                                                   |
 # |                                                                           |
-# | Version: 0.1.1 (change our $VERSION inside)                               |
+# | Version: 0.1.2 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.2 2020-01-25 Christian Kuelker <c@c8i.org>                            |
+# |     - fix git pull permissions                                            |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -45,7 +48,7 @@ with qw(
     Deploy::Ningyou::Util::Provider
 );
 
-our $VERSION = '0.1.1';
+our $VERSION = '0.1.2';
 
 sub register { return 'git'; }
 
@@ -279,6 +282,9 @@ sub applied {
     elsif ( -d $dst and $c->{ensure} eq 'latest' and not $clean ) {
         $s->d("section C 4");
         my $v = $s->c( 'no', "$pfx [$dst] do exist: should be pulled" );
+        push @cmd, { cmd => qq{chmod $c->{mode} $dst},     verbose => '' };
+        push @cmd, { cmd => qq{chown -R $c->{owner} $dst}, verbose => '' };
+        push @cmd, { cmd => qq{chgrp -R $c->{group} $dst}, verbose => '' };
         my $cmd = "sudo -u $c->{owner} $git_pull";
         push @cmd, { cmd => $cmd, verbose => $v };
         $return = 0;
