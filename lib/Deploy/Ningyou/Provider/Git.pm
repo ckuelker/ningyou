@@ -9,6 +9,7 @@
 # |                                                                           |
 # | 0.1.2 2020-01-25 Christian Kuelker <c@c8i.org>                            |
 # |     - fix git pull permissions                                            |
+# |     - fix git status permissions                                          |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -167,12 +168,17 @@ sub applied {
 #     git diff --cached --exit-code
 # => https://unix.stackexchange.com/questions/155046/determine-if-git-working-directory-is-clean-from-a-script
     my $clean = 0;
+    my $git_porcelain
+        = qq{git -C $dst status --untracked-files=no --porcelain};
+    my $sudo = $c->{owner} eq 'root' ? q{} : qq{sudo -u $c->{owner} -i };
+    my $git_por = qq{output=\$($sudo $git_porcelain) && [ -z "\$output" ]};
+
     if ( -d $dst and -d "$dst/.git" ) {    # we have a git repo
         $s->d("Section A - test clean");
 
         # gives 255 on unclean and 0 on clean
-        my $cmd
-            = qq{output=\$(git -C $dst status --untracked-files=no --porcelain) && [ -z "\$output" ]};
+        my $cmd = $git_por;
+        $s->d("cmd [$cmd]");
         my ( $out, $err, $res ) = $s->execute($cmd);
         $clean = $res ? 0 : 1;
         $s->d("$cmd: $out, $err, $res => $clean");
@@ -181,15 +187,25 @@ sub applied {
 
     # test if remote origin has updated
     # https://stackoverflow.com/questions/3258243/check-if-pull-needed-in-git
+    my $git_status = qq{git -C $dst status -uno};
+    my $git_update = qq{git -C $dst remote update};
     if ( -d $dst and -d "$dst/.git" and $clean ) {
         $s->d("Section A - test clean - remote");
-        my $cmd0 = qq{git -C $dst remote update};
+        my $cmd0
+            = $c->{owner} eq 'root'
+            ? $git_update
+            : qq{sudo -u $c->{owner} -i $git_update};
+        $s->d("cmd0 [$cmd0]");
         my ( $out0, $err0, $res0 ) = $s->execute_quite($cmd0);
         chomp $out0;
         $s->d(
             "RESULT 0:\n\tcmd[$cmd0]\n\tout0[$out0]\n\terr0[$err0]\n\tres0[$res0] => $clean"
         );
-        my $cmd1 = qq{git -C $dst status -uno};
+        my $cmd1
+            = $c->{owner} eq 'root'
+            ? $git_status
+            : qq{sudo -u $c->{owner} -i $git_status};
+        $s->d("cmd1 [$cmd1]");
         my ( $out1, $err1, $res1 ) = $s->execute_quite($cmd1);
         chomp $out1;
         $out1 =~ s{\n}{ }gmx;
@@ -257,8 +273,11 @@ sub applied {
     # 2. If git directory do not exists and source exists: clone it
     elsif ( not -e $dst and $c->{source} ) {
         $s->d("section C 2");
-        my $v   = "$pfx [$dst] do not exist: should be cloned";
-        my $cmd = "sudo -u $c->{owner} -i $git_clone";
+        my $v = "$pfx [$dst] do not exist: should be cloned";
+        my $cmd
+            = $c->{owner} eq 'root'
+            ? $git_clone
+            : "sudo -u $c->{owner} -i $git_clone";
         push @cmd, { cmd => $cmd, verbose => $s->c( 'no', $v ) };
         push @cmd, { cmd => qq{chmod $c->{mode} $dst},     verbose => '' };
         push @cmd, { cmd => qq{chown -R $c->{owner} $dst}, verbose => '' };
@@ -270,7 +289,10 @@ sub applied {
     elsif ( -d $dst and $c->{source} and not -d "$dst/.git" ) {
         $s->d("section C 3");
         my $v = "$pfx [$dst] do exist and dst/.git missing: should be cloned";
-        my $cmd = "sudo -u $c->{owner} $git_clone";
+        my $cmd
+            = $c->{owner} eq 'root'
+            ? $git_clone
+            : "sudo -u $c->{owner} $git_clone";
         push @cmd, { cmd => $cmd, verbose => $s->c( 'no', $v ) };
         push @cmd, { cmd => qq{chmod $c->{mode} $dst},     verbose => '' };
         push @cmd, { cmd => qq{chown -R $c->{owner} $dst}, verbose => '' };
@@ -282,10 +304,10 @@ sub applied {
     elsif ( -d $dst and $c->{ensure} eq 'latest' and not $clean ) {
         $s->d("section C 4");
         my $v = $s->c( 'no', "$pfx [$dst] do exist: should be pulled" );
-        push @cmd, { cmd => qq{chmod $c->{mode} $dst},     verbose => '' };
-        push @cmd, { cmd => qq{chown -R $c->{owner} $dst}, verbose => '' };
-        push @cmd, { cmd => qq{chgrp -R $c->{group} $dst}, verbose => '' };
-        my $cmd = "sudo -u $c->{owner} $git_pull";
+        my $cmd
+            = $c->{owner} eq 'root'
+            ? $git_pull
+            : "sudo -u $c->{owner} $git_pull";
         push @cmd, { cmd => $cmd, verbose => $v };
         $return = 0;
     }
