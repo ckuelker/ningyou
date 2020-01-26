@@ -67,7 +67,6 @@ sub parameter_default { return { dry => 1 }; }
 # configuration input options
 sub attribute {
     return {
-        comment  => 0,
         dom      => 0,
         dow      => 0,
         ensure   => 1,
@@ -81,7 +80,6 @@ sub attribute {
 
 sub attribute_default {
     return {
-        comment  => '',
         dom      => '*',
         dow      => '*',
         ensure   => 0,
@@ -98,7 +96,6 @@ sub attribute_description {
 
     # provided by Deploy::Ningyou::Attribute::*
     return {
-        comment  => 'comment',
         dom      => 'day of month',
         dow      => 'day of week',
         ensure   => 'ensure: enabled|disabled',
@@ -168,7 +165,7 @@ sub applied {
     # D check for changes
     my $return = 1;
     my $new    = 0;
-    my @attr   = qw(minute hour month dom dow comment);
+    my @attr   = qw(minute hour month dom dow);
     my @cmd    = ();
     my $pfx    = "crontab ($cmd) =>";
     my %change = ();
