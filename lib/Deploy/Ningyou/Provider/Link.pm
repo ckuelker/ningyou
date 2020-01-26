@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Provides link deployment                                                  |
 # |                                                                           |
-# | Version: 0.1.1 (change our $VERSION inside)                               |
+# | Version: 0.1.2 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.2 2020-01-26 Christian Kuelker <c@c8i.org>                            |
+# |     - rm checking for existing source (dependency problem)                |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -44,7 +47,7 @@ with qw(
     Deploy::Ningyou::Util::Provider
 );
 
-our $VERSION = '0.1.1';
+our $VERSION = '0.1.2';
 
 sub register { return 'link'; }
 
@@ -83,7 +86,7 @@ sub attribute_default {
         source  => 0,
         type    => 'symbolic',
     };
-}    # parameter => 1=mandatory|0=optional
+}
 
 # module configuration attributes
 sub attribute_description {
@@ -160,9 +163,16 @@ sub applied {
 
     # B checks
     # b.1.
-    $s->e( "Link source is missing [$c->{source}] in [$sec_c] at [$loc_c]",
-        'cfg' )
-        if not -e $c->{source};
+    # This will fail if the source of the link is pending (will
+    # be created in one go). If to enable this check it is needed
+    # to check in the dependency chain if the source will probably
+    # created (we hardly can predict this).
+    #my $em = "In configuration [$c->{source}] in [$sec_c] at [$loc_c]";
+    #$em   .= " an attribute [source] was found, but that source is missing";
+    #$em   .= " from the file system. This usually points to a missing";
+    #$em   .= " [require] in the configuration. Please, make sure the";
+    #$em   .= " source is create before a link is created to it.";
+    #$s->e( $em, 'cfg',Dumper($c) ) if not -e $c->{source};
 
     # b.3. Warn about ensure missing
     $s->e( "Ensure is missing. Set automatically ensure=present in [$sec_c]\n"
