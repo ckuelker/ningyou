@@ -7,8 +7,9 @@
 # |                                                                           |
 # | Changes:                                                                  |
 # |                                                                           |
-# | 0.1.3 2020-01-25 Christian Kuelker <c@c8i.org>                            |
+# | 0.1.3 2020-01-27 Christian Kuelker <c@c8i.org>                            |
 # |     - add date and time to apply verbose                                  |
+# |     - improve error mesage                                                |
 # |                                                                           |
 # | 0.1.2 2020-01-18 Christian Kuelker <c@c8i.org>                            |
 # |     - scripts now prints configuration version                            |
@@ -32,6 +33,7 @@ use Data::Dumper;
 use Moose;
 use namespace::autoclean;
 use Deploy::Ningyou::Dependency;
+        use Text::Wrap qw (wrap 80 wrap);
 
 # mandatory attribute for constructor
 has 'ini' => (
@@ -89,7 +91,7 @@ sub apply {
     my $verbose = $s->get_verbose($i);    # opt
 
     my $action = $s->register;
-    if ($verbose and not $i->{dry}) { # verbose but not a script
+    if ( $verbose and not $i->{dry} ) {    # verbose but not a script
 
         # 1. print:
         # Ningyou v0.1.0 at w2.c8i.org with /srv/deploy/w2.c8i.org.ini
@@ -162,23 +164,35 @@ sub apply {
 
         # A check some configuraton
         my ( $class, $provider, $destination ) = $s->parse_section($sec);
-        $s->e(
-            "section ["
-                . $s->c( 'error', $sec )
-                . "] is required by a section,\n"
-                . "but not provided by any module configuration file.\n"
-                . "Add section ["
-                . $s->c( 'yes', "$provider:$destination" )
-                . "] to a file in the "
-                . $s->c( 'class', $class )
-                . " class,\n"
-                . "for example to "
-                . $s->c(
-                'file',
-                "$class/modules/$destination/manifests/$destination.ini"
-                ),
-            'configuration'
-        ) if not exists $meta->{$sec};
+
+        if ( not exists $meta->{$sec} ) {
+            my $dst = $destination;
+            my $hfn = "$class/modules/$class/manifests/$dst.ini";
+            my $sec_c = $s->c( 'yes',  $sec );
+            my $loc_c = $s->c( 'file', $hfn );
+            my $hsec_c = $s->c( 'yes', "$provider:$dst" );
+            my $dst_c = $s->c( 'yes', $dst );
+            my $class_c= $s->c( 'class', $class );
+            my @h = qx(cd $wt&&grep -r $dst|grep manifests|grep -v Binary);
+            my $hint = wrap( '', '', @h );
+
+            my $em    = "an unknown section has requested [require=$sec_c],";
+            $em .= " which is perfectly fine, however [$hsec_c] is not";
+            $em .= " provided by any other module configuration file.";
+            $em .= " Check the configuration (spelling error, moving";
+            $em .= " around configuration, did you enabled all modules";
+            $em .= " in $fqhn.ini)?";
+            my $hm = wrap('','',$em);
+            $hm .= "\n\nHINT (have alook at):\n";
+            $hm .= "$hint";
+            $hm .= "$fqhn.ini\n";
+            $hm .= "\nOr add a section like this:";
+            $hm .=  "\n\n\t[$hsec_c]\n";
+            $hm .=  "\t...\n";
+            $hm .= "\nTo a file like: [$wt/$loc_c]";
+            $hm .= "\nand enable this module [$dst_c] in $fqhn.ini\n";
+            $s->e($hm,'configuration');
+        }
 
         # B check some configuration
         my $fn
