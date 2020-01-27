@@ -3,9 +3,12 @@
 # |                                                                           |
 # | Utilities for Provider                                                    |
 # |                                                                           |
-# | Version: 0.1.2 (change our $VERSION inside)                               |
+# | Version: 0.1.3 (change our $VERSION inside)                               |
 # |                                                                           |
 # | Changes:                                                                  |
+# |                                                                           |
+# | 0.1.3 2020-01-27 Christian Kuelker <c@c8i.org>                            |
+# |     - fix typos                                                           |
 # |                                                                           |
 # | 0.1.2 2020-01-21 Christian Kuelker <c@c8i.org>                            |
 # |     - - support rsync --exclude option                                    |
@@ -86,7 +89,7 @@ sub applied_in {
     my $am = $s->attribute;
     my $ad = $s->attribute_default;
 
-    # validate Povider::*'s applied parameter
+    # validate Provider::*'s applied parameter
     $i->{i} = $s->validate_parameter( $pm, $i->{i}, $pd );
     my $v = $s->get_verbose( $i->{i} );
     my ( $sec, $cls, $prv, $dst ) = $s->validated_section( $i->{i}->{sec} );
@@ -257,7 +260,7 @@ sub url {
     $s->d("input url [$url]");
     return $url if $url =~ m{http}gmx;
     $url =~ s{ningyou://}{$wt/}gmx;
-    $s->d("fully qualified file nane [$url]");
+    $s->d("fully qualified file name [$url]");
     $url =~ s{//}{/}gmx;
     return $url;
 }
