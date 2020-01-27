@@ -10,6 +10,7 @@
 # | 0.1.2 2020-01-25 Christian Kuelker <c@c8i.org>                            |
 # |     - fix git pull permissions                                            |
 # |     - fix git status permissions                                          |
+# |     - improve git status for Debian Jessie                                |
 # |                                                                           |
 # | 0.1.1 2019-12-15 Christian Kuelker <c@c8i.org>                            |
 # |     - VERSION not longer handled by dzil                                  |
@@ -168,21 +169,30 @@ sub applied {
 #     git diff --cached --exit-code
 # => https://unix.stackexchange.com/questions/155046/determine-if-git-working-directory-is-clean-from-a-script
     my $clean = 0;
-    my $git_porcelain
-        = qq{git -C $dst status --untracked-files=no --porcelain};
-    my $sudo = $c->{owner} eq 'root' ? q{} : qq{sudo -u $c->{owner} -i };
-    my $git_por = qq{output=\$($sudo $git_porcelain) && [ -z "\$output" ]};
+    my $git0  = qq{git -C $dst status --untracked-files=no --porcelain};
+    my $git1  = qq{git -C $dst diff-index --quiet HEAD --};
+    my $cmd0  = qq{sync;if $git0;then echo CLEAN;else echo DIRTY;fi};
+    my $cmd1  = qq{sync;if $git1;then echo CLEAN;else echo DIRTY;fi};
+    my $sudo  = $c->{owner} eq 'root' ? q{} : qq{sudo -u $c->{owner} -i };
 
+    # gives 255 on unclean and 0 on clean
     if ( -d $dst and -d "$dst/.git" ) {    # we have a git repo
         $s->d("Section A - test clean");
-
-        # gives 255 on unclean and 0 on clean
-        my $cmd = $git_por;
-        $s->d("cmd [$cmd]");
-        my ( $out, $err, $res ) = $s->execute($cmd);
-        $clean = $res ? 0 : 1;
-        $s->d("$cmd: $out, $err, $res => $clean");
+        my ( $out0, $err0,  $res0 ) = $s->execute_quite($cmd0);
+        my ( $out1, $err1,, $res1 ) = $s->execute_quite($cmd1);
+        chomp $out0;
+        chomp $out1;
+        $clean
+            = (     $out0 eq 'CLEAN'
+                and $out1 eq 'CLEAN'
+                and not $res0
+                and not $res1
+                and not $err0
+                and not $err1 ) ? 1 : 0;
+        $s->d("CLEAN0 [$cmd0]: out[$out0], err[$err0], res[$res0]=>[$clean]");
+        $s->d("CLEAN1 [$cmd1]: out[$out1], err[$err1], res[$res1]=>[$clean]");
     }
+
     $s->d("clean 1 [$clean]\n");
 
     # test if remote origin has updated
