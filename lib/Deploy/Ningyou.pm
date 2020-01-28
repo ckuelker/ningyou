@@ -9,6 +9,7 @@
 # |                                                                           |
 # | 0.1.3 2020-01-24 Christian Kuelker <c@c8i.org>                            |
 # |     - do not print version and date time on startup                       |
+# |     - create /var/cache/apt/pkgcache.bin on startup if needed             |
 # |                                                                           |
 # | 0.1.2 2020-01-04 Christian Kuelker <c@c8i.org>                            |
 # |     - print version and date time on startup                              |
@@ -46,6 +47,9 @@ sub update {
     my $verbose = $s->get_verbose($i);
 
     my $fn = '/var/cache/apt/pkgcache.bin';
+    if( not -e $fn ){ # first time run Ningyou
+        my ( $out, $err, $res ) = $s->execute_quite("aptitude update");
+    }
     $s->e( "file not present [$fn]", 'bug' ) if not -f $fn;
     my $mt = $s->get_last_change_of_file($fn);
     $s->d("apt cache changed [$mt]");
