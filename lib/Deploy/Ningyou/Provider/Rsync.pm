@@ -9,6 +9,7 @@
 # |                                                                           |
 # | 0.1.3 2020-01-21 Christian Kuelker <c@c8i.org>                            |
 # |     - support rsync --exclude option                                      |
+# |     - fix group ownership                                                 |
 # |                                                                           |
 # | 0.1.2 2020-01-21 Christian Kuelker <c@c8i.org>                            |
 # |     - fix rsync --group option                                            |
@@ -203,7 +204,7 @@ sub applied {
         # group
         if ( exists $c->{group} and $c->{group} ) {
             $v = "$pfx [$dst] change group to [$c->{group}]";
-            push @cmd, { cmd => "chown -R $c->{group} $dst", verbose => $v };
+            push @cmd, { cmd => "chgrp -R $c->{group} $dst", verbose => $v };
         }
         $return = 0;
     }
@@ -230,7 +231,7 @@ sub applied {
             if ( exists $c->{group} and $c->{group} ) {
                 $v = "$pfx [$dst] change group to [$c->{group}]";
                 push @cmd,
-                    { cmd => "chown -R $c->{group} $dst", verbose => $v };
+                    { cmd => "chgrp -R $c->{group} $dst", verbose => $v };
             }
             $return = 0;
         }
