@@ -168,70 +168,73 @@ sub applied {
 # and staged, but not committed changes with:
 #     git diff --cached --exit-code
 # => https://unix.stackexchange.com/questions/155046/determine-if-git-working-directory-is-clean-from-a-script
-    my $clean = 0;
-    my $git0  = qq{git -C $dst status --untracked-files=no --porcelain};
-    my $git1  = qq{git -C $dst diff-index --quiet HEAD --};
-    my $cmd0  = qq{sync;if $git0;then echo CLEAN;else echo DIRTY;fi};
-    my $cmd1  = qq{sync;if $git1;then echo CLEAN;else echo DIRTY;fi};
-    my $sudo  = $c->{owner} eq 'root' ? q{} : qq{sudo -u $c->{owner} -i };
+    my $clean0 = 0;
+    my $git0   = qq{git -C $dst status --untracked-files=no --porcelain};
+    my $git1   = qq{git -C $dst diff-index --quiet HEAD --};
+    my $sudo   = $c->{owner} eq 'root' ? q{} : qq{sudo -u $c->{owner} -i };
+    my $cmd0   = qq{sync;if $sudo $git0;then echo CLEAN;else echo DIRTY;fi};
+    my $cmd1   = qq{sync;if $sudo $git1;then echo CLEAN;else echo DIRTY;fi};
 
     # gives 255 on unclean and 0 on clean
     if ( -d $dst and -d "$dst/.git" ) {    # we have a git repo
-        $s->d("Section A - test clean");
+        $s->d("Section A.1 - test clean local");
         my ( $out0, $err0,  $res0 ) = $s->execute_quite($cmd0);
         my ( $out1, $err1,, $res1 ) = $s->execute_quite($cmd1);
         chomp $out0;
         chomp $out1;
-        $clean
+        $clean0
             = (     $out0 eq 'CLEAN'
                 and $out1 eq 'CLEAN'
                 and not $res0
                 and not $res1
                 and not $err0
                 and not $err1 ) ? 1 : 0;
-        $s->d("CLEAN0 [$cmd0]: out[$out0], err[$err0], res[$res0]=>[$clean]");
-        $s->d("CLEAN1 [$cmd1]: out[$out1], err[$err1], res[$res1]=>[$clean]");
+        $s->d(
+            "CLEAN0 [$cmd0]: out[$out0], err[$err0], res[$res0]=>[$clean0]");
+        $s->d(
+            "CLEAN1 [$cmd1]: out[$out1], err[$err1], res[$res1]=>[$clean0]");
     }
-
-    $s->d("clean 1 [$clean]\n");
+    $s->d("clean A.1 [$clean0]\n");
 
     # test if remote origin has updated
     # https://stackoverflow.com/questions/3258243/check-if-pull-needed-in-git
-    my $git_status = qq{git -C $dst status -uno};
-    my $git_update = qq{git -C $dst remote update};
-    if ( -d $dst and -d "$dst/.git" and $clean ) {
-        $s->d("Section A - test clean - remote");
-        my $cmd0
-            = $c->{owner} eq 'root'
-            ? $git_update
-            : qq{sudo -u $c->{owner} -i $git_update};
-        $s->d("cmd0 [$cmd0]");
-        my ( $out0, $err0, $res0 ) = $s->execute_quite($cmd0);
-        chomp $out0;
-        $s->d(
-            "RESULT 0:\n\tcmd[$cmd0]\n\tout0[$out0]\n\terr0[$err0]\n\tres0[$res0] => $clean"
-        );
-        my $cmd1
-            = $c->{owner} eq 'root'
-            ? $git_status
-            : qq{sudo -u $c->{owner} -i $git_status};
-        $s->d("cmd1 [$cmd1]");
-        my ( $out1, $err1, $res1 ) = $s->execute_quite($cmd1);
-        chomp $out1;
-        $out1 =~ s{\n}{ }gmx;
-        $out1 =~ s{\s+}{ }gmx;
-        $s->d(
-            "RESULT 1:\n\tcmd[$cmd1]\n\tout1[$out1]\n\terr1[$err1]\n\tres1[$res1] => $clean"
-        );
+    my $clean1 = 0;
+    my $git3   = qq{git -C $dst remote update >/dev/null 2>&1};
+    my $git4 = qq{git -C $dst status -uno};   # local (-uno: ignire untracked)
+    my $cmd3 = qq{sync;if $sudo $git3;then echo CLEAN;else echo DIRTY;fi};
+    my $cmd4 = qq{sync;$sudo $git4};
 
-        #                     Your branch is up to date
-        $clean
-            = ( $out1 =~ m/Your\s+branch\s+is\s+up\s+to\s+date/gmx ) ? 1 : 0;
+    # git3: Your branch is up to date with 'origin/master'  Debian Buster
+    #       Your branch is up-to-date with 'origin/master'  Debian Jessie
+    #       Your branch is ahead of 'origin/master' by 1 commit.
+    if ( -d $dst and -d "$dst/.git" and $clean0 ) {
+        $s->d("Section A.2 - test clean - remote");
+        my ( $out3, $err3,  $res3 ) = $s->execute_quite($cmd3);
+        my ( $out4, $err4,, $res4 ) = $s->execute_quite($cmd4);
+        chomp $out3;
+        chomp $out4;
+        $out3 =~ s{\n}{ }gmx;
+        $out3 =~ s{\s+}{ }gmx;
+        $out4 =~ s{\n}{ }gmx;
+        $out4 =~ s{\s+}{ }gmx;
+        $clean1
+            = (     $out4 =~ m{Your\s+branch\s+is\s+up(\s+|-)to(\s+|-)date}gmx
+                and $out3 eq 'CLEAN'
+                and not $res3
+                and not $res4
+                and not $err3
+                and not $err4 ) ? 1 : 0;
         $s->d(
-            "RESULT 2:\n\tcmd[$cmd1]\n\tout1[$out1]\n\terr1[$err1]\n\tres1[$res1] => $clean"
-        );
+            "CLEAN3 [$cmd3]: out[$out3], err[$err3], res[$res3]=>[$clean1]");
+        $s->d(
+            "CLEAN4 [$cmd4]: out[$out4], err[$err4], res[$res4]=>[$clean1]");
     }
-    $s->d("clean 2 [$clean]\n");
+
+    #                     Your branch is up to date
+    #$clean
+    #    = ( $out1 =~ m/Your\s+branch\s+is\s+up\s+to\s+date/gmx ) ? 1 : 0;
+    $s->d("clean A.2 [$clean1]\n");
+    my $clean = ( $clean0 and $clean1 ) ? 1 : 0;
 
     my $sec_c = $s->c( 'module', $sec );
     my $loc_c = $s->c( 'file',   $i->{loc} );
