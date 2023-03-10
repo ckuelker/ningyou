@@ -1,53 +1,50 @@
 ---
 title: Ningyou INSTALL
 author: Christian Külker
-date: 2020-01-23
+date: 2023-03-10
 version: 0.1.4
 ---
 
-# Abstract
-
-There are different types of installation methods. This document describes only
-__one__ simple method. For other methods, please refer to
-[MANUAL.md](MANUAL.md).
+There are several types of installation methods. This document describes only
+one simple method. For other methods, please refer to [MANUAL.md](MANUAL.md).
 
 # Installing A Ningyou Release On A Fresh Installed OS
 
-See the `WARNING` message in [README.md](README.md) if you have data to loose.
+See the `WARNING` message in [README.md](README.md) if you have data to lose.
 
 ## Download The Ningyou Release
 
-    wget https://github.com/ckuelker/ningyou/archive/v0.1.4.tar.gz
-    tar xvzf v0.1.4.tar.gz
+    wget https://github.com/ckuelker/ningyou/archive/v0.1.3.tar.gz
+    tar xvzf v0.1.3.tar.gz
 
 ## Installing Dependencies And Ningyou
 
-Use the system administrator account, usually `root`, for the following.
+Use the system administrator account, usually `root`, to do the following
 
-    ningyou-0.1.4/bin/ningyou-install
+    ningyou-0.1.3/bin/ningyou-install
 
-Depending on the local Perl configuration it will install in `/usr/local`.
+Depending on the local Perl configuration, it will be installed in `/usr/local`.
 
 # Configuring Ningyou For The First Time
 
-Use the system administrator account, usually `root`, for the following.
+Use the system administrator account, usually `root`, to do the following
 
-    cd /srv
+    cd
     ningyou bootstrap
 
-This will create the file `~/.ningyou.ini`, `~/.gitconfig` (if not present) and
-a git repository `/srv/deploy`, if not already there. Or specify the
-repository, if you do not like the default name `deploy`:
+This will create `~/.ningyou.ini`, `~/.gitconfig` (if it does not exist) and a
+git repository `/root/deploy` if it does not already exist. Or specify the
+repository if you do not like the default `deploy`:
 
     ningyou bootstrap /path/to/git/repository
 
-The same applies if the directory should be at a different location
+The same applies if you want the directory to be in a different location.
 
     cd
     ningyou bootstrap /srv/deploy
 
-The recommended method is to use a __dedicated__ git repository for the deploy
-configuration managed by a USER and not by root:
+The recommended method is to use a dedicated git repository for the deploy
+configuration that is managed by a USER:
 
     cd
     mkdir -p /srv/deploy
@@ -67,16 +64,24 @@ Created configuration file [/root/.ningyou.ini]
 Applied bootstrap
 ~~~
 
-Consider swapping the ningyou configuration for the USER (so that booth are
-using the same ningyou configuration/ worktree):
+Consider swapping the ningyou configuration for the USER (so that booths use
+the same ningyou configuration/worktree):
 
     mv /root/.ningyou.ini /home/USER
     ln -s /home/USER/.ningyou.ini /root
 
+To understand other options on how to install __Ningyou__, please refer to
+[MANUAL.md](MANUAL.md). For what to do from here, please refer to
+[USAGE.md](USAGE.md).
 
-To understand other options on how to install __Ningyou__, please refer
-to [MANUAL.md](MANUAL.md). On how to go from here, see [USAGE.md](USAGE.md)
-for further reading.
+# History
+
+| Version | Date       | Notes                                                |
+| ------- | ---------- | ---------------------------------------------------- |
+| 0.1.4   | 2023-03-10 | Improve writing, bump copyright year                 |
+| 0.1.3   | 2020-01-22 | Add bootstrap info                                   |
+| 0.1.2   | 2019-12-15 | Dispatch long README text to specific documents      |
+| 0.1.1   |            | Initial release                                      |
 
 # DISCLAIMER OF WARRANTY
 
@@ -106,7 +111,7 @@ Christian Külker <c@c8i.org>
 
 # Copyright and License
 
-This software is Copyright (c) 2013, 2014, 2019, 2020 by Christian Külker.
+This software is Copyright (c) 2013, 2014, 2019, 2023 by Christian Külker.
 
 This is free software, licensed under:
 
